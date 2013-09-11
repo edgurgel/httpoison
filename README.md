@@ -1,4 +1,4 @@
-# HTTPoison
+# HTTPoison [![Build Status](https://travis-ci.org/edgurgel/httpoison.png?branch=master)](https://travis-ci.org/edgurgel/httpoison)
 
 HTTP client for Elixir, based on [HTTPotion](https://github.com/myfreeweb/httpotion)
 
