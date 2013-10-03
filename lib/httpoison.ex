@@ -2,7 +2,7 @@ defmodule HTTPoison.Base do
   defmacro __using__(_) do
     quote do
       def start do
-        Enum.each [:ssl, :hackney], Application.Behaviour.start(&1)
+        Enum.each [:ssl, :hackney], &Application.Behaviour.start(&1)
       end
 
       def process_url(url) do
