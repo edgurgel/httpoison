@@ -83,7 +83,16 @@ defmodule HTTPoisonTest do
     assert capture_io(fn -> TestClient.head("httpbin.org/get") end) == "ok"
   end
 
-  def assert_response(response, function // nil) do
+  test "asynchronous request" do
+    HTTPoison.AsyncResponse[id: id] = HTTPoison.get "httpbin.org/get", [], [stream_to: self]
+
+    assert_receive HTTPoison.AsyncStatus[id: ^id, code: 200], 1_000
+    assert_receive HTTPoison.AsyncHeaders[id: ^id, headers: _headers], 1_000
+    assert_receive HTTPoison.AsyncChunk[id: ^id, chunk: _chunk], 1_000
+    assert_receive HTTPoison.AsyncEnd[id: ^id], 1_000
+  end
+
+  defp assert_response(response, function // nil) do
     assert response.status_code == 200
     assert response.headers["Connection"] == "keep-alive"
     assert is_binary(response.body)

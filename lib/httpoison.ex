@@ -17,9 +17,27 @@ defmodule HTTPoison.Base do
 
       def process_response_body(body), do: body
 
+      def process_response_chunk(chunk), do: chunk
+
       def process_headers(headers), do: headers
 
       def process_status_code(status_code), do: status_code
+
+      def transformer(target) do
+        receive do
+          {:hackney_response, id, {:status, code, _reason}} ->
+            target <- HTTPoison.AsyncStatus[id: id, code: process_status_code(code)]
+            transformer(target)
+          {:hackney_response, id, {:headers, headers}} ->
+            target <- HTTPoison.AsyncHeaders[id: id, headers: process_headers(headers)]
+            transformer(target)
+          {:hackney_response, id, :done} ->
+            target <- HTTPoison.AsyncEnd[id: id]
+          {:hackney_response, id, chunk} ->
+            target <- HTTPoison.AsyncChunk[id: id, chunk: process_response_chunk(chunk)]
+            transformer(target)
+        end
+      end
 
       @doc """
       Sends an HTTP request.
@@ -36,8 +54,13 @@ defmodule HTTPoison.Base do
       """
       def request(method, url, body // "", headers // [], options // []) do
         timeout = Keyword.get options, :timeout, 5000
+        stream_to = Keyword.get options, :stream_to
         hn_options = Keyword.get options, :hackney, []
         body = process_request_body body
+
+        if stream_to do
+          hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])}] ++ hn_options
+        end
 
         case :hackney.request(method,
                               process_url(to_string(url)),
@@ -45,18 +68,17 @@ defmodule HTTPoison.Base do
                               body,
                               hn_options) do
            {:ok, status_code, headers, client} ->
-             {:ok, body, client} = :hackney.body(client)
+             {:ok, body} = :hackney.body(client)
              HTTPoison.Response[
                status_code: process_status_code(status_code),
                headers: process_headers(headers),
                body: process_response_body(body)
              ]
+           {:ok, id} ->
+             HTTPoison.AsyncResponse[id: id]
            {:error, reason} ->
              raise HTTPoison.HTTPError[message: to_string(reason)]
          end
-
-        #if stream_to, do:
-          #ib_options = Dict.put(ib_options, :stream_to, spawn(__MODULE__, :transformer, [stream_to]))
       end
 
       def get(url, headers // [], options // []),         do: request(:get, url, "", headers, options)
@@ -78,8 +100,10 @@ defmodule HTTPoison do
   """
 
   defrecord Response, status_code: nil, body: nil, headers: []
+
   defrecord AsyncResponse, id: nil
-  defrecord AsyncHeaders, id: nil, status_code: nil, headers: []
+  defrecord AsyncStatus, id: nil, code: nil
+  defrecord AsyncHeaders, id: nil, headers: []
   defrecord AsyncChunk, id: nil, chunk: nil
   defrecord AsyncEnd, id: nil
 
