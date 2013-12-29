@@ -10,12 +10,11 @@ Using hackney we work only with binaries instead of string lists.
 
 ## Usage
 
-```elixir
+```iex
 iex> HTTPoison.start
 :ok
 iex> HTTPoison.get "http://localhost:4000"
 HTTPoison.Response[body: "...", headers: [{"Connection","Keep-Alive"}...], status_code: 200]
-
 iex> HTTPoison.get "http://localhost:1"
 ** (HTTPoison.HTTPError) econnrefused
 ```
