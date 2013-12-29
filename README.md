@@ -6,7 +6,7 @@ HTTP client for Elixir, based on [HTTPotion](https://github.com/myfreeweb/httpot
 
 HTTPoison uses hackney to execute HTTP requests instead of ibrowse. I like hackney :thumbsup:
 
-Using hackney we work only with binaries instead of string lists. However, hackney does not have async requests like ibrowse.
+Using hackney we work only with binaries instead of string lists.
 
 ## Usage
 
@@ -38,6 +38,23 @@ end
 iex> GitHub.start
 iex> GitHub.get("users/myfreeweb").body[:public_repos]
 37
+```
+
+And now with async!
+
+```iex
+iex> HTTPoison.get "http://floatboth.com", [], [stream_to: self]
+HTTPoison.AsyncResponse[id: #Reference<0.0.0.608>]
+iex> flush
+HTTPoison.AsyncStatus[id: #Reference<0.0.0.608>, code: 200]
+HTTPoison.AsyncHeaders[id: #Reference<0.0.0.608>,
+ headers: [{"Server", "cloudflare-nginx"}, {"Date", "Sun, 29 Dec 2013 17:54:24 GMT"}, {"Content-Type", "text/html; charset=utf-8"}, {"Transfer-Encoding", "chunked"}, {"Connection", "keep-alive"},
+  {"Set-Cookie", "__cfduid=d845959e83669e83df85ce135a9585c031388339664499; expires=Mon, 23-Dec-2019 23:50:00 GMT; path=/; domain=.floatboth.com; HttpOnly"}, {"CF-RAY", "e485af71dfd0326"}]]
+HTTPoison.AsyncChunk[id: #Reference<0.0.0.608>,
+ chunk: "<!DOCTYPE html>..."]
+HTTPoison.AsyncChunk[id: #Reference<0.0.0.608>,
+ chunk: "curity, typography..."]
+HTTPoison.AsyncEnd[id: #Reference<0.0.0.608>]
 ```
 
 ## License
