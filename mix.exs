@@ -13,6 +13,6 @@ defmodule HTTPoison.Mixfile do
   end
 
   defp deps do
-    [ {:hackney, tag: "0.4.4", github: "benoitc/hackney"} ]
+    [ {:hackney, tag: "0.10.0", github: "benoitc/hackney"} ]
   end
 end
