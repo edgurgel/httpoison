@@ -1,8 +1,7 @@
 Code.require_file "../test_helper.exs", __FILE__
 
 defmodule HTTPoisonTest do
-  use ExUnit.Case
-  import ExUnit.CaptureIO
+  use ExUnit.Case, async: true
   import PathHelpers
 
   test "get" do
@@ -74,13 +73,13 @@ defmodule HTTPoisonTest do
       use HTTPoison.Base
 
       def process_url(url) do
-        IO.write "ok"
-
+        self <- :ok
         super(url)
       end
     end
 
-    assert capture_io(fn -> TestClient.head("httpbin.org/get") end) == "ok"
+    TestClient.head("httpbin.org/get")
+    assert_receive :ok, 1_000
   end
 
   test "asynchronous request" do
