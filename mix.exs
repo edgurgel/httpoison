@@ -9,7 +9,7 @@ defmodule HTTPoison.Mixfile do
   end
 
   def application do
-    [applications: [:ssl, :hackney]]
+    [applications: [:hackney]]
   end
 
   defp deps do
