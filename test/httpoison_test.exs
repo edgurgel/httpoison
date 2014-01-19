@@ -73,7 +73,7 @@ defmodule HTTPoisonTest do
       use HTTPoison.Base
 
       def process_url(url) do
-        self <- :ok
+        send self, :ok
         super(url)
       end
     end

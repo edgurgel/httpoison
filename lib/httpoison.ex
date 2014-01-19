@@ -26,15 +26,15 @@ defmodule HTTPoison.Base do
       def transformer(target) do
         receive do
           {:hackney_response, id, {:status, code, _reason}} ->
-            target <- HTTPoison.AsyncStatus[id: id, code: process_status_code(code)]
+            send target, HTTPoison.AsyncStatus[id: id, code: process_status_code(code)]
             transformer(target)
           {:hackney_response, id, {:headers, headers}} ->
-            target <- HTTPoison.AsyncHeaders[id: id, headers: process_headers(headers)]
+            send target, HTTPoison.AsyncHeaders[id: id, headers: process_headers(headers)]
             transformer(target)
           {:hackney_response, id, :done} ->
-            target <- HTTPoison.AsyncEnd[id: id]
+            send target, HTTPoison.AsyncEnd[id: id]
           {:hackney_response, id, chunk} ->
-            target <- HTTPoison.AsyncChunk[id: id, chunk: process_response_chunk(chunk)]
+            send target, HTTPoison.AsyncChunk[id: id, chunk: process_response_chunk(chunk)]
             transformer(target)
         end
       end
