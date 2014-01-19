@@ -7,7 +7,7 @@ otp_release:
 before_install:
   - export MIX_ENV=test
   - git clone https://github.com/elixir-lang/elixir
-  - cd elixir && git checkout v0.12.0 && make && cd ..
+  - cd elixir && git checkout v0.12.2 && make && cd ..
   - export PATH=`pwd`/elixir/bin:$PATH
 install: mix deps.get
 script: mix test
