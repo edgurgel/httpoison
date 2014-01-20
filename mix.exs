@@ -5,14 +5,20 @@ defmodule HTTPoison.Mixfile do
     [ app: :httpoison,
       version: "0.0.2",
       elixir: "~> 0.12.2",
-      deps: deps ]
+      deps: deps(Mix.env) ]
   end
 
   def application do
     [applications: [:hackney]]
   end
 
-  defp deps do
+  defp deps(:prod) do
     [ { :hackney, github: "benoitc/hackney", tag: "0.10.1" } ]
   end
+
+  defp deps(:test) do
+    deps(:prod) ++ [ { :httparrot, github: "edgurgel/httparrot", tag: "0.0.1" } ]
+  end
+
+  defp deps(_), do: deps(:prod)
 end
