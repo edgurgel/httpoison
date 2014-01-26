@@ -4,10 +4,12 @@ notifications:
     - eduardo@gurgel.me
 otp_release:
   - R16B
-before_install:
-  - export MIX_ENV=test
-  - git clone https://github.com/elixir-lang/elixir
-  - cd elixir && git checkout v0.12.2 && make && cd ..
-  - export PATH=`pwd`/elixir/bin:$PATH
-install: mix deps.get
+  - R16B01
+  - R16B02
 script: mix test
+install: mix deps.get
+before_install:
+  - mkdir -p vendor/elixir
+  - wget -q https://github.com/elixir-lang/elixir/releases/download/v0.12.2/v0.12.2.zip && unzip -qq v0.12.2.zip -d vendor/elixir
+  - export PATH="$PATH:$PWD/vendor/elixir/bin"
+  - export MIX_ENV=test
