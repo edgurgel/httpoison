@@ -17,7 +17,8 @@ defmodule HTTPoison.Mixfile do
   end
 
   defp deps(:test) do
-    deps(:prod) ++ [ { :httparrot, github: "edgurgel/httparrot", tag: "0.0.1" } ]
+    deps(:prod) ++ [ { :httparrot, github: "edgurgel/httparrot", tag: "0.0.1" },
+                     { :meck, github: "eproxus/meck", tag: "0.8.1" } ]
   end
 
   defp deps(_), do: deps(:prod)
