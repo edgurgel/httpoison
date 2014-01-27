@@ -55,7 +55,7 @@ defmodule HTTPoison.Base do
       def request(method, url, body // "", headers // [], options // []) do
         timeout = Keyword.get options, :timeout, 5000
         stream_to = Keyword.get options, :stream_to
-        hn_options = Keyword.get options, :hackney, []
+        hn_options = [connect_timeout: timeout] ++ Keyword.get options, :hackney, []
         body = process_request_body body
 
         if stream_to do
