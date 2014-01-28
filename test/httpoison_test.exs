@@ -54,6 +54,11 @@ defmodule HTTPoisonTest do
     assert_response HTTPoison.get("http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget", [], [ hackney: hackney ])
   end
 
+  test "basic_auth hackney option" do
+    hackney = [basic_auth: {"user", "pass"}]
+    assert_response HTTPoison.get("http://localhost:8080/basic-auth/user/pass", [], [ hackney: hackney ])
+  end
+
   test "explicit http scheme" do
     assert_response HTTPoison.head("http://localhost:8080/get")
   end
