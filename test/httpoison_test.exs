@@ -77,20 +77,6 @@ defmodule HTTPoisonTest do
     end
   end
 
-  test "extension" do
-    defmodule TestClient do
-      use HTTPoison.Base
-
-      def process_url(url) do
-        send self, :ok
-        super(url)
-      end
-    end
-
-    TestClient.head("localhost:8080/get")
-    assert_receive :ok, 1_000
-  end
-
   test "asynchronous request" do
     HTTPoison.AsyncResponse[id: id] = HTTPoison.get "localhost:8080/get", [], [stream_to: self]
 
