@@ -14,14 +14,14 @@ defmodule HTTPoison.Mixfile do
 
   defp deps(:prod) do
     [ 
-      { :hackney, github: "benoitc/hackney", tag: "0.10.1" },
-      { :jsex, github: "d0rc/jsex", override: true, branch: "fixes-for-new-elixir"} 
+      { :hackney, github: "benoitc/hackney", tag: "0.10.1" }
     ]
   end
 
   defp deps(:test) do
     deps(:prod) ++ [ { :httparrot, github: "edgurgel/httparrot", tag: "0.0.1" },
-                     { :meck, github: "eproxus/meck", tag: "0.8.1" } ]
+                     { :meck, github: "eproxus/meck", tag: "0.8.1" },
+                     { :jsex, github: "d0rc/jsex", override: true, branch: "fixes-for-new-elixir"} ]
   end
 
   defp deps(_), do: deps(:prod)
