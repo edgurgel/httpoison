@@ -6,7 +6,7 @@ defmodule HTTPoison.Base do
       end
 
       def process_url(url) do
-        unless url =~ %r/\Ahttps?:\/\// do
+        unless String.match? url, ~r/\Ahttps?:\/\// do
           "http://" <> url
         else
           url
@@ -52,7 +52,7 @@ defmodule HTTPoison.Base do
       Returns HTTPoison.Response if successful.
       Raises  HTTPoison.HTTPError if failed.
       """
-      def request(method, url, body // "", headers // [], options // []) do
+      def request(method, url, body \\ "", headers \\ [], options \\ []) do
         timeout = Keyword.get options, :timeout, 5000
         stream_to = Keyword.get options, :stream_to
         hn_options = [connect_timeout: timeout] ++ Keyword.get options, :hackney, []
@@ -81,13 +81,13 @@ defmodule HTTPoison.Base do
          end
       end
 
-      def get(url, headers // [], options // []),         do: request(:get, url, "", headers, options)
-      def put(url, body, headers // [], options // []),   do: request(:put, url, body, headers, options)
-      def head(url, headers // [], options // []),        do: request(:head, url, "", headers, options)
-      def post(url, body, headers // [], options // []),  do: request(:post, url, body, headers, options)
-      def patch(url, body, headers // [], options // []), do: request(:patch, url, body, headers, options)
-      def delete(url, headers // [], options // []),      do: request(:delete, url, "", headers, options)
-      def options(url, headers // [], options // []),     do: request(:options, url, "", headers, options)
+      def get(url, headers \\ [], options \\ []),         do: request(:get, url, "", headers, options)
+      def put(url, body, headers \\ [], options \\ []),   do: request(:put, url, body, headers, options)
+      def head(url, headers \\ [], options \\ []),        do: request(:head, url, "", headers, options)
+      def post(url, body, headers \\ [], options \\ []),  do: request(:post, url, body, headers, options)
+      def patch(url, body, headers \\ [], options \\ []), do: request(:patch, url, body, headers, options)
+      def delete(url, headers \\ [], options \\ []),      do: request(:delete, url, "", headers, options)
+      def options(url, headers \\ [], options \\ []),     do: request(:options, url, "", headers, options)
 
       defoverridable Module.definitions_in(__MODULE__)
     end
