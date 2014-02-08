@@ -17,6 +17,8 @@ defmodule HTTPoison.Base do
 
       def process_response_body(body), do: body
 
+      def process_request_headers(headers), do: headers
+
       def process_response_chunk(chunk), do: chunk
 
       def process_headers(headers), do: headers
@@ -64,7 +66,7 @@ defmodule HTTPoison.Base do
 
         case :hackney.request(method,
                               process_url(to_string(url)),
-                              headers,
+                              process_request_headers(headers),
                               body,
                               hn_options) do
            {:ok, status_code, headers, client} ->
