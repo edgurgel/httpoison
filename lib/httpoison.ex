@@ -6,10 +6,10 @@ defmodule HTTPoison.Base do
       end
 
       def process_url(url) do
-        unless String.match? url, ~r/\Ahttps?:\/\// do
-          "http://" <> url
-        else
-          url
+        case String.downcase(url) do
+          <<"http://"::utf8, _::binary>> -> url
+          <<"https://"::utf8, _::binary>> -> url
+          _ -> "http://" <> url
         end
       end
 
