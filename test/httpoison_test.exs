@@ -86,7 +86,7 @@ defmodule HTTPoisonTest do
     assert_receive HTTPoison.AsyncEnd[id: ^id], 1_000
   end
 
-  defp assert_response(response, function // nil) do
+  defp assert_response(response, function \\ nil) do
     assert response.status_code == 200
     assert response.headers["connection"] == "keep-alive"
     assert is_binary(response.body)
