@@ -2,7 +2,7 @@ defmodule HTTPoison.Base do
   defmacro __using__(_) do
     quote do
       def start do
-        Application.Behaviour.start(:httpoison)
+        :application.ensure_all_started(:httpoison)
       end
 
       def process_url(url) do

@@ -5,7 +5,7 @@ defmodule HTTPoisonTest do
   import PathHelpers
 
   setup_all do
-    :ok = Application.Behaviour.start(:httparrot)
+    {:ok, _} = :application.ensure_all_started(:httparrot)
   end
 
   test "get" do
