@@ -91,9 +91,9 @@ defmodule HTTPoison.Base do
 
       defp make_response(status_code, headers, body \\ "") do
         HTTPoison.Response[
-          status_code: status_code,
+          status_code: process_status_code(status_code),
           headers: process_headers(headers),
-          body: body
+          body: process_response_body(body)
         ]
       end
 
