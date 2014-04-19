@@ -13,11 +13,11 @@ defmodule HTTPoison.Mixfile do
   end
 
   defp deps(:prod) do
-    [ { :hackney, github: "benoitc/hackney", tag: "0.11.1" } ]
+    [ { :hackney, github: "benoitc/hackney", tag: "0.10.1" } ]
   end
 
   defp deps(:test) do
-    deps(:prod) ++ [ { :httparrot, github: "edgurgel/httparrot", tag: "0.0.2" },
+    deps(:prod) ++ [ { :httparrot, github: "edgurgel/httparrot", tag: "0.0.3" },
                      { :meck, github: "eproxus/meck", tag: "0.8.1" } ]
   end
 
