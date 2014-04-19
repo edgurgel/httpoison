@@ -69,19 +69,11 @@ defmodule HTTPoison.Base do
                               process_request_headers(headers),
                               body,
                               hn_options) do
-           {:ok, 204, headers, client} ->
-             HTTPoison.Response[
-              status_code: 204,
-              headers: process_headers(headers),
-              body: nil
-             ]
-           {:ok, status_code, headers, client} ->
-             {:ok, body} = :hackney.body(client)
-             HTTPoison.Response[
-               status_code: process_status_code(status_code),
-               headers: process_headers(headers),
-               body: process_response_body(body)
-             ]
+           {:ok, 204, headers, client} -> 
+            make_response(204, headers)
+           {:ok, status_code, headers, client} -> 
+            {:ok, body} = :hackney.body(client)
+            make_response(status_code, headers, client)
            {:ok, id} ->
              HTTPoison.AsyncResponse[id: id]
            {:error, reason} ->
@@ -96,6 +88,14 @@ defmodule HTTPoison.Base do
       def patch(url, body, headers \\ [], options \\ []), do: request(:patch, url, body, headers, options)
       def delete(url, headers \\ [], options \\ []),      do: request(:delete, url, "", headers, options)
       def options(url, headers \\ [], options \\ []),     do: request(:options, url, "", headers, options)
+
+      defp make_response(status_code, headers, body \\ "") do
+        HTTPoison.Response[
+          status_code: status_code,
+          headers: process_headers(headers),
+          body: body
+        ]
+      end
 
       defoverridable Module.definitions_in(__MODULE__)
     end
