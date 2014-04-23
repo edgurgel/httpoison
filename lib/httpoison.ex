@@ -73,7 +73,7 @@ defmodule HTTPoison.Base do
             make_response(204, headers)
            {:ok, status_code, headers, client} -> 
             {:ok, body} = :hackney.body(client)
-            make_response(status_code, headers, client)
+            make_response(status_code, headers, body)
            {:ok, id} ->
              HTTPoison.AsyncResponse[id: id]
            {:error, reason} ->
