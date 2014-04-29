@@ -1,15 +1,18 @@
-language: erlang
 notifications:
   recipients:
     - eduardo@gurgel.me
-otp_release:
-  - R16B
-  - R16B01
-  - R16B02
 script: mix test
 install: mix deps.get
 before_install:
+  - wget http://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb
+  - sudo dpkg -i erlang-solutions_1.0_all.deb
+  - sudo apt-get update
+  - sudo apt-get install erlang
   - mkdir -p vendor/elixir
-  - wget -q https://github.com/elixir-lang/elixir/releases/download/v0.12.4/Precompiled.zip && unzip -qq Precompiled.zip -d vendor/elixir
+  - wget -q https://github.com/elixir-lang/elixir/releases/download/v0.13.1/Precompiled.zip && unzip -qq Precompiled.zip -d vendor/elixir
+  - wget -q https://github.com/rebar/rebar/wiki/rebar
+  - cp rebar vendor/elixir/bin
+  - chmod +x vendor/elixir/bin/rebar
   - export PATH="$PATH:$PWD/vendor/elixir/bin"
+  - rebar --version
   - export MIX_ENV=test
