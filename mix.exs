@@ -3,7 +3,7 @@ defmodule HTTPoison.Mixfile do
 
   def project do
     [ app: :httpoison,
-      version: "0.0.3",
+      version: "0.1.0",
       elixir: "~> 0.13.1",
       deps: deps(Mix.env) ]
   end
