@@ -21,22 +21,22 @@ defmodule HTTPoison.Base do
 
       def process_response_chunk(chunk), do: chunk
 
-      def process_headers(headers), do: headers
+      def process_headers(headers), do: Enum.into(headers, %{})
 
       def process_status_code(status_code), do: status_code
 
       def transformer(target) do
         receive do
           {:hackney_response, id, {:status, code, _reason}} ->
-            send target, HTTPoison.AsyncStatus[id: id, code: process_status_code(code)]
+            send target, %HTTPoison.AsyncStatus{id: id, code: process_status_code(code)}
             transformer(target)
           {:hackney_response, id, {:headers, headers}} ->
-            send target, HTTPoison.AsyncHeaders[id: id, headers: process_headers(headers)]
+            send target, %HTTPoison.AsyncHeaders{id: id, headers: process_headers(headers)}
             transformer(target)
           {:hackney_response, id, :done} ->
-            send target, HTTPoison.AsyncEnd[id: id]
+            send target, %HTTPoison.AsyncEnd{id: id}
           {:hackney_response, id, chunk} ->
-            send target, HTTPoison.AsyncChunk[id: id, chunk: process_response_chunk(chunk)]
+            send target, %HTTPoison.AsyncChunk{id: id, chunk: process_response_chunk(chunk)}
             transformer(target)
         end
       end
@@ -71,13 +71,13 @@ defmodule HTTPoison.Base do
                               hn_options) do
            {:ok, status_code, headers, client} ->
              {:ok, body} = :hackney.body(client)
-             HTTPoison.Response[
+             %HTTPoison.Response {
                status_code: process_status_code(status_code),
                headers: process_headers(headers),
                body: process_response_body(body)
-             ]
+             }
            {:ok, id} ->
-             HTTPoison.AsyncResponse[id: id]
+             %HTTPoison.AsyncResponse { id: id }
            {:error, reason} ->
              raise HTTPoison.HTTPError[message: to_string(reason)]
          end
@@ -96,18 +96,35 @@ defmodule HTTPoison.Base do
   end
 end
 
+
 defmodule HTTPoison do
   @moduledoc """
   The HTTP client for Elixir.
   """
 
-  defrecord Response, status_code: nil, body: nil, headers: []
+  defmodule Response do
+    defstruct status_code: nil, body: nil, headers: []
+  end
 
-  defrecord AsyncResponse, id: nil
-  defrecord AsyncStatus, id: nil, code: nil
-  defrecord AsyncHeaders, id: nil, headers: []
-  defrecord AsyncChunk, id: nil, chunk: nil
-  defrecord AsyncEnd, id: nil
+  defmodule AsyncResponse do
+    defstruct id: nil
+  end
+
+  defmodule AsyncStatus do
+    defstruct id: nil, code: nil
+  end
+
+  defmodule AsyncHeaders do
+    defstruct id: nil, headers: []
+  end
+
+  defmodule AsyncChunk do
+    defstruct id: nil, chunk: nil
+  end
+
+  defmodule AsyncEnd do
+    defstruct id: nil
+  end
 
   defexception HTTPError, message: nil
 

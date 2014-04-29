@@ -28,9 +28,9 @@ defmodule HTTPoisonBaseTest do
     expect(:hackney, :body, 1, {:ok, "response"})
 
     assert Example.post("localhost", "body") ==
-      HTTPoison.Response[status_code: {:code, 200},
+    %HTTPoison.Response{ status_code: {:code, 200},
                          headers: {:headers, "headers"},
-                         body: {:resp_body, "response"}]
+                         body: {:resp_body, "response"} }
 
     assert validate :hackney
   end

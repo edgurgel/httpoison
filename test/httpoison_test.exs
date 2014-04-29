@@ -78,12 +78,12 @@ defmodule HTTPoisonTest do
   end
 
   test "asynchronous request" do
-    HTTPoison.AsyncResponse[id: id] = HTTPoison.get "localhost:8080/get", [], [stream_to: self]
+    %HTTPoison.AsyncResponse{ id: id } = HTTPoison.get "localhost:8080/get", [], [stream_to: self]
 
-    assert_receive HTTPoison.AsyncStatus[id: ^id, code: 200], 1_000
-    assert_receive HTTPoison.AsyncHeaders[id: ^id, headers: _headers], 1_000
-    assert_receive HTTPoison.AsyncChunk[id: ^id, chunk: _chunk], 1_000
-    assert_receive HTTPoison.AsyncEnd[id: ^id], 1_000
+    assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 1_000
+    assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: _headers }, 1_000
+    assert_receive %HTTPoison.AsyncChunk{ id: ^id, chunk: _chunk }, 1_000
+    assert_receive %HTTPoison.AsyncEnd{ id: ^id }, 1_000
   end
 
   defp assert_response(response, function \\ nil) do
