@@ -1,10 +1,17 @@
 defmodule HTTPoison.Mixfile do
   use Mix.Project
 
+  @description """
+    Yet Another HTTP client for Elixir powered by hackney
+  """
+
   def project do
     [ app: :httpoison,
       version: "0.1.1",
       elixir: "~> 0.13.1",
+      name: "HTTPoison",
+      description: @description,
+      package: package,
       deps: deps(Mix.env) ]
   end
 
@@ -22,4 +29,10 @@ defmodule HTTPoison.Mixfile do
   end
 
   defp deps(_), do: deps(:prod)
+
+  defp package do
+    [ contributors: ["Eduardo Gurgel Pinho"],
+      licenses: ["WTFPL"],
+      links: [ { "Github", "https://github.com/edgurgel/httpoison" } ] ]
+  end
 end
