@@ -12,23 +12,18 @@ defmodule HTTPoison.Mixfile do
       name: "HTTPoison",
       description: @description,
       package: package,
-      deps: deps(Mix.env) ]
+      deps: deps ]
   end
 
   def application do
     [applications: [:hackney]]
   end
 
-  defp deps(:prod) do
-    [ { :hackney, github: "benoitc/hackney", ref: "cf90543f9cc21ffea34d71035521b0102b8555cf" } ]
+  defp deps do
+    [ { :hackney, github: "benoitc/hackney", ref: "cf90543f9cc21ffea34d71035521b0102b8555cf" },
+      { :httparrot, github: "edgurgel/httparrot", tag: "0.0.4", only: :test },
+      { :meck, github: "eproxus/meck", ref: "69f02255a8219185bf55da303981d86886b3c24b", only: :test } ]
   end
-
-  defp deps(:test) do
-    deps(:prod) ++ [ { :httparrot, github: "edgurgel/httparrot", tag: "0.0.4" },
-                     { :meck, github: "eproxus/meck", ref: "69f02255a8219185bf55da303981d86886b3c24b" } ]
-  end
-
-  defp deps(_), do: deps(:prod)
 
   defp package do
     [ contributors: ["Eduardo Gurgel Pinho"],
