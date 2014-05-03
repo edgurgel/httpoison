@@ -17,6 +17,9 @@ defmodule HTTPoison.Base do
 
       def process_response_body(body), do: body
 
+      def process_request_headers(headers) when is_map(headers) do
+        Enum.into(headers, [])
+      end
       def process_request_headers(headers), do: headers
 
       def process_response_chunk(chunk), do: chunk

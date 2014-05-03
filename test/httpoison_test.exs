@@ -71,6 +71,11 @@ defmodule HTTPoisonTest do
     assert_response HTTPoison.head('localhost:8080/get')
   end
 
+  test "request headers as a map" do
+    map_header = %{"X-Header" => "X-Value"}
+    assert HTTPoison.get("localhost:8080/get", map_header).body =~ "X-Value"
+  end
+
   test "exception" do
     assert_raise HTTPoison.HTTPError, "econnrefused", fn ->
       HTTPoison.get "localhost:1"
