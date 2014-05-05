@@ -1,5 +1,3 @@
-Code.require_file "test_helper.exs", __DIR__
-
 defmodule HTTPoisonBaseTest do
   use ExUnit.Case
   import :meck
