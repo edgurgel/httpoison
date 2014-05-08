@@ -21,8 +21,8 @@ defmodule HTTPoison.Mixfile do
 
   defp deps do
     [ { :hackney, github: "benoitc/hackney", ref: "cf90543f9cc21ffea34d71035521b0102b8555cf" },
-      { :httparrot, github: "edgurgel/httparrot", tag: "0.0.4", only: :test },
-      { :meck, github: "eproxus/meck", ref: "69f02255a8219185bf55da303981d86886b3c24b", only: :test } ]
+      { :httparrot, github: "edgurgel/httparrot", tag: "0.1.0", only: :test },
+      { :meck, github: "eproxus/meck", tag: "0.8.2", only: :test } ]
   end
 
   defp package do

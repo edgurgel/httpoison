@@ -4,10 +4,11 @@ notifications:
     - eduardo@gurgel.me
 otp_release:
   - 17.0
-script: mix test
 install: mix deps.get
 before_install:
   - mkdir -p vendor/elixir
   - wget -q https://github.com/elixir-lang/elixir/releases/download/v0.13.1/Precompiled.zip && unzip -qq Precompiled.zip -d vendor/elixir
   - export PATH="$PATH:$PWD/vendor/elixir/bin"
   - export MIX_ENV=test
+  - mix local.hex --force
+script: mix test
