@@ -4,6 +4,7 @@ defmodule HTTPoisonTest do
 
   setup_all do
     {:ok, _} = :application.ensure_all_started(:httparrot)
+    :ok
   end
 
   test "get" do
