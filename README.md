@@ -35,7 +35,7 @@ defmodule GitHub do
   end
   def process_response_body(body) do
     json = JSEX.decode! body
-    json = Enum.map json, fn ({k, v}) -> { binary_to_atom(k), v } end
+    json = Enum.map json, fn ({k, v}) -> { String.to_atom(k), v } end
     json
   end
 end
