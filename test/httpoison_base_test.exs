@@ -14,10 +14,8 @@ defmodule HTTPoisonBaseTest do
 
   setup do
     new :hackney
-  end
-
-  teardown do
-    unload :hackney
+    on_exit fn -> unload end
+    :ok
   end
 
   test "request body" do
