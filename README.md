@@ -62,6 +62,8 @@ iex> flush
 :ok
 ```
 
+Be aware that for now, `hackney` is not on http://hex.pm. If you are using hex dependencies you will need to add hackney as dependency.
+
 ## License
 
     Copyright © 2013-2014 Eduardo Gurgel <eduardo@gurgel.me>
