@@ -9,7 +9,7 @@ defmodule HTTPoisonTest do
 
   test "get" do
     assert_response HTTPoison.get("localhost:8080/deny"), fn(response) ->
-      assert size(response.body) == 197
+      assert :erlang.size(response.body) == 197
     end
   end
 
