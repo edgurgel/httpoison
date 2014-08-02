@@ -27,7 +27,7 @@ defmodule HTTPoison.Mixfile do
 
   defp package do
     [ contributors: ["Eduardo Gurgel Pinho"],
-      licenses: ["WTFPL"],
+      licenses: ["MIT"],
       links: [ { "Github", "https://github.com/edgurgel/httpoison" } ] ]
   end
 end
