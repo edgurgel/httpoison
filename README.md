@@ -9,6 +9,30 @@ HTTPoison uses hackney to execute HTTP requests instead of ibrowse. I like hackn
 
 Using hackney we work only with binaries instead of string lists.
 
+## Installation
+
+Be aware that for now, `hackney` is not on http://hex.pm. If you are using hex
+dependencies you will need to add hackney as dependency.
+
+1. Adding HTTPoison to your `mix.exs` dependencies:
+
+  ```elixir
+  def deps do
+    [
+      {:httpoison, "~> 0.3"}
+      {:hackney,   github: "benoitc/hackney", tag: "0.13.0" }
+    ]
+  end
+  ```
+
+2. List the `:httpoison` as your application dependencies:
+
+  ```elixir
+  def application do
+    [applications: [:httpoison]]
+  end
+  ```
+
 ## Usage
 
 ```iex
@@ -61,8 +85,6 @@ iex> flush
 %HTTPoison.AsyncEnd{id: #Reference<0.0.0.1654>}
 :ok
 ```
-
-Be aware that for now, `hackney` is not on http://hex.pm. If you are using hex dependencies you will need to add hackney as dependency.
 
 ## License
 
