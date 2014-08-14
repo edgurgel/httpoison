@@ -7,6 +7,7 @@ env:
   - ELIXIR="v0.14.2"
   - ELIXIR="v0.14.3"
   - ELIXIR="v0.15.0"
+  - ELIXIR="v0.15.1"
 otp_release:
   - 17.0
   - 17.1
