@@ -1,6 +1,11 @@
 defmodule HTTPoison.Base do
   defmacro __using__(_) do
     quote do
+      @type headers :: map | [{binary, binary}]
+
+      @doc """
+      Start httpoison and dependecies.
+      """
       def start do
         :application.ensure_all_started(:httpoison)
       end
@@ -28,6 +33,7 @@ defmodule HTTPoison.Base do
 
       def process_status_code(status_code), do: status_code
 
+      @spec transformer(pid) :: :ok
       def transformer(target) do
         receive do
           {:hackney_response, id, {:status, code, _reason}} ->
@@ -57,6 +63,7 @@ defmodule HTTPoison.Base do
       Returns HTTPoison.Response if successful.
       Raises  HTTPoison.HTTPError if failed.
       """
+      @spec request(atom, binary, binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         timeout = Keyword.get options, :timeout, 5000
         stream_to = Keyword.get options, :stream_to
@@ -86,12 +93,25 @@ defmodule HTTPoison.Base do
          end
       end
 
+      @spec get(binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
       def get(url, headers \\ [], options \\ []),         do: request(:get, url, "", headers, options)
+
+      @spec put(binary, binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
       def put(url, body, headers \\ [], options \\ []),   do: request(:put, url, body, headers, options)
+
+      @spec head(binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
       def head(url, headers \\ [], options \\ []),        do: request(:head, url, "", headers, options)
+
+      @spec post(binary, binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
       def post(url, body, headers \\ [], options \\ []),  do: request(:post, url, body, headers, options)
+
+      @spec patch(binary, binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
       def patch(url, body, headers \\ [], options \\ []), do: request(:patch, url, body, headers, options)
+
+      @spec delete(binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
       def delete(url, headers \\ [], options \\ []),      do: request(:delete, url, "", headers, options)
+
+      @spec options(binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
       def options(url, headers \\ [], options \\ []),     do: request(:options, url, "", headers, options)
 
       defoverridable Module.definitions_in(__MODULE__)
