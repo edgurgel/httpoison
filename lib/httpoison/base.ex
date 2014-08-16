@@ -10,7 +10,7 @@ defmodule HTTPoison.Base do
         :application.ensure_all_started(:httpoison)
       end
 
-      def process_url(url) do
+      defp process_url(url) do
         case String.downcase(url) do
           <<"http://"::utf8, _::binary>> -> url
           <<"https://"::utf8, _::binary>> -> url
@@ -18,20 +18,20 @@ defmodule HTTPoison.Base do
         end
       end
 
-      def process_request_body(body), do: body
+      defp process_request_body(body), do: body
 
-      def process_response_body(body), do: body
+      defp process_response_body(body), do: body
 
-      def process_request_headers(headers) when is_map(headers) do
+      defp process_request_headers(headers) when is_map(headers) do
         Enum.into(headers, [])
       end
-      def process_request_headers(headers), do: headers
+      defp process_request_headers(headers), do: headers
 
-      def process_response_chunk(chunk), do: chunk
+      defp process_response_chunk(chunk), do: chunk
 
-      def process_headers(headers), do: Enum.into(headers, %{})
+      defp process_headers(headers), do: Enum.into(headers, %{})
 
-      def process_status_code(status_code), do: status_code
+      defp process_status_code(status_code), do: status_code
 
       @spec transformer(pid) :: :ok
       def transformer(target) do
