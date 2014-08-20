@@ -80,12 +80,20 @@ defmodule HTTPoison.Base do
                               body,
                               hn_options) do
            {:ok, status_code, headers, client} ->
-             {:ok, body} = :hackney.body(client)
-             %HTTPoison.Response {
-               status_code: process_status_code(status_code),
-               headers: process_headers(headers),
-               body: process_response_body(body)
-             }
+             case :hackney.body(client) do
+               {:ok, body} ->
+                 %HTTPoison.Response {
+                   status_code: process_status_code(status_code),
+                   headers: process_headers(headers),
+                   body: process_response_body(body)
+                 }
+               {:error, {:closed, ""}} ->
+                 %HTTPoison.Response {
+                   status_code: process_status_code(status_code),
+                   headers: process_headers(headers),
+                   body: ""
+                 }
+             end
            {:ok, id} ->
              %HTTPoison.AsyncResponse { id: id }
            {:error, reason} ->
