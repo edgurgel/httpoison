@@ -85,12 +85,14 @@ defmodule HTTPoisonTest do
     %HTTPoison.AsyncResponse{ id: id } = HTTPoison.get "localhost:8080/get", [], [stream_to: self]
 
     assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 1_000
-    assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: _headers }, 1_000
+    assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 1_000
     assert_receive %HTTPoison.AsyncChunk{ id: ^id, chunk: _chunk }, 1_000
     assert_receive %HTTPoison.AsyncEnd{ id: ^id }, 1_000
+    assert is_map(headers)
   end
 
   defp assert_response(response, function \\ nil) do
+    assert is_map(response.headers)
     assert response.status_code == 200
     assert response.headers["connection"] == "keep-alive"
     assert is_binary(response.body)
