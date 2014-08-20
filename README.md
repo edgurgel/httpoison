@@ -43,6 +43,17 @@ iex> HTTPoison.get "http://localhost:1"
     (httpoison) lib/httpoison.ex:131: HTTPoison.request/5
 ```
 
+You can also easily pattern match on the Response struct:
+
+```elixir
+case HTTPoison.get(url) do
+  %HTTPoison.Response{status_code: 200, body: body} ->
+    IO.puts body
+  %HTTPoison.Response{status_code: 404} ->
+    IO.puts "Not found :("
+end
+```
+
 You can also extend it to make cool API clients or something (this example uses [jsex](https://github.com/talentdeficit/jsex) for JSON):
 
 ```elixir
