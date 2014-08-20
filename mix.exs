@@ -22,7 +22,7 @@ defmodule HTTPoison.Mixfile do
   defp deps do
     [ { :hackney, "~> 0.13.1" },
       { :httparrot, "~> 0.3.1", only: :test },
-      { :meck, github: "eproxus/meck", tag: "0.8.2", only: :test } ]
+      { :meck, "~> 0.8.2", only: :test } ]
   end
 
   defp package do
