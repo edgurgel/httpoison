@@ -75,6 +75,12 @@ defmodule HTTPoisonTest do
     assert HTTPoison.get("localhost:8080/get", map_header).body =~ "X-Value"
   end
 
+  test "cached request" do
+    if_modified = %{"If-Modified-Since" => "Tue, 11 Dec 2012 10:10:24 GMT"}
+    response = HTTPoison.get("localhost:8080/cache", if_modified)
+    assert %HTTPoison.Response{status_code: 304, body: ""} = response
+  end
+
   test "exception" do
     assert_raise HTTPoison.HTTPError, "econnrefused", fn ->
       HTTPoison.get "localhost:1"

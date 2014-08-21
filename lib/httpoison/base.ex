@@ -79,26 +79,26 @@ defmodule HTTPoison.Base do
                               process_request_headers(headers),
                               body,
                               hn_options) do
-           {:ok, status_code, headers, client} ->
-             case :hackney.body(client) do
-               {:ok, body} ->
-                 %HTTPoison.Response {
-                   status_code: process_status_code(status_code),
-                   headers: process_headers(headers),
-                   body: process_response_body(body)
-                 }
-               {:error, {:closed, ""}} ->
-                 %HTTPoison.Response {
-                   status_code: process_status_code(status_code),
-                   headers: process_headers(headers),
-                   body: ""
-                 }
-             end
-           {:ok, id} ->
-             %HTTPoison.AsyncResponse { id: id }
-           {:error, reason} ->
-             raise HTTPoison.HTTPError, message: to_string(reason)
+          {:ok, status_code, headers, client} when status_code in [204, 304] ->
+            response(status_code, headers, "")
+          {:ok, status_code, headers, client} ->
+            case :hackney.body(client) do
+              {:ok, body} -> response(status_code, headers, body)
+              _ -> raise HTTPoison.HTTPError, message: "Failed to fetch the body"
+            end
+          {:ok, id} ->
+            %HTTPoison.AsyncResponse { id: id }
+          {:error, reason} ->
+            raise HTTPoison.HTTPError, message: to_string(reason)
          end
+      end
+
+      defp response(status_code, headers, body) do
+        %HTTPoison.Response {
+          status_code: process_status_code(status_code),
+          headers: process_headers(headers),
+          body: process_response_body(body)
+        }
       end
 
       @spec get(binary, headers, [{atom, any}]) :: HTTPoison.Response.t | HTTPoison.AsyncResponse.t
