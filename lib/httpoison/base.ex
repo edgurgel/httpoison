@@ -4,7 +4,7 @@ defmodule HTTPoison.Base do
       @type headers :: map | [{binary, binary}]
 
       @doc """
-      Start httpoison and dependecies.
+      Start httpoison and dependencies.
       """
       def start do
         :application.ensure_all_started(:httpoison)
