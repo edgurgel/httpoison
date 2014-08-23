@@ -15,7 +15,7 @@ Using hackney we work only with binaries instead of string lists.
 
   ```elixir
   def deps do
-    [ {:httpoison, "~> 0.3"} ]
+    [ {:httpoison, "~> 0.4"} ]
   end
   ```
 
