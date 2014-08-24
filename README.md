@@ -91,6 +91,8 @@ iex> flush
 :ok
 ```
 
+More examples of usage on test files inside the `test/` directory.
+
 ## License
 
     Copyright © 2013-2014 Eduardo Gurgel <eduardo@gurgel.me>
