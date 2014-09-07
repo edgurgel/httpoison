@@ -81,6 +81,11 @@ defmodule HTTPoisonTest do
     assert %HTTPoison.Response{status_code: 304, body: ""} = response
   end
 
+  test "send cookies" do
+    response = HTTPoison.get("localhost:8080/cookies", %{}, hackney: [cookie: [{"SESSION", "123"}]])
+    assert response.body =~ ~r(\"SESSION\".*\"123\")
+  end
+
   test "exception" do
     assert_raise HTTPoison.HTTPError, "econnrefused", fn ->
       HTTPoison.get "localhost:1"
