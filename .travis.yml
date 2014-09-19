@@ -5,8 +5,6 @@ notifications:
 env:
   - ELIXIR="v0.15.0"
   - ELIXIR="v0.15.1"
-  - ELIXIR="v1.0.0-rc1"
-  - ELIXIR="v1.0.0-rc2"
   - ELIXIR="v1.0.0"
 otp_release:
   - 17.0
