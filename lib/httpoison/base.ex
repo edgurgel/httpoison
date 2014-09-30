@@ -81,6 +81,8 @@ defmodule HTTPoison.Base do
                               hn_options) do
           {:ok, status_code, headers, client} when status_code in [204, 304] ->
             response(status_code, headers, "")
+          {:ok, status_code, headers} ->
+            response(status_code, headers, "")
           {:ok, status_code, headers, client} ->
             case :hackney.body(client) do
               {:ok, body} -> response(status_code, headers, body)
