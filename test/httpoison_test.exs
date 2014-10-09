@@ -92,7 +92,7 @@ defmodule HTTPoisonTest do
   end
 
   test "exception" do
-    assert_raise HTTPoison.HTTPError, "econnrefused", fn ->
+    assert_raise HTTPoison.HTTPError, ":econnrefused", fn ->
       HTTPoison.get "localhost:1"
     end
   end

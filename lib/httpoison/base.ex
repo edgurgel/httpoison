@@ -91,7 +91,7 @@ defmodule HTTPoison.Base do
           {:ok, id} ->
             %HTTPoison.AsyncResponse { id: id }
           {:error, reason} ->
-            raise HTTPoison.HTTPError, message: to_string(reason)
+            raise HTTPoison.HTTPError, message: inspect(reason)
          end
       end
 

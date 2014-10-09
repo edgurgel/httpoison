@@ -53,4 +53,15 @@ defmodule HTTPoisonBaseTest do
 
     assert validate :hackney
   end
+
+  test "request raises error tuple" do
+    expect(:hackney, :request, 5, {:error, {:closed, "Something happened"}})
+
+
+    assert_raise HTTPoison.HTTPError, "{:closed, \"Something happened\"}", fn ->
+      HTTPoison.get("http://localhost")
+    end
+
+    assert validate :hackney
+  end
 end
