@@ -22,6 +22,12 @@ defmodule HTTPoisonBaseTest do
     defp process_status_code(code), do: {:code, code}
   end
 
+  defmodule ExampleResponseBodyHeaders do
+    use HTTPoison.Base
+    defp process_response_body(body, headers), do: {:resp_body_with_headers, [body, headers]}
+    defp process_headers(headers), do: {:headers, headers}
+  end
+
   setup do
     new :hackney
     on_exit fn -> unload end
@@ -34,9 +40,9 @@ defmodule HTTPoisonBaseTest do
     expect(:hackney, :body, 1, {:ok, "response"})
 
     assert Example.post("localhost", "body") ==
-    %HTTPoison.Response{ status_code: {:code, 200},
-                         headers: {:headers, "headers"},
-                         body: {:resp_body, "response"} }
+      %HTTPoison.Response{ status_code: {:code, 200},
+                           headers: {:headers, "headers"},
+                           body: {:resp_body, "response"} }
 
     assert validate :hackney
   end
@@ -47,9 +53,22 @@ defmodule HTTPoisonBaseTest do
     expect(:hackney, :body, 1, {:ok, "response"})
 
     assert ExampleDefp.post("localhost", "body") ==
-    %HTTPoison.Response{ status_code: {:code, 200},
-                         headers: {:headers, "headers"},
-                         body: {:resp_body, "response"} }
+      %HTTPoison.Response{ status_code: {:code, 200},
+                           headers: {:headers, "headers"},
+                           body: {:resp_body, "response"} }
+
+    assert validate :hackney
+  end
+
+  test "request body using ExampleResponseBodyHeaders" do
+    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [connect_timeout: 5000]],
+                                 {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert ExampleResponseBodyHeaders.post("localhost", "body") ==
+      %HTTPoison.Response{ status_code: 200,
+                           headers: {:headers, "headers"},
+                           body: {:resp_body_with_headers, ["response", {:headers, "headers"}]} }
 
     assert validate :hackney
   end

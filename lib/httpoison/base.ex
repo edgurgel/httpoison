@@ -20,6 +20,9 @@ defmodule HTTPoison.Base do
 
       defp process_request_body(body), do: body
 
+      defp process_response_body(body, _processed_headers) do
+        process_response_body(body)
+      end
       defp process_response_body(body), do: body
 
       defp process_request_headers(headers) when is_map(headers) do
@@ -68,7 +71,6 @@ defmodule HTTPoison.Base do
         timeout = Keyword.get options, :timeout, 5000
         stream_to = Keyword.get options, :stream_to
         hn_options = [connect_timeout: timeout] ++ Keyword.get options, :hackney, []
-        body = process_request_body body
 
         if stream_to do
           hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])}] ++ hn_options
@@ -77,7 +79,7 @@ defmodule HTTPoison.Base do
         case :hackney.request(method,
                               process_url(to_string(url)),
                               process_request_headers(headers),
-                              body,
+                              process_request_body(body),
                               hn_options) do
           {:ok, status_code, headers, client} when status_code in [204, 304] ->
             response(status_code, headers, "")
@@ -96,10 +98,11 @@ defmodule HTTPoison.Base do
       end
 
       defp response(status_code, headers, body) do
+        processed_headers = process_headers(headers)
         %HTTPoison.Response {
           status_code: process_status_code(status_code),
-          headers: process_headers(headers),
-          body: process_response_body(body)
+          headers: processed_headers,
+          body: process_response_body(body, processed_headers)
         }
       end
 
