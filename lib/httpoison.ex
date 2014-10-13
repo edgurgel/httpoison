@@ -33,8 +33,12 @@ defmodule HTTPoison do
     @type t :: %AsyncEnd{id: reference}
   end
 
-  defmodule HTTPError do
-    defexception message: nil
+  defmodule Error do
+    defexception reason: nil, id: nil
+    @type t :: %Error{id: reference, reason: any}
+
+    def message(%Error{reason: reason, id: nil}), do: inspect(reason)
+    def message(%Error{reason: reason, id: id}), do: "[Reference: #{id}] - #{inspect reason}"
   end
 
   use HTTPoison.Base

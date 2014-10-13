@@ -77,28 +77,29 @@ defmodule HTTPoisonTest do
 
   test "request headers as a map" do
     map_header = %{"X-Header" => "X-Value"}
-    assert HTTPoison.get("localhost:8080/get", map_header).body =~ "X-Value"
+    assert HTTPoison.get!("localhost:8080/get", map_header).body =~ "X-Value"
   end
 
   test "cached request" do
     if_modified = %{"If-Modified-Since" => "Tue, 11 Dec 2012 10:10:24 GMT"}
-    response = HTTPoison.get("localhost:8080/cache", if_modified)
+    response = HTTPoison.get!("localhost:8080/cache", if_modified)
     assert %HTTPoison.Response{status_code: 304, body: ""} = response
   end
 
   test "send cookies" do
-    response = HTTPoison.get("localhost:8080/cookies", %{}, hackney: [cookie: [{"SESSION", "123"}]])
+    response = HTTPoison.get!("localhost:8080/cookies", %{}, hackney: [cookie: [{"SESSION", "123"}]])
     assert response.body =~ ~r(\"SESSION\".*\"123\")
   end
 
   test "exception" do
-    assert_raise HTTPoison.HTTPError, ":econnrefused", fn ->
-      HTTPoison.get "localhost:1"
+    assert HTTPoison.get "localhost:1" == {:error, %HTTPoison.Error{reason: :econnrefused}}
+    assert_raise HTTPoison.Error, ":econnrefused", fn ->
+      HTTPoison.get! "localhost:1"
     end
   end
 
   test "asynchronous request" do
-    %HTTPoison.AsyncResponse{ id: id } = HTTPoison.get "localhost:8080/get", [], [stream_to: self]
+    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/get", [], [stream_to: self]
 
     assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 1_000
     assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 1_000
@@ -107,7 +108,7 @@ defmodule HTTPoisonTest do
     assert is_map(headers)
   end
 
-  defp assert_response(response, function \\ nil) do
+  defp assert_response({:ok, response}, function \\ nil) do
     assert is_map(response.headers)
     assert response.status_code == 200
     assert response.headers["connection"] == "keep-alive"

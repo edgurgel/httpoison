@@ -33,7 +33,7 @@ defmodule HTTPoisonBaseTest do
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
-    assert Example.post("localhost", "body") ==
+    assert Example.post!("localhost", "body") ==
     %HTTPoison.Response{ status_code: {:code, 200},
                          headers: {:headers, "headers"},
                          body: {:resp_body, "response"} }
@@ -46,7 +46,7 @@ defmodule HTTPoisonBaseTest do
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
-    assert ExampleDefp.post("localhost", "body") ==
+    assert ExampleDefp.post!("localhost", "body") ==
     %HTTPoison.Response{ status_code: {:code, 200},
                          headers: {:headers, "headers"},
                          body: {:resp_body, "response"} }
@@ -55,12 +55,15 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "request raises error tuple" do
-    expect(:hackney, :request, 5, {:error, {:closed, "Something happened"}})
+    reason = {:closed, "Something happened"}
+    expect(:hackney, :request, 5, {:error, reason})
 
 
-    assert_raise HTTPoison.HTTPError, "{:closed, \"Something happened\"}", fn ->
-      HTTPoison.get("http://localhost")
+    assert_raise HTTPoison.Error, "{:closed, \"Something happened\"}", fn ->
+      HTTPoison.get!("http://localhost")
     end
+
+    assert HTTPoison.get("http://localhost") == {:error, %HTTPoison.Error{reason: reason}}
 
     assert validate :hackney
   end
