@@ -1,6 +1,18 @@
 # Changelog
 
-## 0.4.3 (2014-09-09)
+## 0.5.0 (2014-10-14)
+
+* API breaking changes:
+
+  * HTTPoison.HTTPError was renamed to HTTPoison.Error;
+  * Requests will now return `{:ok, response}` or `{:error, error}`
+  * The old behaviour will be followed by new functions with bang, example:
+
+`HTTPoison.get!` will follow the old behaviour of `HTTPoison.get`
+
+Related discussion: https://github.com/edgurgel/httpoison/issues/27
+
+## 0.4.3 (2014-10-09)
 
 * Update hackney to ~> 0.14.1
 * Fix error raising (#26)
