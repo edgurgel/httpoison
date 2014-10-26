@@ -99,6 +99,7 @@ defmodule HTTPoison.Base do
          end
       end
 
+      @spec request!(atom, binary, binary, headers, [{atom, any}]) :: Response.t
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         case request(method, url, body, headers, options) do
           {:ok, response} -> response
