@@ -34,6 +34,7 @@ defmodule HTTPoison.Base do
 
       defp process_status_code(status_code), do: status_code
 
+      @doc false
       @spec transformer(pid) :: :ok
       def transformer(target) do
         receive do
