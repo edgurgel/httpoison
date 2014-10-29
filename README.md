@@ -78,6 +78,26 @@ iex> GitHub.get!("users/myfreeweb").body[:public_repos]
 37
 ```
 
+It's possible to extend the below functions.
+
+```elixir
+defp process_request_body(body), do: body
+
+defp process_response_body(body), do: body
+
+defp process_request_headers(headers) when is_map(headers) do
+  Enum.into(headers, [])
+end
+
+defp process_request_headers(headers), do: headers
+
+defp process_response_chunk(chunk), do: chunk
+
+defp process_headers(headers), do: Enum.into(headers, %{})
+
+defp process_status_code(status_code), do: status_code
+```
+
 And now with async!
 
 ```iex
