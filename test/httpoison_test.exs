@@ -29,6 +29,12 @@ defmodule HTTPoisonTest do
     assert_response HTTPoison.post("localhost:8080/post", file)
   end
 
+  test "post form data" do
+    assert_response HTTPoison.post("localhost:8080/post", {:form, [key: "value"]}, %{"Content-type" => "application/x-www-form-urlencoded"}), fn(response) ->
+      Regex.match?(~r/"key".*"value"/, response.body)
+    end
+  end
+
   test "put" do
     assert_response HTTPoison.put("localhost:8080/put", "test")
   end
