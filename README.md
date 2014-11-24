@@ -58,7 +58,7 @@ case HTTPoison.get(url) do
 end
 ```
 
-You can also extend it to make cool API clients or something (this example uses [jsex](https://github.com/talentdeficit/jsex) for JSON):
+You can also extend it to make cool API clients or something (this example uses [exjsx](https://github.com/talentdeficit/exjsx) for JSON):
 
 ```elixir
 defmodule GitHub do
@@ -67,7 +67,7 @@ defmodule GitHub do
     "https://api.github.com/" <> url
   end
   def process_response_body(body) do
-    json = JSEX.decode! body
+    json = JSX.decode! body
     json = Enum.map json, fn ({k, v}) -> { String.to_atom(k), v } end
     json
   end
