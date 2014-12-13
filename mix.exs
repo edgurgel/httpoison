@@ -20,7 +20,7 @@ defmodule HTTPoison.Mixfile do
   end
 
   defp deps do
-    [ { :hackney, "~> 0.14.1" },
+    [ { :hackney, "~> 1.0" },
       { :httparrot, "~> 0.3.2", only: :test },
       { :meck, "~> 0.8.2", only: :test } ]
   end

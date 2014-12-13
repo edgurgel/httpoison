@@ -74,7 +74,7 @@ defmodule HTTPoisonTest do
   end
 
   test "https scheme" do
-    assert_response HTTPoison.head("https://localhost:8433/get")
+    assert_response HTTPoison.head("https://localhost:8433/get", [], [ hackney: [:insecure]])
   end
 
   test "char list URL" do
