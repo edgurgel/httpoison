@@ -67,9 +67,8 @@ defmodule GitHub do
     "https://api.github.com/" <> url
   end
   def process_response_body(body) do
-    json = JSX.decode! body
-    json = Enum.map json, fn ({k, v}) -> { String.to_atom(k), v } end
-    json
+    JSX.decode! body
+    |> Enum.map fn ({k, v}) -> { String.to_atom(k), v } end
   end
 end
 
