@@ -13,19 +13,19 @@ Using hackney we work only with binaries instead of string lists.
 
 1. Add HTTPoison to your `mix.exs` dependencies:
 
-  ```elixir
-  def deps do
-    [ {:httpoison, "~> 0.6"} ]
-  end
-  ```
+```elixir
+def deps do
+  [{:httpoison, "~> 0.6"}]
+end
+```
 
 2. List `:httpoison` as your application dependencies:
 
-  ```elixir
-  def application do
-    [applications: [:httpoison]]
-  end
-  ```
+```elixir
+def application do
+  [applications: [:httpoison]]
+end
+```
 
 ## Usage
 
@@ -45,7 +45,7 @@ iex> HTTPoison.get "http://localhost:1"
 {:error, %HTTPoison.Error{id: nil, reason: :econnrefused}}
 ```
 
-You can also easily pattern match on the Response struct:
+You can also easily pattern match on the `HTTPoison.Response` struct:
 
 ```elixir
 case HTTPoison.get(url) do
@@ -71,7 +71,9 @@ defmodule GitHub do
     |> Enum.map fn ({k, v}) -> { String.to_atom(k), v } end
   end
 end
+```
 
+```iex
 iex> GitHub.start
 iex> GitHub.get!("users/myfreeweb").body[:public_repos]
 37
@@ -113,7 +115,6 @@ iex> flush
 :ok
 ```
 
-More examples of usage on test files inside the `test/` directory.
 You can see more usage examples in the test files (located in the
 [`test/`](test) directory.
 
