@@ -56,8 +56,7 @@ case HTTPoison.get(url) do
 end
 ```
 
-You can also extend it to make cool API clients or something (this example uses
-[exjsx](https://github.com/talentdeficit/exjsx) for JSON):
+### Wrapping `HTTPoison.Base`
 
 You can also use the `HTTPoison.Base` module in your modules in order to make
 cool API clients or something. The following example wraps `HTTPoison.Base` in
@@ -106,7 +105,9 @@ defp process_headers(headers), do: Enum.into(headers, %{})
 defp process_status_code(status_code), do: status_code
 ```
 
-And now with async!
+### Async requests
+
+HTTPoison now comes with async requests!
 
 ```iex
 iex> HTTPoison.get! "http://floatboth.com", %{}, stream_to: self
