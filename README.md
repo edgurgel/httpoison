@@ -58,24 +58,33 @@ case HTTPoison.get(url) do
 end
 ```
 
-You can also extend it to make cool API clients or something (this example uses [exjsx](https://github.com/talentdeficit/exjsx) for JSON):
+You can also extend it to make cool API clients or something (this example uses
+[exjsx](https://github.com/talentdeficit/exjsx) for JSON):
+
+You can also use the `HTTPoison.Base` module in your modules in order to make
+cool API clients or something. The following example wraps `HTTPoison.Base` in
+order to build a client for the GitHub API
+([Poison](https://github.com/devinus/poison) is used for JSON decoding):
 
 ```elixir
 defmodule GitHub do
   use HTTPoison.Base
+
   def process_url(url) do
-    "https://api.github.com/" <> url
+    "https://api.github.com" <> url
   end
+
   def process_response_body(body) do
-    JSX.decode! body
-    |> Enum.map fn ({k, v}) -> { String.to_atom(k), v } end
+    body
+    |> Poison.decode!
+    |> Enum.map(fn({k, v}) -> {String.to_atom(k), v} end)
   end
 end
 ```
 
 ```iex
 iex> GitHub.start
-iex> GitHub.get!("users/myfreeweb").body[:public_repos]
+iex> GitHub.get!("/users/myfreeweb").body[:public_repos]
 37
 ```
 
