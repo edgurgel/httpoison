@@ -11,7 +11,7 @@ Using hackney we work only with binaries instead of string lists.
 
 ## Installation
 
-1. Adding HTTPoison to your `mix.exs` dependencies:
+1. Add HTTPoison to your `mix.exs` dependencies:
 
   ```elixir
   def deps do
@@ -77,7 +77,7 @@ iex> GitHub.get!("users/myfreeweb").body[:public_repos]
 37
 ```
 
-It's possible to extend the below functions.
+It's possible to extend the functions listed below:
 
 ```elixir
 defp process_request_body(body), do: body
@@ -114,6 +114,8 @@ iex> flush
 ```
 
 More examples of usage on test files inside the `test/` directory.
+You can see more usage examples in the test files (located in the
+[`test/`](test) directory.
 
 ## License
 
