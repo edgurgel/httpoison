@@ -13,6 +13,16 @@ defmodule HTTPoisonTest do
     end
   end
 
+  test "get with params" do
+    resp = HTTPoison.get("localhost:8080/get", [], params: %{foo: "bar", baz: "bong"})
+    assert_response resp, fn(response) ->
+      args = JSX.decode!(response.body)["args"]
+      assert args["foo"] == "bar"
+      assert args["baz"] == "bong"
+      assert (args |> Dict.keys |> length) == 2
+    end
+  end
+
   test "head" do
     assert_response HTTPoison.head("localhost:8080/get"), fn(response) ->
       assert response.body == ""
