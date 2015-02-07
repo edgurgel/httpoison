@@ -77,6 +77,10 @@ defmodule HTTPoison.Base do
         hn_options = [connect_timeout: timeout] ++ Keyword.get options, :hackney, []
         body = process_request_body body
 
+        if Keyword.has_key?(options, :params) do
+          url = url <> "?" <> URI.encode_query(options[:params])
+        end
+
         if stream_to do
           hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])}] ++ hn_options
         end
