@@ -22,6 +22,16 @@ defmodule HTTPoisonBaseTest do
     defp process_status_code(code), do: {:code, code}
   end
 
+  defmodule ExampleState do
+    use HTTPoison.Base
+    defp process_url(url, state), do: {"http://" <> url, state + 1}
+    defp process_request_body(body, state), do: {body, state + 1}
+    defp process_request_headers(headers, state), do: {headers, state + 1}
+    defp process_status_code(code, state), do: {code, state + 1}
+    defp process_headers(headers, state), do: {headers, state + 1}
+    defp process_response_body(body, state), do: {body, state + 1}
+  end
+
   setup do
     new :hackney
     on_exit fn -> unload end
@@ -50,6 +60,20 @@ defmodule HTTPoisonBaseTest do
     %HTTPoison.Response{ status_code: {:code, 200},
                          headers: {:headers, "headers"},
                          body: {:resp_body, "response"} }
+
+    assert validate :hackney
+  end
+
+  test "request body using ExampleState" do
+    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [connect_timeout: 5000]],
+                                 {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert ExampleState.post!("localhost", "body", [], state: 0) ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: "headers",
+                         state: 6,
+                         body: "response" }
 
     assert validate :hackney
   end
