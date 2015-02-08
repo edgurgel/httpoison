@@ -65,6 +65,7 @@ defmodule HTTPoison.Base do
       Options:
         * timeout - timeout in ms, integer
         * stream_to - process id to stream the response
+        * proxy - use proxy, can by simple url or an {Host, Proxy} tuple
 
       Returns {:ok, Response} or {:ok, AsyncResponse} if successful.
       {:error, Error} otherwise.
@@ -74,6 +75,7 @@ defmodule HTTPoison.Base do
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         timeout = Keyword.get options, :timeout, 5000
         stream_to = Keyword.get options, :stream_to
+        proxy = Keyword.get options, :proxy
         hn_options = [connect_timeout: timeout] ++ Keyword.get options, :hackney, []
         body = process_request_body body
 
@@ -83,6 +85,10 @@ defmodule HTTPoison.Base do
 
         if stream_to do
           hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])}] ++ hn_options
+        end
+
+        if proxy do
+          hn_options = [proxy: proxy] ++ hn_options
         end
 
         case :hackney.request(method,
