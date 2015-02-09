@@ -23,7 +23,7 @@ defmodule HTTPoison.Mixfile do
     [
       {:hackney, "~> 1.0" },
       {:exjsx, "~> 3.1", only: :test},
-      {:httparrot, "~> 0.3.2", only: :test},
+      {:httparrot, "~> 0.3.4", only: :test},
       {:meck, "~> 0.8.2", only: :test},
     ]
   end
