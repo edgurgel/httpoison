@@ -73,29 +73,15 @@ defmodule HTTPoison.Base do
       @spec request(atom, binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
-        timeout = Keyword.get options, :timeout, 5000
-        stream_to = Keyword.get options, :stream_to
-        proxy = Keyword.get options, :proxy
-        hn_options = [connect_timeout: timeout] ++ Keyword.get options, :hackney, []
+        hn_options = build_hackney_options(options)
         body = process_request_body body
 
         if Keyword.has_key?(options, :params) do
           url = url <> "?" <> URI.encode_query(options[:params])
         end
 
-        if stream_to do
-          hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])}] ++ hn_options
-        end
-
-        if proxy do
-          hn_options = [proxy: proxy] ++ hn_options
-        end
-
-        case :hackney.request(method,
-                              process_url(to_string(url)),
-                              process_request_headers(headers),
-                              body,
-                              hn_options) do
+        case :hackney.request(method, process_url(to_string(url)), process_request_headers(headers),
+                              body, hn_options) do
           {:ok, status_code, headers, client} when status_code in [204, 304] ->
             response(status_code, headers, "")
           {:ok, status_code, headers} -> response(status_code, headers, "")
@@ -107,6 +93,24 @@ defmodule HTTPoison.Base do
           {:ok, id} -> { :ok, %AsyncResponse { id: id } }
           {:error, reason} -> {:error, %Error{reason: reason}}
          end
+      end
+
+      defp build_hackney_options(options) do
+        timeout = Keyword.get options, :timeout, 5000
+        stream_to = Keyword.get options, :stream_to
+        proxy = Keyword.get options, :proxy
+
+        hn_options = [connect_timeout: timeout] ++ Keyword.get options, :hackney, []
+
+        if stream_to do
+          hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])}] ++ hn_options
+        end
+
+        if proxy do
+          hn_options = [proxy: proxy] ++ hn_options
+        end
+
+        hn_options
       end
 
       @spec request!(atom, binary, binary, headers, [{atom, any}]) :: Response.t
