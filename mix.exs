@@ -12,7 +12,8 @@ defmodule HTTPoison.Mixfile do
       name: "HTTPoison",
       description: @description,
       package: package,
-      deps: deps ]
+      deps: deps,
+      source_url: "https://github.com/edgurgel/httpoison" ]
   end
 
   def application do
