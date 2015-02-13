@@ -7,7 +7,7 @@ defmodule HTTPoison.Base do
       @type headers :: map | [{binary, binary}]
 
       @doc """
-      Start httpoison and dependencies.
+      Starts HTTPoison and its dependencies.
       """
       def start, do: :application.ensure_all_started(:httpoison)
 
@@ -55,20 +55,25 @@ defmodule HTTPoison.Base do
       end
 
       @doc """
-      Sends an HTTP request.
-      Args:
-        * method - HTTP method, atom (:get, :head, :post, :put, :delete, etc.)
-        * url - URL, binary string or char list
-        * body - request body, binary string or char list
-        * headers - HTTP headers, orddict (eg. [{:Accept, "application/json"}])
-        * options - orddict of options
-      Options:
-        * timeout - timeout in ms, integer
-        * stream_to - process id to stream the response
-        * proxy - use proxy, can by simple url or an {Host, Proxy} tuple
+      Issues an HTTP request with the given method to the given url.
 
-      Returns {:ok, Response} or {:ok, AsyncResponse} if successful.
-      {:error, Error} otherwise.
+      Args:
+        * `method` - HTTP method as an atom (`:get`, `:head`, `:post`, `:put`,
+          `:delete`, etc.)
+        * `url` - target url as a binary string or char list
+        * `body` - request body as a binary string or char list
+        * `headers` - HTTP headers as an orddict (e.g., `[{:Accept,
+          "application/json"}]`)
+        * `options` - orddict of options
+
+      Options:
+        * `:timeout` - the timeout (in milliseconds) of the request
+        * `:stream_to` - a PID to stream the response to
+        * `:proxy` - a proxy to be used for the request; it can by a regular url
+          or a `{Host, Proxy}` tuple
+
+      This function returns `{:ok, response}` or `{:ok, async_response}` if the
+      request is successful, `{:error, reason}` otherwise.
       """
       @spec request(atom, binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
@@ -113,6 +118,14 @@ defmodule HTTPoison.Base do
         hn_options
       end
 
+      @doc """
+      Issues an HTTP request with the given method to the given url, raising an
+      exception in case of failure.
+
+      `request!/5` works exactly like `request/5` but it returns just the
+      response in case of a successful request, raising an exception in case the
+      request fails.
+      """
       @spec request!(atom, binary, binary, headers, [{atom, any}]) :: Response.t
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         case request(method, url, body, headers, options) do
@@ -129,45 +142,157 @@ defmodule HTTPoison.Base do
         } }
       end
 
+      @doc """
+      Issues a GET request to the given url.
+
+      Returns `{:ok, response}` if the request is successful, `{:error, reason}`
+      otherwise.
+
+      See `request/5` for more information.
+      """
       @spec get(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def get(url, headers \\ [], options \\ []),          do: request(:get, url, "", headers, options)
 
+      @doc """
+      Issues a GET request to the given url, raising an exception in case of
+      failure.
+
+      If the request does not fail, the response is returned.
+
+      See `request!/5` for more information.
+      """
       @spec get!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def get!(url, headers \\ [], options \\ []),         do: request!(:get, url, "", headers, options)
 
+      @doc """
+      Issues a PUT request to the given url.
+
+      Returns `{:ok, response}` if the request is successful, `{:error, reason}`
+      otherwise.
+
+      See `request/5` for more information.
+      """
       @spec put(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t } | {:error, Error.t}
       def put(url, body, headers \\ [], options \\ []),    do: request(:put, url, body, headers, options)
 
+      @doc """
+      Issues a PUT request to the given url, raising an exception in case of
+      failure.
+
+      If the request does not fail, the response is returned.
+
+      See `request!/5` for more information.
+      """
       @spec put!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def put!(url, body, headers \\ [], options \\ []),   do: request!(:put, url, body, headers, options)
 
+      @doc """
+      Issues a HEAD request to the given url.
+
+      Returns `{:ok, response}` if the request is successful, `{:error, reason}`
+      otherwise.
+
+      See `request/5` for more information.
+      """
       @spec head(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def head(url, headers \\ [], options \\ []),         do: request(:head, url, "", headers, options)
 
+      @doc """
+      Issues a HEAD request to the given url, raising an exception in case of
+      failure.
+
+      If the request does not fail, the response is returned.
+
+      See `request!/5` for more information.
+      """
       @spec head!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def head!(url, headers \\ [], options \\ []),        do: request!(:head, url, "", headers, options)
 
+      @doc """
+      Issues a POST request to the given url.
+
+      Returns `{:ok, response}` if the request is successful, `{:error, reason}`
+      otherwise.
+
+      See `request/5` for more information.
+      """
       @spec post(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def post(url, body, headers \\ [], options \\ []),   do: request(:post, url, body, headers, options)
 
+      @doc """
+      Issues a POST request to the given url, raising an exception in case of
+      failure.
+
+      If the request does not fail, the response is returned.
+
+      See `request!/5` for more information.
+      """
       @spec post!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def post!(url, body, headers \\ [], options \\ []),  do: request!(:post, url, body, headers, options)
 
+      @doc """
+      Issues a PATCH request to the given url.
+
+      Returns `{:ok, response}` if the request is successful, `{:error, reason}`
+      otherwise.
+
+      See `request/5` for more information.
+      """
       @spec patch(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def patch(url, body, headers \\ [], options \\ []),  do: request(:patch, url, body, headers, options)
 
+      @doc """
+      Issues a PATCH request to the given url, raising an exception in case of
+      failure.
+
+      If the request does not fail, the response is returned.
+
+      See `request!/5` for more information.
+      """
       @spec patch!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def patch!(url, body, headers \\ [], options \\ []), do: request!(:patch, url, body, headers, options)
 
+      @doc """
+      Issues a DELETE request to the given url.
+
+      Returns `{:ok, response}` if the request is successful, `{:error, reason}`
+      otherwise.
+
+      See `request/5` for more information.
+      """
       @spec delete(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def delete(url, headers \\ [], options \\ []),       do: request(:delete, url, "", headers, options)
 
+      @doc """
+      Issues a DELETE request to the given url, raising an exception in case of
+      failure.
+
+      If the request does not fail, the response is returned.
+
+      See `request!/5` for more information.
+      """
       @spec delete!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def delete!(url, headers \\ [], options \\ []),      do: request!(:delete, url, "", headers, options)
 
+      @doc """
+      Issues an OPTIONS request to the given url.
+
+      Returns `{:ok, response}` if the request is successful, `{:error, reason}`
+      otherwise.
+
+      See `request/5` for more information.
+      """
       @spec options(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def options(url, headers \\ [], options \\ []),      do: request(:options, url, "", headers, options)
 
+      @doc """
+      Issues a OPTIONS request to the given url, raising an exception in case of
+      failure.
+
+      If the request does not fail, the response is returned.
+
+      See `request!/5` for more information.
+      """
       @spec options!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def options!(url, headers \\ [], options \\ []),     do: request!(:options, url, "", headers, options)
 
