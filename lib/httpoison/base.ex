@@ -54,7 +54,7 @@ defmodule HTTPoison.Base do
         end
       end
 
-      @doc """
+      @doc ~S"""
       Issues an HTTP request with the given method to the given url.
 
       Args:
@@ -74,6 +74,11 @@ defmodule HTTPoison.Base do
 
       This function returns `{:ok, response}` or `{:ok, async_response}` if the
       request is successful, `{:error, reason}` otherwise.
+
+      ## Examples
+
+          request(:post, "https://my.website.com", "{\"foo\": 3}", [{"Accept", "application/json"}])
+
       """
       @spec request(atom, binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
@@ -148,7 +153,7 @@ defmodule HTTPoison.Base do
       Returns `{:ok, response}` if the request is successful, `{:error, reason}`
       otherwise.
 
-      See `request/5` for more information.
+      See `request/5` for more detailed information.
       """
       @spec get(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def get(url, headers \\ [], options \\ []),          do: request(:get, url, "", headers, options)
@@ -159,7 +164,7 @@ defmodule HTTPoison.Base do
 
       If the request does not fail, the response is returned.
 
-      See `request!/5` for more information.
+      See `request!/5` for more detailed information.
       """
       @spec get!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def get!(url, headers \\ [], options \\ []),         do: request!(:get, url, "", headers, options)
@@ -170,7 +175,7 @@ defmodule HTTPoison.Base do
       Returns `{:ok, response}` if the request is successful, `{:error, reason}`
       otherwise.
 
-      See `request/5` for more information.
+      See `request/5` for more detailed information.
       """
       @spec put(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t } | {:error, Error.t}
       def put(url, body, headers \\ [], options \\ []),    do: request(:put, url, body, headers, options)
@@ -181,7 +186,7 @@ defmodule HTTPoison.Base do
 
       If the request does not fail, the response is returned.
 
-      See `request!/5` for more information.
+      See `request!/5` for more detailed information.
       """
       @spec put!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def put!(url, body, headers \\ [], options \\ []),   do: request!(:put, url, body, headers, options)
@@ -192,7 +197,7 @@ defmodule HTTPoison.Base do
       Returns `{:ok, response}` if the request is successful, `{:error, reason}`
       otherwise.
 
-      See `request/5` for more information.
+      See `request/5` for more detailed information.
       """
       @spec head(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def head(url, headers \\ [], options \\ []),         do: request(:head, url, "", headers, options)
@@ -203,7 +208,7 @@ defmodule HTTPoison.Base do
 
       If the request does not fail, the response is returned.
 
-      See `request!/5` for more information.
+      See `request!/5` for more detailed information.
       """
       @spec head!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def head!(url, headers \\ [], options \\ []),        do: request!(:head, url, "", headers, options)
@@ -214,7 +219,7 @@ defmodule HTTPoison.Base do
       Returns `{:ok, response}` if the request is successful, `{:error, reason}`
       otherwise.
 
-      See `request/5` for more information.
+      See `request/5` for more detailed information.
       """
       @spec post(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def post(url, body, headers \\ [], options \\ []),   do: request(:post, url, body, headers, options)
@@ -225,7 +230,7 @@ defmodule HTTPoison.Base do
 
       If the request does not fail, the response is returned.
 
-      See `request!/5` for more information.
+      See `request!/5` for more detailed information.
       """
       @spec post!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def post!(url, body, headers \\ [], options \\ []),  do: request!(:post, url, body, headers, options)
@@ -236,7 +241,7 @@ defmodule HTTPoison.Base do
       Returns `{:ok, response}` if the request is successful, `{:error, reason}`
       otherwise.
 
-      See `request/5` for more information.
+      See `request/5` for more detailed information.
       """
       @spec patch(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def patch(url, body, headers \\ [], options \\ []),  do: request(:patch, url, body, headers, options)
@@ -247,7 +252,7 @@ defmodule HTTPoison.Base do
 
       If the request does not fail, the response is returned.
 
-      See `request!/5` for more information.
+      See `request!/5` for more detailed information.
       """
       @spec patch!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def patch!(url, body, headers \\ [], options \\ []), do: request!(:patch, url, body, headers, options)
@@ -258,7 +263,7 @@ defmodule HTTPoison.Base do
       Returns `{:ok, response}` if the request is successful, `{:error, reason}`
       otherwise.
 
-      See `request/5` for more information.
+      See `request/5` for more detailed information.
       """
       @spec delete(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def delete(url, headers \\ [], options \\ []),       do: request(:delete, url, "", headers, options)
@@ -269,7 +274,7 @@ defmodule HTTPoison.Base do
 
       If the request does not fail, the response is returned.
 
-      See `request!/5` for more information.
+      See `request!/5` for more detailed information.
       """
       @spec delete!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def delete!(url, headers \\ [], options \\ []),      do: request!(:delete, url, "", headers, options)
@@ -280,7 +285,7 @@ defmodule HTTPoison.Base do
       Returns `{:ok, response}` if the request is successful, `{:error, reason}`
       otherwise.
 
-      See `request/5` for more information.
+      See `request/5` for more detailed information.
       """
       @spec options(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def options(url, headers \\ [], options \\ []),      do: request(:options, url, "", headers, options)
@@ -291,7 +296,7 @@ defmodule HTTPoison.Base do
 
       If the request does not fail, the response is returned.
 
-      See `request!/5` for more information.
+      See `request!/5` for more detailed information.
       """
       @spec options!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
       def options!(url, headers \\ [], options \\ []),     do: request!(:options, url, "", headers, options)
