@@ -5,7 +5,7 @@
 * Add support to proxy option. Thanks to @povilas
 * Add support to params option. Thanks to @whatyouhide
 
-## 0.6.0 (2015-01-262)
+## 0.6.0 (2015-01-26)
 
 This version does not include any feature. It specifies a newer version to hackney: "~> 1.0" as it brought lots of bugfixes and more stability.
 
