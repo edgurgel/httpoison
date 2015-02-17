@@ -1,7 +1,9 @@
 ![](http://i.imgur.com/WwqN8JO.png)
 # HTTPoison [![Build Status](https://travis-ci.org/edgurgel/httpoison.svg?branch=master)](https://travis-ci.org/edgurgel/httpoison) [![Hex pm](http://img.shields.io/hexpm/v/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison)
 
-HTTP client for Elixir, based on [HTTPotion](https://github.com/myfreeweb/httpotion)
+HTTP client for Elixir, based on
+[HTTPotion](https://github.com/myfreeweb/httpotion)
+([documentation](http://hexdocs.pm/httpoison/)).
 
 ## But... why something so similar to HTTPotion?
 
