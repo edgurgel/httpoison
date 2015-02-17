@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2 (2015-02-17)
+
+Add documentation for public functions on HTTPoison.Base. Thanks to @whatyouhide
+
 ## 0.6.1 (2015-02-11)
 
 * Add support to proxy option. Thanks to @povilas
