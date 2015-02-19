@@ -13,7 +13,7 @@ Using hackney we work only with binaries instead of string lists.
 
 ## Installation
 
-1. Add HTTPoison to your `mix.exs` dependencies:
+First, add HTTPoison to your `mix.exs` dependencies:
 
 ```elixir
 def deps do
@@ -21,7 +21,8 @@ def deps do
 end
 ```
 
-2. List `:httpoison` as your application dependencies:
+and run `$ mix deps.get`. Now, list the `:httpoison` application as your
+application dependency:
 
 ```elixir
 def application do
@@ -131,4 +132,3 @@ You can see more usage examples in the test files (located in the
 
     This work is free. You can redistribute it and/or modify it under the
     terms of the MIT License. See the LICENSE file for more details.
-
