@@ -6,7 +6,7 @@ defmodule HTTPoison do
 
       iex> HTTPoison.get!("https://api.github.com")
       %HTTPoison.Response{status_code: 200,
-                          headers: %{"content-type" => "application/json"},
+                          headers: [{"content-type", "application/json"}],
                           body: "{...}"}
 
   It's very common to use HTTPoison in order to wrap APIs, which is when the
@@ -20,8 +20,8 @@ defmodule HTTPoison do
   """
 
   defmodule Response do
-    defstruct status_code: nil, body: nil, headers: %{}
-    @type t :: %Response{status_code: integer, body: binary, headers: map}
+    defstruct status_code: nil, body: nil, headers: [] 
+    @type t :: %Response{status_code: integer, body: binary, headers: list}
   end
 
   defmodule AsyncResponse do
@@ -35,8 +35,8 @@ defmodule HTTPoison do
   end
 
   defmodule AsyncHeaders do
-    defstruct id: nil, headers: %{}
-    @type t :: %AsyncHeaders{id: reference, headers: map}
+    defstruct id: nil, headers: []
+    @type t :: %AsyncHeaders{id: reference, headers: list}
   end
 
   defmodule AsyncChunk do

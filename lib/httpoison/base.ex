@@ -72,7 +72,7 @@ defmodule HTTPoison.Base do
   alias HTTPoison.Error
   defmacro __using__(_) do
     quote do
-      @type headers :: map | [{binary, binary}]
+      @type headers :: [{binary, binary}]
 
       @doc """
       Starts HTTPoison and its dependencies.
@@ -98,7 +98,7 @@ defmodule HTTPoison.Base do
 
       defp process_response_chunk(chunk), do: chunk
 
-      defp process_headers(headers), do: Enum.into(headers, %{})
+      defp process_headers(headers), do: headers
 
       defp process_status_code(status_code), do: status_code
 

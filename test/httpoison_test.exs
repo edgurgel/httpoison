@@ -59,8 +59,8 @@ defmodule HTTPoisonTest do
 
   test "options" do
     assert_response HTTPoison.options("localhost:8080/get"), fn(response) ->
-      assert response.headers["content-length"] == "0"
-      assert is_binary(response.headers["allow"])
+      assert get_header(response.headers, "content-length") == "0"
+      assert is_binary(get_header(response.headers, "allow"))
     end
   end
 
@@ -121,15 +121,22 @@ defmodule HTTPoisonTest do
     assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 1_000
     assert_receive %HTTPoison.AsyncChunk{ id: ^id, chunk: _chunk }, 1_000
     assert_receive %HTTPoison.AsyncEnd{ id: ^id }, 1_000
-    assert is_map(headers)
+    assert is_list(headers)
   end
 
   defp assert_response({:ok, response}, function \\ nil) do
-    assert is_map(response.headers)
+    assert is_list(response.headers)
     assert response.status_code == 200
-    assert response.headers["connection"] == "keep-alive"
+    assert get_header(response.headers, "connection") == "keep-alive"
     assert is_binary(response.body)
 
     unless function == nil, do: function.(response)
+  end
+
+  defp get_header(headers, key) do
+    headers 
+    |> Enum.filter(fn({k, v}) -> k == key end)
+    |> hd
+    |> elem(1)
   end
 end
