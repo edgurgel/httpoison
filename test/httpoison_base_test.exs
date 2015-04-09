@@ -29,7 +29,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "request body using Example" do
-    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [connect_timeout: 5000]],
+    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [connect_timeout: 5000, recv_timeout: :infinity]],
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
@@ -42,7 +42,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "request body using ExampleDefp" do
-    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [connect_timeout: 5000]],
+    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [connect_timeout: 5000, recv_timeout: :infinity]],
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
