@@ -175,10 +175,11 @@ defmodule HTTPoison.Base do
 
       defp build_hackney_options(options) do
         timeout = Keyword.get options, :timeout, 5000
+        recv_timeout = Keyword.get options, :recv_timeout, :infinity
         stream_to = Keyword.get options, :stream_to
         proxy = Keyword.get options, :proxy
 
-        hn_options = [connect_timeout: timeout] ++ Keyword.get options, :hackney, []
+        hn_options = [connect_timeout: timeout, recv_timeout: recv_timeout] ++ Keyword.get options, :hackney, []
 
         if stream_to do
           hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])}] ++ hn_options

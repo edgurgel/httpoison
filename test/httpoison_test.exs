@@ -134,8 +134,8 @@ defmodule HTTPoisonTest do
   end
 
   defp get_header(headers, key) do
-    headers 
-    |> Enum.filter(fn({k, v}) -> k == key end)
+    headers
+    |> Enum.filter(fn({k, _}) -> k == key end)
     |> hd
     |> elem(1)
   end
