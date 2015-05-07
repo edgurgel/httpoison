@@ -65,6 +65,12 @@ defmodule HTTPoison.Base do
       @spec process_status_code(integer) :: term
       defp process_status_code(status_code)
 
+      # Used to intercept http requests and their responses (including all
+      # above overrides to both the request and response).  Use
+      # `base_execute_request/5` to perform the base behavior
+      @spec request(atom, binary, headers, binary, [{atom, any}]) ::
+         {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      defp execute_request(method, url, headers, body, hn_options)
   """
 
   alias HTTPoison.Response
