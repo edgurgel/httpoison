@@ -67,7 +67,7 @@ defmodule HTTPoison.Base do
 
       # Used to intercept http requests and their responses (including all
       # above overrides to both the request and response).  Use
-      # `base_execute_request/5` to perform the base behavior
+      # `super` to perform the base behavior
       @spec request(atom, binary, headers, binary, [{atom, any}]) ::
          {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       defp execute_request(method, url, headers, body, hn_options)
@@ -169,11 +169,8 @@ defmodule HTTPoison.Base do
                         body, hn_options)
       end
 
-      defp execute_request(method, url, headers, body, hn_options) do
-        base_execute_request(method, url, headers, body, hn_options)
-      end
 
-      defp base_execute_request(method, url, headers, body, hn_options) do
+      defp execute_request(method, url, headers, body, hn_options) do
         case :hackney.request(method, url, headers, body, hn_options) do
           {:ok, status_code, headers, client} when status_code in [204, 304] ->
             response(status_code, headers, "")
