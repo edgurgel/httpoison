@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0 (2015-06-06)
+
+* Add missing docs. Thanks to @whatyouhide
+* **[Breaking change]** Use list of tuples of strings instead of a dict. Thanks to @tyrchen
+
 ## 0.6.2 (2015-02-17)
 
 Add documentation for public functions on HTTPoison.Base. Thanks to @whatyouhide
