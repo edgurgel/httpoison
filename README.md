@@ -37,7 +37,9 @@ iex> HTTPoison.start
 iex> HTTPoison.get! "http://httparrot.herokuapp.com/get"
 %HTTPoison.Response{
   body: "{\n  \"args\": {},\n  \"headers\": {} ...",
-  headers: %{"connection" => "keep-alive", "content-length" => "517", ...},
+  headers: headers: [{"Connection", "keep-alive"}, {"Server", "Cowboy"},
+  {"Date", "Sat, 06 Jun 2015 03:52:13 GMT"}, {"Content-Length", "495"},
+  {"Content-Type", "application/json"}, {"Via", "1.1 vegur"}],
   status_code: 200
 }
 iex> HTTPoison.get! "http://localhost:1"
@@ -103,7 +105,7 @@ defp process_request_headers(headers), do: headers
 
 defp process_response_chunk(chunk), do: chunk
 
-defp process_headers(headers), do: Enum.into(headers, %{})
+defp process_headers(headers), do: headers
 
 defp process_status_code(status_code), do: status_code
 ```
