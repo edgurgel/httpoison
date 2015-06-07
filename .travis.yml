@@ -1,18 +1,12 @@
-language: erlang
+language: elixir
+elixir:
+  - 1.0.0
+  - 1.0.1
 notifications:
   recipients:
     - eduardo@gurgel.me
 env:
-  - ELIXIR="v1.0.0"
-  - ELIXIR="v1.0.1"
+  - MIX_ENV=test
 otp_release:
   - 17.0
   - 17.1
-install: mix deps.get
-before_install:
-  - mkdir -p vendor/elixir
-  - wget -q https://github.com/elixir-lang/elixir/releases/download/$ELIXIR/Precompiled.zip && unzip -qq Precompiled.zip -d vendor/elixir
-  - export PATH="$PATH:$PWD/vendor/elixir/bin"
-  - export MIX_ENV=test
-  - mix local.hex --force
-script: mix test
