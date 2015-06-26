@@ -30,6 +30,13 @@ def application do
 end
 ```
 
+### If you're on Ubuntu
+Make sure you have `erlang-dev` installed before using `httpoison`.
+You can do so by running:
+```sh
+apt-get install erlang-dev
+```
+
 ## Usage
 
 ```iex
