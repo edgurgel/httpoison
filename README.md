@@ -94,8 +94,8 @@ defmodule GitHub do
   def process_response_body(body) do
     body
     |> Poison.decode!
-    |> Dict.slice(@expected_fields)
     |> Enum.map(fn({k, v}) -> {String.to_existing_atom(k), v} end)
+    |> Dict.take(@expected_fields)
   end
 end
 ```
