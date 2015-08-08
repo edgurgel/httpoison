@@ -29,7 +29,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "request body using Example" do
-    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [connect_timeout: 5000, recv_timeout: :infinity]],
+    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, []],
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
@@ -42,7 +42,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "request body using ExampleDefp" do
-    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [connect_timeout: 5000, recv_timeout: :infinity]],
+    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, []],
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
@@ -58,12 +58,50 @@ defmodule HTTPoisonBaseTest do
     reason = {:closed, "Something happened"}
     expect(:hackney, :request, 5, {:error, reason})
 
-
     assert_raise HTTPoison.Error, "{:closed, \"Something happened\"}", fn ->
       HTTPoison.get!("http://localhost")
     end
 
     assert HTTPoison.get("http://localhost") == {:error, %HTTPoison.Error{reason: reason}}
+
+    assert validate :hackney
+  end
+
+  test "passing connect_timeout option" do
+    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [connect_timeout: 12345]],
+                                 {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body", [], timeout: 12345) ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: "headers",
+                         body: "response" }
+
+    assert validate :hackney
+  end
+
+  test "passing recv_timeout option" do
+    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [recv_timeout: 12345]],
+                                 {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body", [], recv_timeout: 12345) ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: "headers",
+                         body: "response" }
+
+    assert validate :hackney
+  end
+
+  test "passing proxy option" do
+    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [proxy: "proxy"]],
+                                 {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body", [], proxy: "proxy") ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: "headers",
+                         body: "response" }
 
     assert validate :hackney
   end
