@@ -1,13 +1,12 @@
 sudo: false
 language: elixir
 elixir:
-  - 1.0.0
-  - 1.0.1
-notifications:
-  recipients:
-    - eduardo@gurgel.me
-env:
-  - MIX_ENV=test
+  - 1.0.4
+  - 1.0.5
 otp_release:
   - 17.0
   - 17.1
+  - 17.3
+  - 17.4
+  - 17.5
+  - 18.0
