@@ -26,8 +26,8 @@ defmodule HTTPoison.Mixfile do
       {:exjsx, "~> 3.1", only: :test},
       {:httparrot, "~> 0.3.4", only: :test},
       {:meck, "~> 0.8.2", only: :test},
-      {:earmark, "~> 0.1", only: :docs},
-      {:ex_doc, "~> 0.7", only: :docs},
+      {:earmark, "~> 0.1.17", only: :docs},
+      {:ex_doc, "~> 0.8.0", only: :docs},
     ]
   end
 
