@@ -178,11 +178,15 @@ defmodule HTTPoison.Base do
         recv_timeout = Keyword.get options, :recv_timeout
         stream_to = Keyword.get options, :stream_to
         proxy = Keyword.get options, :proxy
+        proxy_auth = Keyword.get options, :proxy_auth
+
         hn_options = Keyword.get options, :hackney, []
 
         if timeout, do: hn_options = [{:connect_timeout, timeout} | hn_options]
         if recv_timeout, do: hn_options = [{:recv_timeout, recv_timeout} | hn_options]
         if proxy, do: hn_options = [{:proxy, proxy} | hn_options]
+        if proxy_auth, do: hn_options = [{:proxy_auth, proxy_auth} | hn_options]
+
         if stream_to do
           hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])} | hn_options]
         end
