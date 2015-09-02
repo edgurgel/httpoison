@@ -107,7 +107,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "passing proxy option with proxy_auth" do
-    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [proxy: "proxy", proxy_auth: {"username", "password"}]],
+    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [proxy_auth: {"username", "password"}, proxy: "proxy"]],
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
