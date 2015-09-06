@@ -65,6 +65,12 @@ defmodule HTTPoison.Base do
       @spec process_status_code(integer) :: term
       defp process_status_code(status_code)
 
+      # Used to intercept http requests and their responses (including all
+      # above overrides to both the request and response).  Use
+      # `super` to perform the base behavior
+      @spec request(atom, binary, headers, binary, [{atom, any}]) ::
+         {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      defp execute_request(method, url, headers, body, hn_options)
   """
 
   alias HTTPoison.Response
@@ -157,9 +163,15 @@ defmodule HTTPoison.Base do
         if Keyword.has_key?(options, :params) do
           url = url <> "?" <> URI.encode_query(options[:params])
         end
+        execute_request(method,
+                        process_url(to_string(url)),
+                        process_request_headers(headers),
+                        body, hn_options)
+      end
 
-        case :hackney.request(method, process_url(to_string(url)), process_request_headers(headers),
-                              body, hn_options) do
+
+      defp execute_request(method, url, headers, body, hn_options) do
+        case :hackney.request(method, url, headers, body, hn_options) do
           {:ok, status_code, headers, client} when status_code in [204, 304] ->
             response(status_code, headers, "")
           {:ok, status_code, headers} -> response(status_code, headers, "")
@@ -170,7 +182,7 @@ defmodule HTTPoison.Base do
             end
           {:ok, id} -> { :ok, %AsyncResponse { id: id } }
           {:error, reason} -> {:error, %Error{reason: reason}}
-         end
+        end
       end
 
       defp build_hackney_options(options) do
