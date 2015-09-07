@@ -7,6 +7,7 @@ defmodule HTTPoisonBaseTest do
     def process_url(url), do: "http://" <> url
     def process_request_body(body), do: {:req_body, body}
     def process_request_headers(headers), do: {:req_headers, headers}
+    def process_request_options(options), do: options
     def process_response_body(body), do: {:resp_body, body}
     def process_headers(headers), do: {:headers, headers}
     def process_status_code(code), do: {:code, code}
@@ -17,6 +18,7 @@ defmodule HTTPoisonBaseTest do
     defp process_url(url), do: "http://" <> url
     defp process_request_body(body), do: {:req_body, body}
     defp process_request_headers(headers), do: {:req_headers, headers}
+    defp process_request_options(options), do: options
     defp process_response_body(body), do: {:resp_body, body}
     defp process_headers(headers), do: {:headers, headers}
     defp process_status_code(code), do: {:code, code}

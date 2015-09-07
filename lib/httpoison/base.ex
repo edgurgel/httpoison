@@ -96,6 +96,8 @@ defmodule HTTPoison.Base do
       end
       defp process_request_headers(headers), do: headers
 
+      defp process_request_options(options), do: options
+
       defp process_response_chunk(chunk), do: chunk
 
       defp process_headers(headers), do: headers
@@ -191,7 +193,7 @@ defmodule HTTPoison.Base do
           hn_options = [:async, {:stream_to, spawn(__MODULE__, :transformer, [stream_to])} | hn_options]
         end
 
-        hn_options
+        process_request_options(hn_options)
       end
 
       @doc """
