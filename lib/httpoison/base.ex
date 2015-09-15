@@ -357,7 +357,7 @@ defmodule HTTPoison.Base.Impl do
     proxy = Keyword.get options, :proxy
     proxy_auth = Keyword.get options, :proxy_auth
     ssl_options = Keyword.get options, :ssl_options
-    
+
     hn_options = Keyword.get options, :hackney, []
 
     if timeout, do: hn_options = [{:connect_timeout, timeout} | hn_options]
