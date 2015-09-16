@@ -127,7 +127,6 @@ defmodule HTTPoisonTest do
   defp assert_response({:ok, response}, function \\ nil) do
     assert is_list(response.headers)
     assert response.status_code == 200
-    assert get_header(response.headers, "connection") == "keep-alive"
     assert is_binary(response.body)
 
     unless function == nil, do: function.(response)
