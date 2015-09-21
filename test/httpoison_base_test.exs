@@ -118,4 +118,17 @@ defmodule HTTPoisonBaseTest do
 
     assert validate :hackney
   end
+
+  test "passing ssl option" do
+    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [ssl_options: [certfile: "certs/client.crt"]]],
+                                 {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body", [], ssl: [certfile: "certs/client.crt"]) ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: "headers",
+                         body: "response" }
+
+    assert validate :hackney
+  end
 end

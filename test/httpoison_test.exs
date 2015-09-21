@@ -84,7 +84,12 @@ defmodule HTTPoisonTest do
   end
 
   test "https scheme" do
-    assert_response HTTPoison.head("https://localhost:8433/get", [], [ hackney: [:insecure]])
+    httparrot_priv_dir = :code.priv_dir(:httparrot)
+    cacert_file = "#{httparrot_priv_dir}/ssl/server-ca.crt"
+    cert_file = "#{httparrot_priv_dir}/ssl/server.crt"
+    key_file =  "#{httparrot_priv_dir}/ssl/server.key"
+
+    assert_response HTTPoison.get("https://localhost:8433/get", [], ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file])
   end
 
   test "char list URL" do
