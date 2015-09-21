@@ -1,3 +1,41 @@
+defmodule HTTPoison.Response do
+  defstruct status_code: nil, body: nil, headers: []
+  @type t :: %__MODULE__{status_code: integer, body: binary, headers: list}
+end
+
+defmodule HTTPoison.AsyncResponse do
+  defstruct id: nil
+  @type t :: %__MODULE__{id: reference}
+end
+
+defmodule HTTPoison.AsyncStatus do
+  defstruct id: nil, code: nil
+  @type t :: %__MODULE__{id: reference, code: integer}
+end
+
+defmodule HTTPoison.AsyncHeaders do
+  defstruct id: nil, headers: []
+  @type t :: %__MODULE__{id: reference, headers: list}
+end
+
+defmodule HTTPoison.AsyncChunk do
+  defstruct id: nil, chunk: nil
+  @type t :: %__MODULE__{id: reference, chunk: binary}
+end
+
+defmodule HTTPoison.AsyncEnd do
+  defstruct id: nil
+  @type t :: %__MODULE__{id: reference}
+end
+
+defmodule HTTPoison.Error do
+  defexception reason: nil, id: nil
+  @type t :: %__MODULE__{id: reference, reason: any}
+
+  def message(%__MODULE__{reason: reason, id: nil}), do: inspect(reason)
+  def message(%__MODULE__{reason: reason, id: id}), do: "[Reference: #{id}] - #{inspect reason}"
+end
+
 defmodule HTTPoison do
   @moduledoc """
   The HTTP client for Elixir.
@@ -19,43 +57,6 @@ defmodule HTTPoison do
 
   """
 
-  defmodule Response do
-    defstruct status_code: nil, body: nil, headers: [] 
-    @type t :: %Response{status_code: integer, body: binary, headers: list}
-  end
-
-  defmodule AsyncResponse do
-    defstruct id: nil
-    @type t :: %AsyncResponse{id: reference}
-  end
-
-  defmodule AsyncStatus do
-    defstruct id: nil, code: nil
-    @type t :: %AsyncStatus{id: reference, code: integer}
-  end
-
-  defmodule AsyncHeaders do
-    defstruct id: nil, headers: []
-    @type t :: %AsyncHeaders{id: reference, headers: list}
-  end
-
-  defmodule AsyncChunk do
-    defstruct id: nil, chunk: nil
-    @type t :: %AsyncChunk{id: reference, chunk: binary}
-  end
-
-  defmodule AsyncEnd do
-    defstruct id: nil
-    @type t :: %AsyncEnd{id: reference}
-  end
-
-  defmodule Error do
-    defexception reason: nil, id: nil
-    @type t :: %Error{id: reference, reason: any}
-
-    def message(%Error{reason: reason, id: nil}), do: inspect(reason)
-    def message(%Error{reason: reason, id: id}), do: "[Reference: #{id}] - #{inspect reason}"
-  end
-
   use HTTPoison.Base
 end
+

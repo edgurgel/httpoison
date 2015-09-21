@@ -70,6 +70,7 @@ defmodule HTTPoison.Base do
   alias HTTPoison.Response
   alias HTTPoison.AsyncResponse
   alias HTTPoison.Error
+
   defmacro __using__(_) do
     quote do
       @type headers :: [{binary, binary}]
@@ -80,7 +81,7 @@ defmodule HTTPoison.Base do
       def start, do: :application.ensure_all_started(:httpoison)
 
       defp process_url(url) do
-        HTTPoison.Base.Impl.default_process_url(url)
+        HTTPoison.Base.default_process_url(url)
       end
 
       defp process_request_body(body), do: body
@@ -101,7 +102,7 @@ defmodule HTTPoison.Base do
       @doc false
       @spec transformer(pid) :: :ok
       def transformer(target) do
-        HTTPoison.Base.Impl.transformer(__MODULE__, target, &process_status_code/1, &process_headers/1, &process_response_chunk/1)
+        HTTPoison.Base.transformer(__MODULE__, target, &process_status_code/1, &process_headers/1, &process_response_chunk/1)
       end
 
       @doc ~S"""
@@ -139,7 +140,7 @@ defmodule HTTPoison.Base do
         url = process_url(to_string(url))
         body = process_request_body(body)
         headers = process_request_headers(headers)
-        HTTPoison.Base.Impl.request(__MODULE__, method, url, body, headers, options, &process_status_code/1, &process_headers/1, &process_response_body/1)
+        HTTPoison.Base.request(__MODULE__, method, url, body, headers, options, &process_status_code/1, &process_headers/1, &process_response_body/1)
       end
 
       @doc """
@@ -315,12 +316,6 @@ defmodule HTTPoison.Base do
       defoverridable Module.definitions_in(__MODULE__)
     end
   end
-end
-
-defmodule HTTPoison.Base.Impl do
-  @moduledoc false
-  alias HTTPoison.Response
-  alias HTTPoison.Error
 
   @doc false
   def transformer(module, target, process_status_code, process_headers, process_response_chunk) do
@@ -397,4 +392,5 @@ defmodule HTTPoison.Base.Impl do
       body: process_response_body.(body)
     } }
   end
+
 end
