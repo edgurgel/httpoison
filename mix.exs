@@ -7,7 +7,7 @@ defmodule HTTPoison.Mixfile do
 
   def project do
     [ app: :httpoison,
-      version: "0.7.4",
+      version: "0.7.5",
       elixir: "~> 1.0",
       name: "HTTPoison",
       description: @description,
