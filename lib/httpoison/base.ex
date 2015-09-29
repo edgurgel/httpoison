@@ -130,6 +130,8 @@ defmodule HTTPoison.Base do
         * `:proxy_auth` - proxy authentication `{User, Password}` tuple
         * `:ssl` - SSL options supported by the `ssl` erlang module
 
+      Timeouts can be an integer or `:infinity`
+
       This function returns `{:ok, response}` or `{:ok, async_response}` if the
       request is successful, `{:error, reason}` otherwise.
 
