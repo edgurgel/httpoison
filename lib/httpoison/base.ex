@@ -112,16 +112,23 @@ defmodule HTTPoison.Base do
         * `method` - HTTP method as an atom (`:get`, `:head`, `:post`, `:put`,
           `:delete`, etc.)
         * `url` - target url as a binary string or char list
-        * `body` - request body as a binary string or char list
-        * `headers` - HTTP headers as an orddict (e.g., `[{:Accept,
-          "application/json"}]`)
-        * `options` - orddict of options
+        * `body` - request body. See more below
+        * `headers` - HTTP headers as an orddict (e.g., `[{"Accept", "application/json"}]`)
+        * `options` - Keyword list of options
+
+      Body:
+        * binary, char list or an iolist
+        * `{:form, [{K, V}, ...]}` - send a form url encoded
+        * `{:file, "/path/to/file"}` - send a file
 
       Options:
-        * `:timeout` - the timeout (in milliseconds) of the request
+        * `:timeout` - timeout to establish a connection, in milliseconds. Default is 8000
+        * `:recv_timeout` - timeout used when receiving a connection. Default is 5000
         * `:stream_to` - a PID to stream the response to
         * `:proxy` - a proxy to be used for the request; it can by a regular url
           or a `{Host, Proxy}` tuple
+        * `:proxy_auth` - proxy authentication `{User, Password}` tuple
+        * `:ssl` - SSL options supported by the `ssl` erlang module
 
       This function returns `{:ok, response}` or `{:ok, async_response}` if the
       request is successful, `{:error, reason}` otherwise.
@@ -131,7 +138,7 @@ defmodule HTTPoison.Base do
           request(:post, "https://my.website.com", "{\"foo\": 3}", [{"Accept", "application/json"}])
 
       """
-      @spec request(atom, binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t}
+      @spec request(atom, binary, binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         if Keyword.has_key?(options, :params) do
@@ -151,7 +158,7 @@ defmodule HTTPoison.Base do
       response in case of a successful request, raising an exception in case the
       request fails.
       """
-      @spec request!(atom, binary, binary, headers, [{atom, any}]) :: Response.t
+      @spec request!(atom, binary, binary, headers, Keyword.t) :: Response.t
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         case request(method, url, body, headers, options) do
           {:ok, response} -> response
@@ -167,7 +174,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec get(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      @spec get(binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def get(url, headers \\ [], options \\ []),          do: request(:get, url, "", headers, options)
 
       @doc """
@@ -178,7 +185,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec get!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
+      @spec get!(binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def get!(url, headers \\ [], options \\ []),         do: request!(:get, url, "", headers, options)
 
       @doc """
@@ -189,7 +196,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec put(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t } | {:error, Error.t}
+      @spec put(binary, binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t } | {:error, Error.t}
       def put(url, body, headers \\ [], options \\ []),    do: request(:put, url, body, headers, options)
 
       @doc """
@@ -200,7 +207,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec put!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
+      @spec put!(binary, binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def put!(url, body, headers \\ [], options \\ []),   do: request!(:put, url, body, headers, options)
 
       @doc """
@@ -211,7 +218,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec head(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      @spec head(binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def head(url, headers \\ [], options \\ []),         do: request(:head, url, "", headers, options)
 
       @doc """
@@ -222,7 +229,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec head!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
+      @spec head!(binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def head!(url, headers \\ [], options \\ []),        do: request!(:head, url, "", headers, options)
 
       @doc """
@@ -233,7 +240,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec post(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      @spec post(binary, binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def post(url, body, headers \\ [], options \\ []),   do: request(:post, url, body, headers, options)
 
       @doc """
@@ -244,7 +251,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec post!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
+      @spec post!(binary, binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def post!(url, body, headers \\ [], options \\ []),  do: request!(:post, url, body, headers, options)
 
       @doc """
@@ -255,7 +262,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec patch(binary, binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      @spec patch(binary, binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def patch(url, body, headers \\ [], options \\ []),  do: request(:patch, url, body, headers, options)
 
       @doc """
@@ -266,7 +273,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec patch!(binary, binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
+      @spec patch!(binary, binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def patch!(url, body, headers \\ [], options \\ []), do: request!(:patch, url, body, headers, options)
 
       @doc """
@@ -277,7 +284,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec delete(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      @spec delete(binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def delete(url, headers \\ [], options \\ []),       do: request(:delete, url, "", headers, options)
 
       @doc """
@@ -288,7 +295,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec delete!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
+      @spec delete!(binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def delete!(url, headers \\ [], options \\ []),      do: request!(:delete, url, "", headers, options)
 
       @doc """
@@ -299,7 +306,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec options(binary, headers, [{atom, any}]) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      @spec options(binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def options(url, headers \\ [], options \\ []),      do: request(:options, url, "", headers, options)
 
       @doc """
@@ -310,7 +317,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec options!(binary, headers, [{atom, any}]) :: Response.t | AsyncResponse.t
+      @spec options!(binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def options!(url, headers \\ [], options \\ []),     do: request!(:options, url, "", headers, options)
 
       defoverridable Module.definitions_in(__MODULE__)
