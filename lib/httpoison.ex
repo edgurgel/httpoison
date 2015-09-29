@@ -55,6 +55,7 @@ defmodule HTTPoison do
   described in the documentation for `HTTPoison.Base`) without overriding any
   default function.
 
+  See `request/5` for more details on how to issue HTTP requests
   """
 
   use HTTPoison.Base

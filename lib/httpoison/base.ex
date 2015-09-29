@@ -108,6 +108,8 @@ defmodule HTTPoison.Base do
       @doc ~S"""
       Issues an HTTP request with the given method to the given url.
 
+      This function is usually used indirectly by `get/3`, `post/4`, `put/4`, etc
+
       Args:
         * `method` - HTTP method as an atom (`:get`, `:head`, `:post`, `:put`,
           `:delete`, etc.)
