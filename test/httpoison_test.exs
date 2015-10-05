@@ -129,6 +129,14 @@ defmodule HTTPoisonTest do
     assert is_list(headers)
   end
 
+  test "asynchronous redirected get request" do
+    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/redirect/2", [], [stream_to: self, hackney: [follow_redirect: true]]
+
+    assert_receive %HTTPoison.AsyncRedirect{ id: ^id, to: to, headers: headers }, 1_000
+    assert to == "http://localhost:8080/redirect/1"
+    assert is_list(headers)
+  end
+
   defp assert_response({:ok, response}, function \\ nil) do
     assert is_list(response.headers)
     assert response.status_code == 200
