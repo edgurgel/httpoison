@@ -6,7 +6,7 @@ defmodule HTTPoisonBaseTest do
     use HTTPoison.Base
     def process_url(url), do: "http://" <> url
     def process_request_body(body), do: {:req_body, body}
-    def process_request_headers(headers), do: {:req_headers, headers}
+    def process_request_headers(headers, _url), do: {:req_headers, headers}
     def process_response_body(body), do: {:resp_body, body}
     def process_headers(headers), do: {:headers, headers}
     def process_status_code(code), do: {:code, code}
@@ -16,13 +16,14 @@ defmodule HTTPoisonBaseTest do
     use HTTPoison.Base
     defp process_url(url), do: "http://" <> url
     defp process_request_body(body), do: {:req_body, body}
-    defp process_request_headers(headers), do: {:req_headers, headers}
+    defp process_request_headers(headers, _url), do: {:req_headers, headers}
     defp process_response_body(body), do: {:resp_body, body}
     defp process_headers(headers), do: {:headers, headers}
     defp process_status_code(code), do: {:code, code}
   end
 
   setup do
+    {:ok, _} = :application.ensure_all_started(:httparrot)
     new :hackney
     on_exit fn -> unload end
     :ok
@@ -130,5 +131,12 @@ defmodule HTTPoisonBaseTest do
                          body: "response" }
 
     assert validate :hackney
+  end
+
+  test "url-based headers augmentation" do
+    assert Example.post!("http://localhost/headers", {:form, [token: "secret"]}) ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: [token: "secret"],
+                         body: ""}
   end
 end

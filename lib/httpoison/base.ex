@@ -42,8 +42,8 @@ defmodule HTTPoison.Base do
 
       # Called to arbitrarly process the request headers before sending them
       # with the request.
-      @spec process_request_headers(term) :: [{binary, term}]
-      defp process_request_headers(headers)
+      @spec process_request_headers(term, binary) :: [{binary, term}]
+      defp process_request_headers(headers, url)
 
       # Called before returning the response body returned by a request to the
       # caller.
@@ -88,10 +88,10 @@ defmodule HTTPoison.Base do
 
       defp process_response_body(body), do: body
 
-      defp process_request_headers(headers) when is_map(headers) do
+      defp process_request_headers(headers, url) when is_map(headers) do
         Enum.into(headers, [])
       end
-      defp process_request_headers(headers), do: headers
+      defp process_request_headers(headers, url), do: headers
 
       defp process_response_chunk(chunk), do: chunk
 
@@ -150,7 +150,7 @@ defmodule HTTPoison.Base do
         end
         url = process_url(to_string(url))
         body = process_request_body(body)
-        headers = process_request_headers(headers)
+        headers = process_request_headers(headers, url)
         HTTPoison.Base.request(__MODULE__, method, url, body, headers, options, &process_status_code/1, &process_headers/1, &process_response_body/1)
       end
 
