@@ -23,6 +23,11 @@ defmodule HTTPoison.AsyncChunk do
   @type t :: %__MODULE__{id: reference, chunk: binary}
 end
 
+defmodule HTTPoison.AsyncRedirect do
+  defstruct id: nil, to: nil, headers: []
+  @type t :: %__MODULE__{id: reference, to: String.t, headers: list}
+end
+
 defmodule HTTPoison.AsyncEnd do
   defstruct id: nil
   @type t :: %__MODULE__{id: reference}

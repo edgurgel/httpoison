@@ -341,6 +341,8 @@ defmodule HTTPoison.Base do
         send target, %HTTPoison.AsyncEnd{id: id}
       {:hackney_response, id, {:error, reason}} ->
         send target, %Error{id: id, reason: reason}
+      {:hackney_response, id, {redirect, to, headers}} when redirect in [:redirect, :see_other] ->
+        send target, %HTTPoison.AsyncRedirect{id: id, to: to, headers: process_headers.(headers)}
       {:hackney_response, id, chunk} ->
         send target, %HTTPoison.AsyncChunk{id: id, chunk: process_response_chunk.(chunk)}
         transformer(module, target, process_status_code, process_headers, process_response_chunk)
