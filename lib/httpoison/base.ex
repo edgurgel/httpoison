@@ -132,6 +132,7 @@ defmodule HTTPoison.Base do
         * `:proxy_auth` - proxy authentication `{User, Password}` tuple
         * `:ssl` - SSL options supported by the `ssl` erlang module
         * `:follow_redirect` - a boolean that causes redirects to be followed
+        * `:max_redirect` - an integer denoting the maximum number of redirects to follow
 
       Timeouts can be an integer or `:infinity`
 
@@ -367,6 +368,7 @@ defmodule HTTPoison.Base do
     proxy_auth = Keyword.get options, :proxy_auth
     ssl = Keyword.get options, :ssl
     follow_redirect = Keyword.get options, :follow_redirect
+    max_redirect = Keyword.get options, :max_redirect
 
     hn_options = Keyword.get options, :hackney, []
 
@@ -376,6 +378,7 @@ defmodule HTTPoison.Base do
     if proxy_auth, do: hn_options = [{:proxy_auth, proxy_auth} | hn_options]
     if ssl, do: hn_options = [{:ssl_options, ssl} | hn_options]
     if follow_redirect, do: hn_options = [{:follow_redirect, follow_redirect} | hn_options]
+    if max_redirect, do: hn_options = [{:max_redirect, max_redirect} | hn_options]
 
     if stream_to do
       hn_options = [:async, {:stream_to, spawn(module, :transformer, [stream_to])} | hn_options]
