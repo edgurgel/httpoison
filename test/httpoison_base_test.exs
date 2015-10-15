@@ -131,4 +131,17 @@ defmodule HTTPoisonBaseTest do
 
     assert validate :hackney
   end
+
+  test "passing follow_redirect option" do
+    expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [follow_redirect: true]],
+                                 {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body", [], follow_redirect: true) ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: "headers",
+                         body: "response" }
+
+    assert validate :hackney
+  end
 end
