@@ -131,7 +131,7 @@ defp process_status_code(status_code), do: status_code
 HTTPoison now comes with async requests!
 
 ```iex
-iex> HTTPoison.get! "http://floatboth.com", %{}, stream_to: self
+iex> HTTPoison.get! "https://github.com/", %{}, stream_to: self
 %HTTPoison.AsyncResponse{id: #Reference<0.0.0.1654>}
 iex> flush
 %HTTPoison.AsyncStatus{code: 200, id: #Reference<0.0.0.1654>}
