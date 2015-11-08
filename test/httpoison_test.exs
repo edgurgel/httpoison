@@ -64,14 +64,12 @@ defmodule HTTPoisonTest do
     end
   end
 
-  test "hackney option follow redirect absolute url" do
-    hackney = [follow_redirect: true]
-    assert_response HTTPoison.get("http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget", [], [ hackney: hackney ])
+  test "option follow redirect absolute url" do
+    assert_response HTTPoison.get("http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget", [], [follow_redirect: true])
   end
 
-  test "hackney option follow redirect relative url" do
-    hackney = [follow_redirect: true]
-    assert_response HTTPoison.get("http://localhost:8080/relative-redirect/1", [], [ hackney: hackney ])
+  test "option follow redirect relative url" do
+    assert_response HTTPoison.get("http://localhost:8080/relative-redirect/1", [], [follow_redirect: true])
   end
 
   test "basic_auth hackney option" do
