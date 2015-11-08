@@ -1,5 +1,30 @@
 # Changelog
 
+# 0.7.5 (2015-11-08)
+
+* Rewrite docs for HTTPoison.Base.request/5
+* Fix async redirect process leak (#80). Thanks to @sdanzan :tada:
+* Add hackney redirect options to HTTPoison (#84). Thanks to @ShaneWilton :tada:
+
+# 0.7.4 (2015-09-21)
+
+* Refactor generated functions through HTTPoison.Base
+* Add ssl option
+
+# 0.7.3 (2015-09-02)
+
+* Accept proxy_auth as a first class parameter
+* Update ex_doc and earmark
+
+# 0.7.2 (2015-08-11)
+
+* Use hackney default values for options
+* Require hackney ~> 1.3.1 (#64)
+
+# 0.7.1 (2015-07-28)
+
+* Update hackney requirement to ~> 1.3.0
+
 ## 0.7.0 (2015-06-06)
 
 * Add missing docs. Thanks to @whatyouhide
