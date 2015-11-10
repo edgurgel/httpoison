@@ -133,6 +133,7 @@ defmodule HTTPoison.Base do
         * `:ssl` - SSL options supported by the `ssl` erlang module
         * `:follow_redirect` - a boolean that causes redirects to be followed
         * `:max_redirect` - an integer denoting the maximum number of redirects to follow
+        * `:params` - an enumerable consisting of two-item tuples that will be appended to the url as query string parameters
 
       Timeouts can be an integer or `:infinity`
 
