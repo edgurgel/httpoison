@@ -127,7 +127,7 @@ defmodule HTTPoison.Base do
         * `:timeout` - timeout to establish a connection, in milliseconds. Default is 8000
         * `:recv_timeout` - timeout used when receiving a connection. Default is 5000
         * `:stream_to` - a PID to stream the response to
-        * `:proxy` - a proxy to be used for the request; it can by a regular url
+        * `:proxy` - a proxy to be used for the request; it can be a regular url
           or a `{Host, Proxy}` tuple
         * `:proxy_auth` - proxy authentication `{User, Password}` tuple
         * `:ssl` - SSL options supported by the `ssl` erlang module
