@@ -10,6 +10,7 @@ defmodule HTTPoisonTest do
   test "get" do
     assert_response HTTPoison.get("localhost:8080/deny"), fn(response) ->
       assert :erlang.size(response.body) == 197
+      assert HTTPoison.Response.location(response) == "http://localhost:8080/deny"
     end
   end
 
@@ -65,11 +66,15 @@ defmodule HTTPoisonTest do
   end
 
   test "option follow redirect absolute url" do
-    assert_response HTTPoison.get("http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget", [], [follow_redirect: true])
+    assert_response HTTPoison.get("http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget", [], [follow_redirect: true]), fn(response) ->
+      assert HTTPoison.Response.location(response) == "http://localhost:8080/get"
+    end
   end
 
   test "option follow redirect relative url" do
-    assert_response HTTPoison.get("http://localhost:8080/relative-redirect/1", [], [follow_redirect: true])
+    assert_response HTTPoison.get("http://localhost:8080/relative-redirect/1", [], [follow_redirect: true]), fn(response) ->
+      assert HTTPoison.Response.location(response) == "/get"
+    end
   end
 
   test "basic_auth hackney option" do
@@ -102,7 +107,7 @@ defmodule HTTPoisonTest do
   test "cached request" do
     if_modified = %{"If-Modified-Since" => "Tue, 11 Dec 2012 10:10:24 GMT"}
     response = HTTPoison.get!("localhost:8080/cache", if_modified)
-    assert %HTTPoison.Response{status_code: 304, body: ""} = response
+    assert %HTTPoison.Response{status_code: 304, body: "", location: "http://localhost:8080/cache"} = response
   end
 
   test "send cookies" do
@@ -140,7 +145,8 @@ defmodule HTTPoisonTest do
     assert response.status_code == 200
     assert is_binary(response.body)
 
-    unless function == nil, do: function.(response)
+    unless HTTPoison.Response.location(response) == nil, do: assert is_binary(HTTPoison.Response.location(response))
+    unless function                              == nil, do: function.(response)
   end
 
   defp get_header(headers, key) do
