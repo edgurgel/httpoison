@@ -7,7 +7,7 @@ HTTP client for Elixir, based on
 
 ## But... why something so similar to HTTPotion?
 
-HTTPoison uses hackney to execute HTTP requests instead of ibrowse. I like hackney :thumbsup:
+HTTPoison uses [hackney](https://github.com/benoitc/hackney) to execute HTTP requests instead of ibrowse. I like hackney :thumbsup:
 
 Using hackney we work only with binaries instead of string lists.
 
