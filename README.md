@@ -44,7 +44,7 @@ iex> HTTPoison.start
 iex> HTTPoison.get! "http://httparrot.herokuapp.com/get"
 %HTTPoison.Response{
   body: "{\n  \"args\": {},\n  \"headers\": {} ...",
-  headers: headers: [{"Connection", "keep-alive"}, {"Server", "Cowboy"},
+  headers: [{"Connection", "keep-alive"}, {"Server", "Cowboy"},
   {"Date", "Sat, 06 Jun 2015 03:52:13 GMT"}, {"Content-Length", "495"},
   {"Content-Type", "application/json"}, {"Via", "1.1 vegur"}],
   status_code: 200
