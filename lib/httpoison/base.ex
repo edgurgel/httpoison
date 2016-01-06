@@ -99,6 +99,16 @@ defmodule HTTPoison.Base do
 
       defp process_status_code(status_code), do: status_code
 
+      defoverridable [
+        process_url: 1,
+        process_request_body: 1,
+        process_response_body: 1,
+        process_request_headers: 1,
+        process_response_chunk: 1,
+        process_headers: 1,
+        process_status_code: 1
+      ]
+
       @doc false
       @spec transformer(pid) :: :ok
       def transformer(target) do
@@ -327,7 +337,6 @@ defmodule HTTPoison.Base do
       @spec options!(binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def options!(url, headers \\ [], options \\ []),     do: request!(:options, url, "", headers, options)
 
-      defoverridable Module.definitions_in(__MODULE__)
     end
   end
 
