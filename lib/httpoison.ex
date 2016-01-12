@@ -1,6 +1,13 @@
 defmodule HTTPoison.Response do
-  defstruct status_code: nil, body: nil, headers: []
-  @type t :: %__MODULE__{status_code: integer, body: binary, headers: list}
+  defstruct status_code: nil, body: nil, headers: [], location: nil
+  @type t :: %__MODULE__{status_code: integer, body: binary, headers: list, location: binary | nil}
+
+  @doc """
+  Returns the location that the response ended up at. This method should be favoured over
+  returning the location from the struct directly, to protect against future API changes.
+  """
+  @spec location(Response.t) :: binary | nil
+  def location(response), do: response.location
 end
 
 defmodule HTTPoison.AsyncResponse do
@@ -65,4 +72,3 @@ defmodule HTTPoison do
 
   use HTTPoison.Base
 end
-

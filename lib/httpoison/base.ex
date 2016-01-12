@@ -394,12 +394,13 @@ defmodule HTTPoison.Base do
 
     case :hackney.request(method, request_url, request_headers,
                           request_body, hn_options) do
-      {:ok, status_code, headers, _client} when status_code in [204, 304] ->
-        response(process_status_code, process_headers, process_response_body, status_code, headers, "")
-      {:ok, status_code, headers} -> response(process_status_code, process_headers, process_response_body, status_code, headers, "")
+      {:ok, status_code, headers, client} when status_code in [204, 304] ->
+        response(process_status_code, process_headers, process_response_body, status_code, headers, "", :hackney.location(client))
+      {:ok, status_code, headers} -> response(process_status_code, process_headers, process_response_body, status_code, headers, "", nil)
       {:ok, status_code, headers, client} ->
+        location = :hackney.location(client) # FIXME The current version of Hackney (0.8) requires that we read the location before the body.
         case :hackney.body(client) do
-          {:ok, body} -> response(process_status_code, process_headers, process_response_body, status_code, headers, body)
+          {:ok, body} -> response(process_status_code, process_headers, process_response_body, status_code, headers, body, location)
           {:error, reason} -> {:error, %Error{reason: reason} }
         end
       {:ok, id} -> { :ok, %HTTPoison.AsyncResponse{ id: id } }
@@ -407,11 +408,12 @@ defmodule HTTPoison.Base do
      end
   end
 
-  defp response(process_status_code, process_headers, process_response_body, status_code, headers, body) do
+  defp response(process_status_code, process_headers, process_response_body, status_code, headers, body, location) do
     {:ok, %Response {
       status_code: process_status_code.(status_code),
       headers: process_headers.(headers),
-      body: process_response_body.(body)
+      body: process_response_body.(body),
+      location: location
     } }
   end
 end
