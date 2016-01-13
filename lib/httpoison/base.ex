@@ -394,8 +394,6 @@ defmodule HTTPoison.Base do
 
     case :hackney.request(method, request_url, request_headers,
                           request_body, hn_options) do
-      {:ok, status_code, headers, _client} when status_code in [204, 304] ->
-        response(process_status_code, process_headers, process_response_body, status_code, headers, "")
       {:ok, status_code, headers} -> response(process_status_code, process_headers, process_response_body, status_code, headers, "")
       {:ok, status_code, headers, client} ->
         case :hackney.body(client) do
