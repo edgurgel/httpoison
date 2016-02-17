@@ -75,6 +75,12 @@ cool API clients or something. The following example wraps `HTTPoison.Base` in
 order to build a client for the GitHub API
 ([Poison](https://github.com/devinus/poison) is used for JSON decoding):
 
+Start iex in the git checkout directory with the `HTTPoison` test environment.
+
+```elixir
+MIX_ENV=test iex -S mix
+```
+
 ```elixir
 defmodule GitHub do
   use HTTPoison.Base
@@ -93,7 +99,7 @@ defmodule GitHub do
 
   def process_response_body(body) do
     body
-    |> Poison.decode!
+    |> JSX.decode!
     |> Dict.take(@expected_fields)
     |> Enum.map(fn({k, v}) -> {String.to_atom(k), v} end)
   end
