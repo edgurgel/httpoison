@@ -73,7 +73,8 @@ defmodule HTTPoison.Base do
 
   defmacro __using__(_) do
     quote do
-      @type headers :: [{binary, binary}]
+      @type headers :: [{binary, binary}] | %{binary => binary}
+      @type body :: binary | {:form, [{atom, any}]} | {:file, binary}
 
       @doc """
       Starts HTTPoison and its dependencies.
@@ -145,7 +146,7 @@ defmodule HTTPoison.Base do
           request(:post, "https://my.website.com", "{\"foo\": 3}", [{"Accept", "application/json"}])
 
       """
-      @spec request(atom, binary, binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t}
+      @spec request(atom, binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         if Keyword.has_key?(options, :params) do
@@ -165,7 +166,7 @@ defmodule HTTPoison.Base do
       response in case of a successful request, raising an exception in case the
       request fails.
       """
-      @spec request!(atom, binary, binary, headers, Keyword.t) :: Response.t
+      @spec request!(atom, binary, body, headers, Keyword.t) :: Response.t
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         case request(method, url, body, headers, options) do
           {:ok, response} -> response
@@ -203,7 +204,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec put(binary, binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t } | {:error, Error.t}
+      @spec put(binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t } | {:error, Error.t}
       def put(url, body, headers \\ [], options \\ []),    do: request(:put, url, body, headers, options)
 
       @doc """
@@ -214,7 +215,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec put!(binary, binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
+      @spec put!(binary, body, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def put!(url, body, headers \\ [], options \\ []),   do: request!(:put, url, body, headers, options)
 
       @doc """
@@ -247,7 +248,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec post(binary, binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      @spec post(binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def post(url, body, headers \\ [], options \\ []),   do: request(:post, url, body, headers, options)
 
       @doc """
@@ -258,7 +259,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec post!(binary, binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
+      @spec post!(binary, body, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def post!(url, body, headers \\ [], options \\ []),  do: request!(:post, url, body, headers, options)
 
       @doc """
@@ -269,7 +270,7 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec patch(binary, binary, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
+      @spec patch(binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
       def patch(url, body, headers \\ [], options \\ []),  do: request(:patch, url, body, headers, options)
 
       @doc """
@@ -280,7 +281,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec patch!(binary, binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
+      @spec patch!(binary, body, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def patch!(url, body, headers \\ [], options \\ []), do: request!(:patch, url, body, headers, options)
 
       @doc """
