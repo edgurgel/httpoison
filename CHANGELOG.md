@@ -1,5 +1,18 @@
 # Changelog
 
+# 0.8.2 (2016-03-16)
+
+* Bump hackney requirement
+
+# 0.8.1 (2016-01-14)
+
+* Fix socket leakage related to 204/304 requests
+* Update README and docs
+
+# 0.8.0 (2015-11-08)
+
+* Update hackney requirement to ~> 1.4.4
+
 # 0.7.5 (2015-11-08)
 
 * Rewrite docs for HTTPoison.Base.request/5
