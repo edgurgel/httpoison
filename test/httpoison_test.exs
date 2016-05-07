@@ -19,7 +19,7 @@ defmodule HTTPoisonTest do
       args = JSX.decode!(response.body)["args"]
       assert args["foo"] == "bar"
       assert args["baz"] == "bong"
-      assert (args |> Dict.keys |> length) == 2
+      assert (args |> Map.keys |> length) == 2
     end
   end
 
