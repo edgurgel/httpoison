@@ -149,10 +149,11 @@ defmodule HTTPoison.Base do
       @spec request(atom, binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
-        if Keyword.has_key?(options, :params) do
-          url = url <> "?" <> URI.encode_query(options[:params])
-        end
-        url = process_url(to_string(url))
+        url =
+          url
+          |> to_string()
+          |> HTTPoison.Base.append_query(options[:params])
+          |> process_url()
         body = process_request_body(body)
         headers = process_request_headers(headers)
         HTTPoison.Base.request(__MODULE__, method, url, body, headers, options, &process_status_code/1, &process_headers/1, &process_response_body/1)
@@ -360,6 +361,15 @@ defmodule HTTPoison.Base do
       "https://" <> _ -> url
       _ -> "http://" <> url
     end
+  end
+
+  @doc false
+  def append_query(url, nil), do: url
+  def append_query(url, query) when is_binary(query) do
+    url <> "?" <> query
+  end
+  def append_query(url, query) do
+    append_query(url, URI.encode_query(query))
   end
 
   defp build_hackney_options(module, options) do
