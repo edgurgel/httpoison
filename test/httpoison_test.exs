@@ -106,8 +106,8 @@ defmodule HTTPoisonTest do
   end
 
   test "send cookies" do
-    response = HTTPoison.get!("localhost:8080/cookies", %{}, hackney: [cookie: [{"SESSION", "123"}]])
-    assert response.body =~ ~r(\"SESSION\".*\"123\")
+    response = HTTPoison.get!("localhost:8080/cookies", %{}, hackney: [cookie: ["foo=1; bar=2"]])
+    assert response.body |> String.replace( ~r/\s|\r?\n/, "") |> String.replace(~r/\"/, "'") |> JSX.decode! == %{"cookies" => %{"foo" => "1", "bar" => "2"}}
   end
 
   test "exception" do

@@ -130,7 +130,7 @@ defp process_status_code(status_code), do: status_code
 
 HTTPoison now comes with async requests!
 
-```iex
+```elixir
 iex> HTTPoison.get! "https://github.com/", %{}, stream_to: self
 %HTTPoison.AsyncResponse{id: #Reference<0.0.0.1654>}
 iex> flush
@@ -139,6 +139,17 @@ iex> flush
 %HTTPoison.AsyncChunk{chunk: "<!DOCTYPE html>...", id: #Reference<0.0.0.1654>}
 %HTTPoison.AsyncEnd{id: #Reference<0.0.0.1654>}
 :ok
+```
+
+### Cookies
+
+HTTPoison allows you to send cookies:
+
+```iex
+iex> HTTPoison.get!("http://httparrot.herokuapp.com/cookies", %{}, hackney: [cookie: ["session=a933ec1dd923b874e691; logged_in=true"]])
+%HTTPoison.Response{body: "{\n  \"cookies\": {\n    \"session\": \"a933ec1dd923b874e691\",\n    \"logged_in\": \"true\"\n  }\n}",
+ headers: [{"Connection", "keep-alive"}, ...],
+ status_code: 200}
 ```
 
 You can see more usage examples in the test files (located in the
