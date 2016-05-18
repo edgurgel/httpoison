@@ -39,7 +39,7 @@ apt-get install erlang-dev
 
 ## Usage
 
-```iex
+```elixir
 iex> HTTPoison.start
 iex> HTTPoison.get! "http://httparrot.herokuapp.com/get"
 %HTTPoison.Response{
@@ -100,7 +100,7 @@ defmodule GitHub do
 end
 ```
 
-```iex
+```elixir
 iex> GitHub.start
 iex> GitHub.get!("/users/myfreeweb").body[:public_repos]
 37
@@ -145,7 +145,7 @@ iex> flush
 
 HTTPoison allows you to send cookies:
 
-```iex
+```elixir
 iex> HTTPoison.get!("http://httparrot.herokuapp.com/cookies", %{}, hackney: [cookie: ["session=a933ec1dd923b874e691; logged_in=true"]])
 %HTTPoison.Response{body: "{\n  \"cookies\": {\n    \"session\": \"a933ec1dd923b874e691\",\n    \"logged_in\": \"true\"\n  }\n}",
  headers: [{"Connection", "keep-alive"}, ...],
