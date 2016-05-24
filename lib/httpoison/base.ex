@@ -149,8 +149,11 @@ defmodule HTTPoison.Base do
       @spec request(atom, binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
+        url =
         if Keyword.has_key?(options, :params) do
-          url = url <> "?" <> URI.encode_query(options[:params])
+          url <> "?" <> URI.encode_query(options[:params])
+        else
+          url
         end
         url = process_url(to_string(url))
         body = process_request_body(body)
@@ -374,17 +377,20 @@ defmodule HTTPoison.Base do
 
     hn_options = Keyword.get options, :hackney, []
 
-    if timeout, do: hn_options = [{:connect_timeout, timeout} | hn_options]
-    if recv_timeout, do: hn_options = [{:recv_timeout, recv_timeout} | hn_options]
-    if proxy, do: hn_options = [{:proxy, proxy} | hn_options]
-    if proxy_auth, do: hn_options = [{:proxy_auth, proxy_auth} | hn_options]
-    if ssl, do: hn_options = [{:ssl_options, ssl} | hn_options]
-    if follow_redirect, do: hn_options = [{:follow_redirect, follow_redirect} | hn_options]
-    if max_redirect, do: hn_options = [{:max_redirect, max_redirect} | hn_options]
+    hn_options = if timeout, do: [{:connect_timeout, timeout} | hn_options], else: hn_options
+    hn_options = if recv_timeout, do: [{:recv_timeout, recv_timeout} | hn_options], else: hn_options
+    hn_options = if proxy, do: [{:proxy, proxy} | hn_options], else: hn_options
+    hn_options = if proxy_auth, do: [{:proxy_auth, proxy_auth} | hn_options], else: hn_options
+    hn_options = if ssl, do: [{:ssl_options, ssl} | hn_options], else: hn_options
+    hn_options = if follow_redirect, do: [{:follow_redirect, follow_redirect} | hn_options], else: hn_options
+    hn_options = if max_redirect, do: [{:max_redirect, max_redirect} | hn_options], else: hn_options
 
-    if stream_to do
-      hn_options = [:async, {:stream_to, spawn(module, :transformer, [stream_to])} | hn_options]
-    end
+    hn_options =
+      if stream_to do
+        [:async, {:stream_to, spawn(module, :transformer, [stream_to])} | hn_options]
+      else
+        hn_options
+      end
 
     hn_options
   end
