@@ -393,17 +393,21 @@ defmodule HTTPoison.Base do
   def request(module, method, request_url, request_body, request_headers, options, process_status_code, process_headers, process_response_body) do
     hn_options = build_hackney_options(module, options)
 
-    case :hackney.request(method, request_url, request_headers,
-                          request_body, hn_options) do
-      {:ok, status_code, headers} -> response(process_status_code, process_headers, process_response_body, status_code, headers, "")
-      {:ok, status_code, headers, client} ->
-        case :hackney.body(client) do
-          {:ok, body} -> response(process_status_code, process_headers, process_response_body, status_code, headers, body)
-          {:error, reason} -> {:error, %Error{reason: reason} }
-        end
-      {:ok, id} -> { :ok, %HTTPoison.AsyncResponse{ id: id } }
-      {:error, reason} -> {:error, %Error{reason: reason}}
-     end
+    try do
+      case :hackney.request(method, request_url, request_headers,
+                            request_body, hn_options) do
+        {:ok, status_code, headers} -> response(process_status_code, process_headers, process_response_body, status_code, headers, "")
+        {:ok, status_code, headers, client} ->
+          case :hackney.body(client) do
+            {:ok, body} -> response(process_status_code, process_headers, process_response_body, status_code, headers, body)
+            {:error, reason} -> {:error, %Error{reason: reason} }
+          end
+        {:ok, id} -> { :ok, %HTTPoison.AsyncResponse{ id: id } }
+        {:error, reason} -> {:error, %Error{reason: reason}}
+       end
+    catch
+      _, reason -> {:error, %Error{reason: reason}}
+    end
   end
 
   defp response(process_status_code, process_headers, process_response_body, status_code, headers, body) do
