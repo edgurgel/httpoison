@@ -117,6 +117,13 @@ defmodule HTTPoisonTest do
     end
   end
 
+  test "send an empty url" do
+    assert HTTPoison.get "" == {:error, %HTTPoison.Error{reason: :badarg}}
+    assert_raise HTTPoison.Error, ":badarg", fn ->
+      HTTPoison.get! ""
+    end
+  end
+
   test "asynchronous request" do
     {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/get", [], [stream_to: self]
 
