@@ -55,7 +55,7 @@ defmodule HTTPoison.Base do
       @spec process_response_chunk(binary) :: term
       defp process_response_chunk(chunk)
 
-      # Called to process the response headers before returing them to the
+      # Called to process the response headers before returning them to the
       # caller.
       @spec process_headers([{binary, term}]) :: term
       defp process_headers(headers)
