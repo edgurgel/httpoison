@@ -35,12 +35,12 @@ defmodule HTTPoison.Base do
       @spec process_url(binary) :: binary
       defp process_url(url)
 
-      # Called to arbitrarly process the request body before sending it with the
+      # Called to arbitrarily process the request body before sending it with the
       # request.
       @spec process_request_body(term) :: binary
       defp process_request_body(body)
 
-      # Called to arbitrarly process the request headers before sending them
+      # Called to arbitrarily process the request headers before sending them
       # with the request.
       @spec process_request_headers(term) :: [{binary, term}]
       defp process_request_headers(headers)
@@ -60,7 +60,7 @@ defmodule HTTPoison.Base do
       @spec process_headers([{binary, term}]) :: term
       defp process_headers(headers)
 
-      # Used to arbitrarly process the status code of a response before
+      # Used to arbitrarily process the status code of a response before
       # returning it to the caller.
       @spec process_status_code(integer) :: term
       defp process_status_code(status_code)
