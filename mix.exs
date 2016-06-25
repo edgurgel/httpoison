@@ -8,7 +8,7 @@ defmodule HTTPoison.Mixfile do
   def project do
     [ app: :httpoison,
       version: "0.8.3",
-      elixir: "~> 1.0",
+      elixir: "~> 1.2",
       name: "HTTPoison",
       description: @description,
       package: package,
@@ -24,7 +24,7 @@ defmodule HTTPoison.Mixfile do
     [
       {:hackney, "~> 1.6.0"},
       {:exjsx, "~> 3.1", only: :test},
-      {:httparrot, "~> 0.3.4", only: :test},
+      {:httparrot, "~> 0.4", only: :test},
       {:meck, "~> 0.8.2", only: :test},
       {:earmark, "~> 0.1.17", only: :docs},
       {:ex_doc, "~> 0.8.0", only: :docs},
