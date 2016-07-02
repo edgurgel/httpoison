@@ -1,5 +1,13 @@
 # Changelog
 
+# 0.9.0 (2016-06-25)
+
+* Add a test and an example of using multiple cookies;
+* Change `request/5` to catch hackney errors;
+* Bump Elixir requirement to ~> 1.2;
+* A couple of changes to README;
+* Fix several typos.
+
 # 0.8.2 (2016-03-16)
 
 * Bump hackney requirement
