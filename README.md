@@ -124,6 +124,8 @@ defp process_response_chunk(chunk), do: chunk
 defp process_headers(headers), do: headers
 
 defp process_status_code(status_code), do: status_code
+
+defp process_url(url), do: url
 ```
 
 ### Async requests
