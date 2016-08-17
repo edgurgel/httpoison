@@ -11,8 +11,8 @@ defmodule HTTPoison.Mixfile do
       elixir: "~> 1.2",
       name: "HTTPoison",
       description: @description,
-      package: package,
-      deps: deps,
+      package: package(),
+      deps: deps(),
       source_url: "https://github.com/edgurgel/httpoison" ]
   end
 
