@@ -24,7 +24,7 @@ defmodule HTTPoisonBaseTest do
 
   setup do
     new :hackney
-    on_exit fn -> unload end
+    on_exit fn -> unload() end
     :ok
   end
 

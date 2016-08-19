@@ -125,7 +125,7 @@ defmodule HTTPoisonTest do
   end
 
   test "asynchronous request" do
-    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/get", [], [stream_to: self]
+    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/get", [], [stream_to: self()]
 
     assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 1_000
     assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 1_000
@@ -135,7 +135,7 @@ defmodule HTTPoisonTest do
   end
 
   test "asynchronous redirected get request" do
-    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/redirect/2", [], [stream_to: self, hackney: [follow_redirect: true]]
+    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/redirect/2", [], [stream_to: self(), hackney: [follow_redirect: true]]
 
     assert_receive %HTTPoison.AsyncRedirect{ id: ^id, to: to, headers: headers }, 1_000
     assert to == "http://localhost:8080/redirect/1"
