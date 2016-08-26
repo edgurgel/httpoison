@@ -22,6 +22,16 @@ defmodule HTTPoisonBaseTest do
     defp process_status_code(code), do: {:code, code}
   end
 
+  defmodule ExampleException do
+    use HTTPoison.Base
+    defp process_url(url), do: "http://" <> url
+    defp process_request_body(body), do: {:req_body, body}
+    defp process_request_headers(headers), do: {:req_headers, headers}
+    defp process_response_body(_body), do: raise "LOLNOPE"
+    defp process_headers(headers), do: {:headers, headers}
+    defp process_status_code(code), do: {:code, code}
+  end
+
   setup do
     new :hackney
     on_exit fn -> unload() end
@@ -154,6 +164,18 @@ defmodule HTTPoisonBaseTest do
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
                          body: "response" }
+
+    assert validate :hackney
+  end
+
+  test "bubbling up errors from process_response_body" do
+    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, []],
+                                 {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert_raise RuntimeError, "LOLNOPE", fn ->
+      ExampleException.post!("localhost", "body")
+    end
 
     assert validate :hackney
   end
