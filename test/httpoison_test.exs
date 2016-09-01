@@ -135,6 +135,11 @@ defmodule HTTPoisonTest do
     assert is_list(headers)
   end
 
+  test "multipart upload" do
+    response = HTTPoison.post("localhost:8080/post", {:multipart, [{:file, "test/test_helper.exs"}, {"name", "value"}]})
+    assert_response(response)
+  end
+
   defp assert_response({:ok, response}, function \\ nil) do
     assert is_list(response.headers)
     assert response.status_code == 200
