@@ -49,6 +49,10 @@ defmodule HTTPoisonTest do
     assert_response HTTPoison.put("localhost:8080/put", "test")
   end
 
+  test "put without body" do
+    assert_response HTTPoison.put("localhost:8080/put")
+  end
+
   test "patch" do
     assert_response HTTPoison.patch("localhost:8080/patch", "test")
   end
