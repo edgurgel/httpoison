@@ -208,7 +208,7 @@ defmodule HTTPoison.Base do
       See `request/5` for more detailed information.
       """
       @spec put(binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t } | {:error, Error.t}
-      def put(url, body, headers \\ [], options \\ []),    do: request(:put, url, body, headers, options)
+      def put(url, body \\ "", headers \\ [], options \\ []),    do: request(:put, url, body, headers, options)
 
       @doc """
       Issues a PUT request to the given url, raising an exception in case of
@@ -218,8 +218,8 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec put!(binary, body, headers, Keyword.t) :: Response.t | AsyncResponse.t
-      def put!(url, body, headers \\ [], options \\ []),   do: request!(:put, url, body, headers, options)
+      @spec put!(binary, body, Keyword.t) :: Response.t | AsyncResponse.t
+      def put!(url, body \\ "", headers \\ [], options \\ []),   do: request!(:put, url, body, headers, options)
 
       @doc """
       Issues a HEAD request to the given url.
