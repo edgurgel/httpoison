@@ -173,7 +173,7 @@ defmodule HTTPoison.Base do
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         case request(method, url, body, headers, options) do
           {:ok, response} -> response
-          {:error, error} -> raise error
+          {:error, %Error{reason: reason}} -> raise Error, reason: reason
         end
       end
 
