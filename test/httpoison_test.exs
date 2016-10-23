@@ -142,6 +142,26 @@ defmodule HTTPoisonTest do
     assert is_list(headers)
   end
 
+  test "asynchronous request with explicit streaming using [async: :once]" do
+    {:ok, resp = %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/get", [], [stream_to: self(), async: :once]
+
+    assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 100
+
+    refute_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 100
+    {:ok, ^resp} = HTTPoison.stream_next(resp)
+    assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 100
+
+    refute_receive %HTTPoison.AsyncChunk{ id: ^id, chunk: _chunk }, 100
+    {:ok, ^resp} = HTTPoison.stream_next(resp)
+    assert_receive %HTTPoison.AsyncChunk{ id: ^id, chunk: _chunk }, 100
+
+    refute_receive %HTTPoison.AsyncEnd{ id: ^id }, 100
+    {:ok, ^resp} = HTTPoison.stream_next(resp)
+    assert_receive %HTTPoison.AsyncEnd{ id: ^id }, 100
+
+    assert is_list(headers)
+  end
+
   test "asynchronous redirected get request" do
     {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/redirect/2", [], [stream_to: self(), hackney: [follow_redirect: true]]
 
