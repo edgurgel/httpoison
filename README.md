@@ -53,6 +53,13 @@ iex> HTTPoison.get! "http://localhost:1"
 ** (HTTPoison.Error) :econnrefused
 iex> HTTPoison.get "http://localhost:1"
 {:error, %HTTPoison.Error{id: nil, reason: :econnrefused}}
+
+iex> HTTPoison.post "http://httparrot.herokuapp.com/post", "{\"body\": \"test\"}", [{"Content-Type", "application/json"}]
+{:ok, %HTTPoison.Response{body: "{\n  \"args\": {},\n  \"headers\": {\n    \"host\": \"httparrot.herokuapp.com\",\n    \"connection\": \"close\",\n    \"accept\": \"application/json\",\n    \"content-type\": \"application/json\",\n    \"user-agent\": \"hackney/1.6.1\",\n    \"x-request-id\": \"4b85de44-6227-4480-b506-e3b9b4f0318a\",\n    \"x-forwarded-for\": \"76.174.231.199\",\n    \"x-forwarded-proto\": \"http\",\n    \"x-forwarded-port\": \"80\",\n    \"via\": \"1.1 vegur\",\n    \"connect-time\": \"1\",\n    \"x-request-start\": \"1475945832992\",\n    \"total-route-time\": \"0\",\n    \"content-length\": \"16\"\n  },\n  \"url\": \"http://httparrot.herokuapp.com/post\",\n  \"origin\": \"10.180.37.142\",\n  \"form\": {},\n  \"data\": \"{\\\"body\\\": \\\"test\\\"}\",\n  \"json\": {\n    \"body\": \"test\"\n  }\n}",
+    headers: [{"Connection", "keep-alive"}, {"Server", "Cowboy"},
+    {"Date", "Sat, 08 Oct 2016 16:57:12 GMT"}, {"Content-Length", "681"},
+    {"Content-Type", "application/json"}, {"Via", "1.1 vegur"}],
+status_code: 200}}
 ```
 
 You can also easily pattern match on the `HTTPoison.Response` struct:
