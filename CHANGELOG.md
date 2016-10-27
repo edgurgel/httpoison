@@ -1,5 +1,9 @@
 # Changelog
 
+# Unreleased
+
+* Add support for http over unix sockets - requires hackney >= 1.6.3, erlang >= 19. (#185).
+
 # 0.9.2 (2016-09-27)
 
 * Rewrite `request!/5` in a way that does not cause OTP 19 cover to error (#178);

@@ -22,9 +22,9 @@ defmodule HTTPoison.Mixfile do
 
   defp deps do
     [
-      {:hackney, "~> 1.6.0"},
+      {:hackney, "~> 1.6.3"},
       {:exjsx, "~> 3.1", only: :test},
-      {:httparrot, "~> 0.4", only: :test},
+      {:httparrot, "~> 0.5", only: :test},
       {:meck, "~> 0.8.2", only: :test},
       {:earmark, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.14.3", only: :dev},

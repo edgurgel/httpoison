@@ -358,9 +358,10 @@ defmodule HTTPoison.Base do
 
   @doc false
   def default_process_url(url) do
-    case url |> String.slice(0, 8) |> String.downcase do
+    case url |> String.slice(0, 12) |> String.downcase do
       "http://" <> _ -> url
       "https://" <> _ -> url
+      "http+unix://" <> _ -> url
       _ -> "http://" <> url
     end
   end
