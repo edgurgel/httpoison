@@ -94,6 +94,17 @@ defmodule HTTPoisonTest do
     assert_response HTTPoison.get("https://localhost:8433/get", [], ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file])
   end
 
+  test "http+unix scheme" do
+    if Application.get_env(:httparrot, :unix_socket, false) do
+      case {HTTParrot.unix_socket_supported?, Application.fetch_env(:httparrot, :socket_path)} do
+        {true, {:ok, path}} ->
+          path = URI.encode_www_form(path)
+          assert_response HTTPoison.get("http+unix://#{path}/get")
+        _ -> :ok
+      end
+    end
+  end
+
   test "char list URL" do
     assert_response HTTPoison.head('localhost:8080/get')
   end
