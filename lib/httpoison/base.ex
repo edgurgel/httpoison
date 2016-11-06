@@ -128,6 +128,7 @@ defmodule HTTPoison.Base do
         * `:timeout` - timeout to establish a connection, in milliseconds. Default is 8000
         * `:recv_timeout` - timeout used when receiving a connection. Default is 5000
         * `:stream_to` - a PID to stream the response to
+        * `:async` - if given `:once`, will only stream one message at a time, requires call to `stream_next`
         * `:proxy` - a proxy to be used for the request; it can be a regular url
           or a `{Host, Proxy}` tuple
         * `:proxy_auth` - proxy authentication `{User, Password}` tuple
@@ -331,6 +332,19 @@ defmodule HTTPoison.Base do
       @spec options!(binary, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def options!(url, headers \\ [], options \\ []),     do: request!(:options, url, "", headers, options)
 
+      @doc """
+      Requests the next message to be streamed for a given `HTTPoison.AsyncResponse`.
+
+      See `request!/5` for more detailed information.
+      """
+      @spec stream_next(AsyncResponse.t) :: {:ok, AsyncResponse.t} | {:error, Error.t}
+      def stream_next(resp = %AsyncResponse{ id: id }) do
+        case :hackney.stream_next(id) do
+          :ok -> {:ok, resp}
+          err -> {:error, %Error{reason: "stream_next/1 failed", id: id}}
+        end
+      end
+
       defoverridable Module.definitions_in(__MODULE__)
     end
   end
@@ -370,6 +384,7 @@ defmodule HTTPoison.Base do
     timeout = Keyword.get options, :timeout
     recv_timeout = Keyword.get options, :recv_timeout
     stream_to = Keyword.get options, :stream_to
+    async = Keyword.get options, :async
     proxy = Keyword.get options, :proxy
     proxy_auth = Keyword.get options, :proxy_auth
     ssl = Keyword.get options, :ssl
@@ -388,7 +403,11 @@ defmodule HTTPoison.Base do
 
     hn_options =
       if stream_to do
-        [:async, {:stream_to, spawn(module, :transformer, [stream_to])} | hn_options]
+        async_option = case async do
+          nil   -> :async
+          :once -> {:async, :once}
+        end
+        [async_option, {:stream_to, spawn(module, :transformer, [stream_to])} | hn_options]
       else
         hn_options
       end
