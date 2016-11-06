@@ -1,8 +1,9 @@
 # Changelog
 
-# Unreleased
+# 0.10.0 (2016-11-06)
 
 * Add support for http over unix sockets - requires hackney >= 1.6.3, erlang >= 19. (#185).
+* Add support for hackney async once & stream_next/1
 
 # 0.9.2 (2016-09-27)
 
