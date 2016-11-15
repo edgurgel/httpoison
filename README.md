@@ -5,6 +5,16 @@ HTTP client for Elixir, based on
 [HTTPotion](https://github.com/myfreeweb/httpotion)
 ([documentation](http://hexdocs.pm/httpoison/)).
 
+##Note about broken ssl in Erlang 19
+Until this [issue](https://bugs.erlang.org/browse/ERL-192) is fixed ssl handshakes may fail. If you receive this error:
+```
+{:error, %HTTPoison.Error{id: nil, reason: :closed}}
+```
+Try the following fix:
+```elixir
+HTTPoison.get("https://example.com/", [], [ ssl: [{:versions, [:'tlsv1.2'] ])
+```
+
 ## But... why something so similar to HTTPotion?
 
 HTTPoison uses [hackney](https://github.com/benoitc/hackney) to execute HTTP requests instead of ibrowse. I like hackney :thumbsup:
