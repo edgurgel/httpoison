@@ -12,7 +12,7 @@ Until this [issue](https://bugs.erlang.org/browse/ERL-192) is fixed ssl handshak
 ```
 Try the following fix:
 ```elixir
-HTTPoison.get("https://example.com/", [], [ ssl: [{:versions, [:'tlsv1.2'] ])
+HTTPoison.get("https://example.com/", [], [ ssl: [{:versions, [:'tlsv1.2']}] ])
 ```
 
 ## But... why something so similar to HTTPotion?
