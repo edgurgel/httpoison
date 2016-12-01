@@ -123,6 +123,7 @@ defmodule HTTPoison.Base do
         * binary, char list or an iolist
         * `{:form, [{K, V}, ...]}` - send a form url encoded
         * `{:file, "/path/to/file"}` - send a file
+        * `{:stream, enumerable} - lazily send a stream of binaries/charlists
 
       Options:
         * `:timeout` - timeout to establish a connection, in milliseconds. Default is 8000
@@ -415,12 +416,12 @@ defmodule HTTPoison.Base do
     hn_options
   end
 
+
   @doc false
   def request(module, method, request_url, request_body, request_headers, options, process_status_code, process_headers, process_response_body) do
     hn_options = build_hackney_options(module, options)
 
-    case :hackney.request(method, request_url, request_headers,
-                          request_body, hn_options) do
+    case do_request(method, request_url, request_headers, request_body, hn_options) do
       {:ok, status_code, headers} -> response(process_status_code, process_headers, process_response_body, status_code, headers, "")
       {:ok, status_code, headers, client} ->
         case :hackney.body(client) do
@@ -430,6 +431,29 @@ defmodule HTTPoison.Base do
       {:ok, id} -> { :ok, %HTTPoison.AsyncResponse{ id: id } }
       {:error, reason} -> {:error, %Error{reason: reason}}
      end
+  end
+
+  defp do_request(method, request_url, request_headers, {:stream, enumerable}, hn_options) do
+    with {:ok, ref} <- :hackney.request(method, request_url, request_headers, :stream, hn_options) do
+
+      failures = Stream.transform(enumerable, :ok, fn
+        _, :error -> {:halt, :error}
+        bin, :ok  -> {[], :hackney.send_body(ref, bin)}
+        _, error  -> {[error], :error}
+      end) |> Enum.into([])
+
+      case failures do
+        [] ->
+          :hackney.start_response(ref)
+        [failure] ->
+          failure
+      end
+    end
+  end
+
+  defp do_request(method, request_url, request_headers, request_body, hn_options) do
+    :hackney.request(method, request_url, request_headers,
+                          request_body, hn_options)
   end
 
   defp response(process_status_code, process_headers, process_response_body, status_code, headers, body) do

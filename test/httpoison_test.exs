@@ -175,6 +175,17 @@ defmodule HTTPoisonTest do
     assert_response(response)
   end
 
+  test "post streaming body" do
+    expected = %{"some" => "bytes"}
+    enumerable = JSX.encode!(expected) |> String.split("")
+    headers = %{"Content-type" => "application/json"}
+    response = HTTPoison.post("localhost:8080/post", {:stream, enumerable}, headers)
+    assert_response response
+    {:ok, %HTTPoison.Response{body: body}} = response
+
+    assert JSX.decode!(body)["json"] == expected
+  end
+
   defp assert_response({:ok, response}, function \\ nil) do
     assert is_list(response.headers)
     assert response.status_code == 200
