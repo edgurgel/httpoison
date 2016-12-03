@@ -114,7 +114,7 @@ defmodule HTTPoison.Base do
       Args:
         * `method` - HTTP method as an atom (`:get`, `:head`, `:post`, `:put`,
           `:delete`, etc.)
-        * `url` - target url as a binary string or char list
+        * `url` - target url as a binary string or char list. The url is URI.encoded so don't pass a uri encoded binary string or char list or the url will be double encoded.
         * `body` - request body. See more below
         * `headers` - HTTP headers as an orddict (e.g., `[{"Accept", "application/json"}]`)
         * `options` - Keyword list of options
@@ -150,6 +150,7 @@ defmodule HTTPoison.Base do
       @spec request(atom, binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
+        url = URI.encode to_string(url)
         url =
         if Keyword.has_key?(options, :params) do
           url <> "?" <> URI.encode_query(options[:params])

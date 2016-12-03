@@ -23,6 +23,18 @@ defmodule HTTPoisonTest do
     end
   end
 
+  test "get with encode" do
+    resp = HTTPoison.get("localhost:8080/get?foo=bar stool&baz=bong", [])
+    assert_response resp, fn(response) ->
+      body = JSX.decode!(response.body)
+      args = body["args"]
+      assert args["foo"] == "bar stool"
+      assert args["baz"] == "bong"
+      assert (args |> Map.keys |> length) == 2
+      assert body["url"] == "http://localhost:8080/get?foo=bar%20stool&baz=bong"
+    end
+  end
+
   test "head" do
     assert_response HTTPoison.head("localhost:8080/get"), fn(response) ->
       assert response.body == ""
@@ -69,7 +81,7 @@ defmodule HTTPoisonTest do
   end
 
   test "option follow redirect absolute url" do
-    assert_response HTTPoison.get("http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget", [], [follow_redirect: true])
+    assert_response HTTPoison.get("http://localhost:8080/redirect-to?url=http://localhost:8080/get", [], [follow_redirect: true])
   end
 
   test "option follow redirect relative url" do
@@ -147,7 +159,7 @@ defmodule HTTPoisonTest do
 
     assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 100
 
-    refute_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 100
+    refute_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: _headers }, 100
     {:ok, ^resp} = HTTPoison.stream_next(resp)
     assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 100
 
