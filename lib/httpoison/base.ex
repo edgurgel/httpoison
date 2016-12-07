@@ -130,7 +130,7 @@ defmodule HTTPoison.Base do
         * `:stream_to` - a PID to stream the response to
         * `:async` - if given `:once`, will only stream one message at a time, requires call to `stream_next`
         * `:proxy` - a proxy to be used for the request; it can be a regular url
-          or a `{Host, Proxy}` tuple
+          or a `{Host, Port}` tuple
         * `:proxy_auth` - proxy authentication `{User, Password}` tuple
         * `:ssl` - SSL options supported by the `ssl` erlang module
         * `:follow_redirect` - a boolean that causes redirects to be followed
