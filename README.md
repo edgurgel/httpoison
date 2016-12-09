@@ -174,6 +174,52 @@ iex> HTTPoison.get!("http://httparrot.herokuapp.com/cookies", %{}, hackney: [coo
 You can see more usage examples in the test files (located in the
 [`test/`](test)) directory.
 
+### Connection Pools
+
+Normally **hackney** [opens and closes connections on demand](https://github.com/benoitc/hackney#reuse-a-connection), but it also creates a [default pool](https://github.com/benoitc/hackney#use-the-default-pool) of connections which are reused for requests to the same host. If the connection and host support keepalive, the connection is kept open until explicitly closed.
+
+To use the default pool, you can just declare it as an option:
+
+```elixir
+HTTPoison.get("httpbin.org/get", [], hackney: [pool: :default])
+```
+
+It is possible to use different pools for different purposes when a more fine grained allocation of resources is necessary.
+
+#### Simple pool declaration
+
+The easiest way is to just pass the name of the pool, and hackney will create it if it doesn't exist. Pools are independent from each other (they won't compete for connections) and are created with the default configuration.
+
+```elixir
+HTTPoison.get("httpbin.org/get", [], hackney: [pool: :first_pool])
+HTTPoison.get("httpbin.org/get", [], hackney: [pool: :second_pool])
+```
+
+#### Explicit pool creation
+
+If you want to use different configuration options you can create a pool manually [when your app starts](http://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html#the-application-callback) with `:hackney_pool.start_pool/2`.
+
+```elixir
+:ok = :hackney_pool.start_pool(:first_pool, [timeout: 15000, max_connections: 100])
+```
+
+From the already linked [hackney's readme](https://github.com/benoitc/hackney#use-the-default-pool):
+
+> `timeout` is the time we keep the connection alive in the pool, `max_connections` is the number of connections maintained in the pool. Each connection in a pool is monitored and closed connections are removed automatically.
+
+#### Pools as supervised processes
+
+A third option is to add the pool as part of your supervision tree:
+
+```elixir
+children = [
+  :hackney_pool.child_spec(:first_pool, [timeout: 15000, max_connections: 100])
+]
+```
+
+Add that to the application supervisor and `first_pool` will be available to be used by HTTPoison/hackney.
+
+
 ## License
 
     Copyright © 2013-2014 Eduardo Gurgel <eduardo@gurgel.me>
