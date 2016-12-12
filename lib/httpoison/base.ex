@@ -11,7 +11,7 @@ defmodule HTTPoison.Base do
 
         @endpoint "https://api.github.com"
 
-        defp process_url(url) do
+        def process_url(url) do
           @endpoint <> url
         end
       end
@@ -33,37 +33,37 @@ defmodule HTTPoison.Base do
       # Called in order to process the url passed to any request method before
       # actually issuing the request.
       @spec process_url(binary) :: binary
-      defp process_url(url)
+      def process_url(url)
 
       # Called to arbitrarily process the request body before sending it with the
       # request.
       @spec process_request_body(term) :: binary
-      defp process_request_body(body)
+      def process_request_body(body)
 
       # Called to arbitrarily process the request headers before sending them
       # with the request.
       @spec process_request_headers(term) :: [{binary, term}]
-      defp process_request_headers(headers)
+      def process_request_headers(headers)
 
       # Called before returning the response body returned by a request to the
       # caller.
       @spec process_response_body(binary) :: term
-      defp process_response_body(body)
+      def process_response_body(body)
 
       # Used when an async request is made; it's called on each chunk that gets
       # streamed before returning it to the streaming destination.
       @spec process_response_chunk(binary) :: term
-      defp process_response_chunk(chunk)
+      def process_response_chunk(chunk)
 
       # Called to process the response headers before returning them to the
       # caller.
       @spec process_headers([{binary, term}]) :: term
-      defp process_headers(headers)
+      def process_headers(headers)
 
       # Used to arbitrarily process the status code of a response before
       # returning it to the caller.
       @spec process_status_code(integer) :: term
-      defp process_status_code(status_code)
+      def process_status_code(status_code)
 
   """
 
@@ -81,24 +81,24 @@ defmodule HTTPoison.Base do
       """
       def start, do: :application.ensure_all_started(:httpoison)
 
-      defp process_url(url) do
+      def process_url(url) do
         HTTPoison.Base.default_process_url(url)
       end
 
-      defp process_request_body(body), do: body
+      def process_request_body(body), do: body
 
-      defp process_response_body(body), do: body
+      def process_response_body(body), do: body
 
-      defp process_request_headers(headers) when is_map(headers) do
+      def process_request_headers(headers) when is_map(headers) do
         Enum.into(headers, [])
       end
-      defp process_request_headers(headers), do: headers
+      def process_request_headers(headers), do: headers
 
-      defp process_response_chunk(chunk), do: chunk
+      def process_response_chunk(chunk), do: chunk
 
-      defp process_headers(headers), do: headers
+      def process_headers(headers), do: headers
 
-      defp process_status_code(status_code), do: status_code
+      def process_status_code(status_code), do: status_code
 
       @doc false
       @spec transformer(pid) :: :ok
