@@ -147,7 +147,7 @@ defmodule HTTPoisonTest do
 
     assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 100
 
-    refute_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 100
+    refute_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: _headers }, 100
     {:ok, ^resp} = HTTPoison.stream_next(resp)
     assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 100
 
