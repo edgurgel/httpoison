@@ -84,9 +84,9 @@ case HTTPoison.get(url) do
     IO.inspect reason
 end
 ```
-### HTTP Options
+### Options
 
-There are a number of supported [Http Options](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#options/3), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by th [Erland SSL module](http://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
+There are a number of supported options(*not to be confused with the HTTP options method*), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#options/3), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by th [Erland SSL module](http://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
 
 ```elixir
 toekn = "some_token_from_another_request"
