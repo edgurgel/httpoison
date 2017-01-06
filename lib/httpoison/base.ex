@@ -45,6 +45,11 @@ defmodule HTTPoison.Base do
       @spec process_request_headers(term) :: [{binary, term}]
       def process_request_headers(headers)
 
+      # Called to arbitrarily process the request options before sending them
+      # with the request.
+      @spec process_request_options(keyword) :: keyword
+      def process_request_options(options)
+
       # Called before returning the response body returned by a request to the
       # caller.
       @spec process_response_body(binary) :: term
@@ -93,6 +98,8 @@ defmodule HTTPoison.Base do
         Enum.into(headers, [])
       end
       def process_request_headers(headers), do: headers
+
+      def process_request_options(options), do: options
 
       def process_response_chunk(chunk), do: chunk
 
@@ -160,6 +167,7 @@ defmodule HTTPoison.Base do
         url = process_url(to_string(url))
         body = process_request_body(body)
         headers = process_request_headers(headers)
+        options = process_request_options(options)
         HTTPoison.Base.request(__MODULE__, method, url, body, headers, options, &process_status_code/1, &process_headers/1, &process_response_body/1)
       end
 

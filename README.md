@@ -147,6 +147,8 @@ end
 
 defp process_request_headers(headers), do: headers
 
+defp process_request_options(options), do: options
+
 defp process_response_chunk(chunk), do: chunk
 
 defp process_headers(headers), do: headers

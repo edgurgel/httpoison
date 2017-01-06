@@ -7,6 +7,7 @@ defmodule HTTPoisonBaseTest do
     def process_url(url), do: "http://" <> url
     def process_request_body(body), do: {:req_body, body}
     def process_request_headers(headers), do: {:req_headers, headers}
+    def process_request_options(options), do: Keyword.put(options, :timeout, 10)
     def process_response_body(body), do: {:resp_body, body}
     def process_headers(headers), do: {:headers, headers}
     def process_status_code(code), do: {:code, code}
@@ -17,6 +18,7 @@ defmodule HTTPoisonBaseTest do
     defp process_url(url), do: "http://" <> url
     defp process_request_body(body), do: {:req_body, body}
     defp process_request_headers(headers), do: {:req_headers, headers}
+    defp process_request_options(options), do: Keyword.put(options, :timeout, 10)
     defp process_response_body(body), do: {:resp_body, body}
     defp process_headers(headers), do: {:headers, headers}
     defp process_status_code(code), do: {:code, code}
@@ -29,7 +31,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "request body using Example" do
-    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, []],
+    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [{:connect_timeout, 10}]],
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
@@ -42,7 +44,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "request body using ExampleDefp" do
-    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, []],
+    expect(:hackney, :request, [{[:post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [{:connect_timeout, 10}]],
                                  {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
