@@ -123,7 +123,7 @@ defmodule HTTPoison.Base do
         * binary, char list or an iolist
         * `{:form, [{K, V}, ...]}` - send a form url encoded
         * `{:file, "/path/to/file"}` - send a file
-        * `{:stream, enumerable} - lazily send a stream of binaries/charlists
+        * `{:stream, enumerable}` - lazily send a stream of binaries/charlists
 
       Options:
         * `:timeout` - timeout to establish a connection, in milliseconds. Default is 8000
