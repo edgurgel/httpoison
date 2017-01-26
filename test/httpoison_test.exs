@@ -125,13 +125,6 @@ defmodule HTTPoisonTest do
     assert response.body |> String.replace( ~r/\s|\r?\n/, "") |> String.replace(~r/\"/, "'") |> JSX.decode! == %{"cookies" => %{"foo" => "1", "bar" => "2"}}
   end
 
-  test "receive cookies" do
-    response = HTTPoison.get!("localhost:8080/cookies/set?foo=1&bar=2")
-    has_foo = Enum.member?(response.headers, {"set-cookie", "foo=1; Version=1; Path=/"})
-    has_bar = Enum.member?(response.headers, {"set-cookie", "bar=2; Version=1; Path=/"})
-    assert has_foo and has_bar
-  end
-
   test "exception" do
     assert HTTPoison.get "localhost:1" == {:error, %HTTPoison.Error{reason: :econnrefused}}
     assert_raise HTTPoison.Error, ":econnrefused", fn ->
