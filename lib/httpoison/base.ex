@@ -158,6 +158,7 @@ defmodule HTTPoison.Base do
       @spec request(atom, binary, body, headers, Keyword.t) :: {:ok, Response.t | AsyncResponse.t}
         | {:error, Error.t}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
+        options = process_request_options(options)
         url =
         if Keyword.has_key?(options, :params) do
           url <> "?" <> URI.encode_query(options[:params])
@@ -167,7 +168,6 @@ defmodule HTTPoison.Base do
         url = process_url(to_string(url))
         body = process_request_body(body)
         headers = process_request_headers(headers)
-        options = process_request_options(options)
         HTTPoison.Base.request(__MODULE__, method, url, body, headers, options, &process_status_code/1, &process_headers/1, &process_response_body/1)
       end
 

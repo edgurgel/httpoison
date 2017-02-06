@@ -24,6 +24,12 @@ defmodule HTTPoisonBaseTest do
     defp process_status_code(code), do: {:code, code}
   end
 
+  defmodule ExampleParamsOptions do
+    use HTTPoison.Base
+    def process_url(url), do: "http://" <> url
+    def process_request_options(options), do: Keyword.merge(options, [params: Map.merge(options[:params], %{key: "fizz"})])
+  end
+
   setup do
     new :hackney
     on_exit fn -> unload() end
@@ -52,6 +58,18 @@ defmodule HTTPoisonBaseTest do
     %HTTPoison.Response{ status_code: {:code, 200},
                          headers: {:headers, "headers"},
                          body: {:resp_body, "response"} }
+
+    assert validate :hackney
+  end
+
+  test "request body using params example" do
+    expect(:hackney, :request, [{[:get, "http://localhost?foo=bar&key=fizz", [], "", []], {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert ExampleParamsOptions.get!("localhost", [], params: %{foo: "bar"}) ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: "headers",
+                         body: "response" }
 
     assert validate :hackney
   end
