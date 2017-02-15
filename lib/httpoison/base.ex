@@ -161,7 +161,7 @@ defmodule HTTPoison.Base do
         options = process_request_options(options)
         url =
         if Keyword.has_key?(options, :params) do
-          url <> "?" <> URI.encode_query(options[:params])
+          HTTPoison.Base.merge_params(url, options[:params])
         else
           url
         end
@@ -354,6 +354,7 @@ defmodule HTTPoison.Base do
         end
       end
 
+
       defoverridable Module.definitions_in(__MODULE__)
     end
   end
@@ -386,6 +387,27 @@ defmodule HTTPoison.Base do
       "https://" <> _ -> url
       "http+unix://" <> _ -> url
       _ -> "http://" <> url
+    end
+  end
+
+  @doc false
+  def merge_params(url, params) do
+    case u = URI.parse(url) do
+      %URI{query: query} when not is_nil(query) ->
+        converted_to_string_key =
+          params
+          |> Enum.map(fn {k, v} when is_atom(k) -> {Atom.to_string(k), v}
+                         otherwise              -> otherwise end)
+          |> Enum.into(%{})
+
+        updated_query =
+          query
+          |> URI.decode_query
+          |> Map.merge(converted_to_string_key)
+
+        URI.to_string(%{u| query: URI.encode_query(updated_query)})
+
+      _ -> url <> "?" <> URI.encode_query(params)
     end
   end
 
@@ -423,7 +445,6 @@ defmodule HTTPoison.Base do
 
     hn_options
   end
-
 
   @doc false
   def request(module, method, request_url, request_body, request_headers, options, process_status_code, process_headers, process_response_body) do
