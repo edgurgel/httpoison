@@ -160,11 +160,11 @@ defmodule HTTPoison.Base do
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         options = process_request_options(options)
         url =
-        if Keyword.has_key?(options, :params) do
-          HTTPoison.Base.merge_params(url, options[:params])
-        else
-          url
-        end
+          cond do
+            not Keyword.has_key?(options, :params) -> url
+            URI.parse(url).query                   -> url <> "&" <> URI.encode_query(options[:params])
+            true                                   -> url <> "?" <> URI.encode_query(options[:params])
+          end
         url = process_url(to_string(url))
         body = process_request_body(body)
         headers = process_request_headers(headers)
@@ -387,27 +387,6 @@ defmodule HTTPoison.Base do
       "https://" <> _ -> url
       "http+unix://" <> _ -> url
       _ -> "http://" <> url
-    end
-  end
-
-  @doc false
-  def merge_params(url, params) do
-    case u = URI.parse(url) do
-      %URI{query: query} when not is_nil(query) ->
-        converted_to_string_key =
-          params
-          |> Enum.map(fn {k, v} when is_atom(k) -> {Atom.to_string(k), v}
-                         otherwise              -> otherwise end)
-          |> Enum.into(%{})
-
-        updated_query =
-          query
-          |> URI.decode_query
-          |> Map.merge(converted_to_string_key)
-
-        URI.to_string(%{u| query: URI.encode_query(updated_query)})
-
-      _ -> url <> "?" <> URI.encode_query(params)
     end
   end
 

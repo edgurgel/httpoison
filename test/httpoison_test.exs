@@ -24,10 +24,10 @@ defmodule HTTPoisonTest do
   end
 
   test "get with params in url and options" do
-    resp = HTTPoison.get("localhost:8080/get?bar=zing&foo=overridden", [], params: %{foo: "bar", baz: "bong"})
+    resp = HTTPoison.get("localhost:8080/get?bar=zing&foo=first", [], params: [{"foo", "second"}, {"baz", "bong"}])
     assert_response resp, fn(response) ->
       args = JSX.decode!(response.body)["args"]
-      assert args["foo"] == "bar"
+      assert args["foo"] == ["first", "second"]
       assert args["baz"] == "bong"
       assert args["bar"] == "zing"
       assert (args |> Map.keys |> length) == 3
