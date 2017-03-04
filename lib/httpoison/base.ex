@@ -160,11 +160,11 @@ defmodule HTTPoison.Base do
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         options = process_request_options(options)
         url =
-        if Keyword.has_key?(options, :params) do
-          url <> "?" <> URI.encode_query(options[:params])
-        else
-          url
-        end
+          cond do
+            not Keyword.has_key?(options, :params) -> url
+            URI.parse(url).query                   -> url <> "&" <> URI.encode_query(options[:params])
+            true                                   -> url <> "?" <> URI.encode_query(options[:params])
+          end
         url = process_url(to_string(url))
         body = process_request_body(body)
         headers = process_request_headers(headers)
@@ -354,6 +354,7 @@ defmodule HTTPoison.Base do
         end
       end
 
+
       defoverridable Module.definitions_in(__MODULE__)
     end
   end
@@ -423,7 +424,6 @@ defmodule HTTPoison.Base do
 
     hn_options
   end
-
 
   @doc false
   def request(module, method, request_url, request_body, request_headers, options, process_status_code, process_headers, process_response_body) do
