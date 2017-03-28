@@ -27,7 +27,7 @@ First, add HTTPoison to your `mix.exs` dependencies:
 
 ```elixir
 def deps do
-  [{:httpoison, "~> 0.10.0"}]
+  [{:httpoison, "~> 0.11.1"}]
 end
 ```
 
@@ -188,7 +188,7 @@ You can also receive cookies from the server by reading the `"set-cookie"` heade
 
 ```elixir
 iex(1)> response = HTTPoison.get!("http://httparrot.herokuapp.com/cookies/set?foo=1")
-iex(2)> cookies = Enum.filter(response.headers, fn       
+iex(2)> cookies = Enum.filter(response.headers, fn
 ...(2)> {"Set-Cookie", _} -> true
 ...(2)> _ -> false
 ...(2)> end)
