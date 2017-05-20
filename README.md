@@ -89,6 +89,14 @@ options = [ssl: [{:versions, [:'tlsv1.2']}], recv_timeout: 500]
 {:ok, response} = HTTPoison.get(url, headers, options)
 ```
 
+And the example below shows the use of the `:ssl` options for a post request to an api that requires a client certification.
+
+```elixir
+url = "https://example.org/api/endpoint_that_needs_client_cert"
+options = [ssl: [certfile: "certs/client.crt"]]
+{:ok, response} = HTTPoison.post(url, [], options)
+```
+
 ### Wrapping `HTTPoison.Base`
 
 You can also use the `HTTPoison.Base` module in your modules in order to make
@@ -181,7 +189,7 @@ You can also receive cookies from the server by reading the `"set-cookie"` heade
 
 ```elixir
 iex(1)> response = HTTPoison.get!("http://httparrot.herokuapp.com/cookies/set?foo=1")
-iex(2)> cookies = Enum.filter(response.headers, fn       
+iex(2)> cookies = Enum.filter(response.headers, fn
 ...(2)> {"Set-Cookie", _} -> true
 ...(2)> _ -> false
 ...(2)> end)
