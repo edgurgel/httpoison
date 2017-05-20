@@ -5,7 +5,7 @@ HTTP client for Elixir, based on
 [HTTPotion](https://github.com/myfreeweb/httpotion)
 ([documentation](http://hexdocs.pm/httpoison/)).
 
-##Note about broken ssl in Erlang 19
+## Note about broken ssl in Erlang 19
 Until this [issue](https://bugs.erlang.org/browse/ERL-192) is fixed ssl handshakes may fail. If you receive this error:
 ```
 {:error, %HTTPoison.Error{id: nil, reason: :closed}}
