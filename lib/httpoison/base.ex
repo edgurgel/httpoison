@@ -376,7 +376,10 @@ defmodule HTTPoison.Base do
         send target, %HTTPoison.AsyncRedirect{id: id, to: to, headers: process_headers.(headers)}
       {:hackney_response, id, chunk} ->
         send target, %HTTPoison.AsyncChunk{id: id, chunk: process_response_chunk.(chunk)}
-        transformer(module, target, process_status_code, process_headers, process_response_chunk)
+        case chunk do
+          {:redirect, _to, _headers} -> nil
+          _ -> transformer(module, target, process_status_code, process_headers, process_response_chunk)
+        end
     end
   end
 
