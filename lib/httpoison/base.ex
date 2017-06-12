@@ -417,7 +417,7 @@ defmodule HTTPoison.Base do
           nil   -> :async
           :once -> {:async, :once}
         end
-        [async_option, {:stream_to, spawn(module, :transformer, [stream_to])} | hn_options]
+        [async_option, {:stream_to, spawn_link(module, :transformer, [stream_to])} | hn_options]
       else
         hn_options
       end
