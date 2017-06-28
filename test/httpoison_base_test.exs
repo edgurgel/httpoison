@@ -44,7 +44,8 @@ defmodule HTTPoisonBaseTest do
     assert Example.post!("localhost", "body") ==
     %HTTPoison.Response{ status_code: {:code, 200},
                          headers: {:headers, "headers"},
-                         body: {:resp_body, "response"} }
+                         body: {:resp_body, "response"},
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
@@ -57,7 +58,8 @@ defmodule HTTPoisonBaseTest do
     assert ExampleDefp.post!("localhost", "body") ==
     %HTTPoison.Response{ status_code: {:code, 200},
                          headers: {:headers, "headers"},
-                         body: {:resp_body, "response"} }
+                         body: {:resp_body, "response"},
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
@@ -69,7 +71,8 @@ defmodule HTTPoisonBaseTest do
     assert ExampleParamsOptions.get!("localhost", [], params: %{foo: "bar"}) ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
-                         body: "response" }
+                         body: "response",
+                         request_url: "http://localhost?foo=bar&key=fizz" }
 
     assert validate :hackney
   end
@@ -95,7 +98,8 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.post!("localhost", "body", [], timeout: 12345) ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
-                         body: "response" }
+                         body: "response",
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
@@ -108,7 +112,8 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.post!("localhost", "body", [], recv_timeout: 12345) ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
-                         body: "response" }
+                         body: "response",
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
@@ -121,7 +126,8 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.post!("localhost", "body", [], proxy: "proxy") ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
-                         body: "response" }
+                         body: "response",
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
@@ -134,7 +140,8 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.post!("localhost", "body", [], [proxy: "proxy", proxy_auth: {"username", "password"}]) ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
-                         body: "response" }
+                         body: "response",
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
@@ -147,7 +154,8 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.post!("localhost", "body", [], ssl: [certfile: "certs/client.crt"]) ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
-                         body: "response" }
+                         body: "response",
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
@@ -160,7 +168,8 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.post!("localhost", "body", [], follow_redirect: true) ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
-                         body: "response" }
+                         body: "response",
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
@@ -173,7 +182,8 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.post!("localhost", "body", [], max_redirect: 2) ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
-                         body: "response" }
+                         body: "response",
+                         request_url: "http://localhost" }
 
     assert validate :hackney
   end
