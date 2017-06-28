@@ -1,5 +1,5 @@
 defmodule HTTPoison.Response do
-  defstruct status_code: nil, body: nil, headers: []
+  defstruct status_code: nil, body: nil, headers: [], request_url: nil
   @type t :: %__MODULE__{status_code: integer, body: term, headers: list}
 end
 
