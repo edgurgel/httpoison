@@ -31,8 +31,7 @@ def deps do
 end
 ```
 
-and run `$ mix deps.get`. Now, list the `:httpoison` application as your
-application dependency:
+and run `$ mix deps.get`. Add `:httpoison` to your applications list if your Elixir version is 1.3 or lower:
 
 ```elixir
 def application do
