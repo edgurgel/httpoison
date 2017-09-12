@@ -76,7 +76,7 @@ defmodule HTTPoison.Base do
   alias HTTPoison.AsyncResponse
   alias HTTPoison.Error
 
-  @type headers :: [{binary, binary}] | %{binary => binary}
+  @type headers :: [{atom, binary}] | [{binary, binary}] | %{binary => binary}
   @type body :: binary | {:form, [{atom, any}]} | {:file, binary}
 
   defmacro __using__(_) do
