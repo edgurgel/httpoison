@@ -185,7 +185,7 @@ defmodule HTTPoison.Base do
       response in case of a successful request, raising an exception in case the
       request fails.
       """
-      @spec request!(atom, binary, any, headers, Keyword.t) :: Response.t
+      @spec request!(atom, binary, any, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         case request(method, url, body, headers, options) do
           {:ok, response} -> response
@@ -432,7 +432,7 @@ defmodule HTTPoison.Base do
   end
 
   @doc false
-  @spec request(atom, atom, binary, body, headers, any, fun, fun, fun) :: {:ok, Response.t} | {:error, Error.t}
+  @spec request(atom, atom, binary, body, headers, any, fun, fun, fun) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
   def request(module, method, request_url, request_body, request_headers, options, process_status_code, process_headers, process_response_body) do
     hn_options = build_hackney_options(module, options)
 
