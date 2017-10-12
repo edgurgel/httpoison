@@ -1,5 +1,31 @@
 # Changelog
 
+# 0.13.0 (2017-08-04)
+
+* Relax hackney requirement (#277). Thanks to @tverlaan
+
+# 0.12.0 (2017-06-29)
+
+* Change HTTPoison transformer to always `spawn_link` (#260)
+* Add `request_url` to `HTTPoison.Response` (#270)
+
+# 0.11.2 (2017-04-23)
+
+* Bump hackney version requirement (#244). Thanks @jakehasler
+* Add support to encode URLs containing a query string (#223). Thanks @jadlr
+
+# 0.11.1 (2017-03-02)
+
+* Add `process_request_options` (#208). Thanks to @drewolson
+* Bump hackney to `~> 1.7.0` (#228). Thanks to @xinz
+* Change typespec of `Response.body` (#220). Thanks to @deepblue
+* Add test for a GET request (#219). Thanks to @Lokeh
+
+# 0.11.0 (2017-01-08)
+
+* Add `{:stream, enumerable}` body option (#194). Thanks to @rozap :tada:;
+* Change overridable functions to be public (#201). Thanks to @paulswartz :tada:;
+
 # 0.10.0 (2016-11-06)
 
 * Add support for http over unix sockets - requires hackney >= 1.6.3, erlang >= 19. (#185).
