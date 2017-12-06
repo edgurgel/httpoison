@@ -234,7 +234,7 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec put!(binary, any, Keyword.t) :: Response.t | AsyncResponse.t
+      @spec put!(binary, any, headers, Keyword.t) :: Response.t | AsyncResponse.t
       def put!(url, body \\ "", headers \\ [], options \\ []),   do: request!(:put, url, body, headers, options)
 
       @doc """
