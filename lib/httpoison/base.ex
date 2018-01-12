@@ -401,8 +401,6 @@ defmodule HTTPoison.Base do
     recv_timeout = Keyword.get options, :recv_timeout
     stream_to = Keyword.get options, :stream_to
     async = Keyword.get options, :async
-    proxy = Keyword.get options, :proxy
-    proxy_auth = Keyword.get options, :proxy_auth
     ssl = Keyword.get options, :ssl
     follow_redirect = Keyword.get options, :follow_redirect
     max_redirect = Keyword.get options, :max_redirect
@@ -411,8 +409,6 @@ defmodule HTTPoison.Base do
 
     hn_options = if timeout, do: [{:connect_timeout, timeout} | hn_options], else: hn_options
     hn_options = if recv_timeout, do: [{:recv_timeout, recv_timeout} | hn_options], else: hn_options
-    hn_options = if proxy, do: [{:proxy, proxy} | hn_options], else: hn_options
-    hn_options = if proxy_auth, do: [{:proxy_auth, proxy_auth} | hn_options], else: hn_options
     hn_options = if ssl, do: [{:ssl_options, ssl} | hn_options], else: hn_options
     hn_options = if follow_redirect, do: [{:follow_redirect, follow_redirect} | hn_options], else: hn_options
     hn_options = if max_redirect, do: [{:max_redirect, max_redirect} | hn_options], else: hn_options
@@ -431,10 +427,34 @@ defmodule HTTPoison.Base do
     hn_options
   end
 
+  defp build_hackney_proxy_options(options, request_url) do
+    proxy =
+      if Keyword.has_key?(options, :proxy) do
+        Keyword.get(options, :proxy)
+      else
+        case URI.parse(request_url).scheme do
+          "http" -> System.get_env("HTTP_PROXY") || System.get_env("http_proxy")
+          "https" -> System.get_env("HTTPS_PROXY") || System.get_env("https_proxy")
+          _ -> nil
+        end
+      end
+
+    proxy_auth = Keyword.get(options, :proxy_auth)
+
+    hn_proxy_options = if proxy, do: [{:proxy, proxy}], else: []
+
+    hn_proxy_options =
+      if proxy_auth, do: [{:proxy_auth, proxy_auth} | hn_proxy_options], else: hn_proxy_options
+
+    hn_proxy_options
+  end
+
+
   @doc false
   @spec request(atom, atom, binary, body, headers, any, fun, fun, fun) :: {:ok, Response.t | AsyncResponse.t} | {:error, Error.t}
   def request(module, method, request_url, request_body, request_headers, options, process_status_code, process_headers, process_response_body) do
-    hn_options = build_hackney_options(module, options)
+    hn_proxy_options = build_hackney_proxy_options(options, request_url)
+    hn_options = hn_proxy_options ++ build_hackney_options(module, options)
 
     case do_request(method, request_url, request_headers, request_body, hn_options) do
       {:ok, status_code, headers} -> response(process_status_code, process_headers, process_response_body, status_code, headers, "", request_url)

@@ -7,3 +7,4 @@ erl_crash.dump
 mix.lock
 /.idea
 *.iml
+/.elixir_ls
