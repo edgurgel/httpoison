@@ -146,6 +146,70 @@ defmodule HTTPoisonBaseTest do
     assert validate :hackney
   end
 
+  test "having http_proxy env variable set on http requests" do
+    expect(System, :get_env, [{["HTTP_PROXY"], "proxy"}])
+
+    expect(:hackney, :request, [
+      {[:post, "http://localhost", [], "body", [proxy: "proxy"]], {:ok, 200, "headers", :client}}
+    ])
+
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost"
+             }
+
+    assert validate(:hackney)
+  end
+
+  test "having https_proxy env variable set on https requests" do
+    expect(System, :get_env, [{["HTTPS_PROXY"], "proxy"}])
+
+    expect(:hackney, :request, [
+      {[:post, "https://localhost", [], "body", [proxy: "proxy"]], {:ok, 200, "headers", :client}}
+    ])
+
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("https://localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "https://localhost"
+             }
+
+    assert validate(:hackney)
+  end
+
+  test "having https_proxy env variable set on http requests" do
+    expect(System, :get_env, [
+      {["HTTPS_PROXY"], "proxy"},
+      {["HTTP_PROXY"], nil},
+      {["http_proxy"], nil}
+    ])
+
+    expect(:hackney, :request, [
+      {[:post, "http://localhost", [], "body", []], {:ok, 200, "headers", :client}}
+    ])
+
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost"
+             }
+
+    assert validate(:hackney)
+  end
+
   test "passing ssl option" do
     expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [ssl_options: [certfile: "certs/client.crt"]]],
                                  {:ok, 200, "headers", :client}}])
