@@ -137,12 +137,12 @@ defmodule HTTPoisonBaseTest do
       [:post, "http://localhost", [], "body",  [
           socks5_pass: "secret",
           socks5_user: "user",
-          proxy: {:socks5, 'http://localhost', 1080}
+          proxy: {:socks5, 'localhost', 1080}
         ]],
       {:ok, 200, "headers", :client}}])
     expect(:hackney, :body, 1, {:ok, "response"})
 
-    assert HTTPoison.post!("localhost", "body", [], proxy: {:socks5, 'http://localhost', 1080}, socks5_user: "user", socks5_pass: "secret") ==
+    assert HTTPoison.post!("localhost", "body", [], proxy: {:socks5, 'localhost', 1080}, socks5_user: "user", socks5_pass: "secret") ==
     %HTTPoison.Response{ status_code: 200,
                          headers: "headers",
                          body: "response",
