@@ -132,6 +132,25 @@ defmodule HTTPoisonBaseTest do
     assert validate :hackney
   end
 
+  test "passing socks5 options" do
+    expect(:hackney, :request, [{
+      [:post, "http://localhost", [], "body",  [
+          socks5_pass: "secret",
+          socks5_user: "user",
+          proxy: {:socks5, 'http://localhost', 1080}
+        ]],
+      {:ok, 200, "headers", :client}}])
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body", [], proxy: {:socks5, 'http://localhost', 1080}, socks5_user: "user", socks5_pass: "secret") ==
+    %HTTPoison.Response{ status_code: 200,
+                         headers: "headers",
+                         body: "response",
+                         request_url: "http://localhost" }
+
+    assert validate :hackney
+  end
+
   test "passing proxy option with proxy_auth" do
     expect(:hackney, :request, [{[:post, "http://localhost", [], "body", [proxy_auth: {"username", "password"}, proxy: "proxy"]],
                                  {:ok, 200, "headers", :client}}])
