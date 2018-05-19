@@ -76,11 +76,111 @@ defmodule HTTPoison.Base do
   alias HTTPoison.AsyncResponse
   alias HTTPoison.Error
 
+  @callback delete(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback delete(url, headers) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback delete(url, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback delete!(url) :: Response.t() | AsyncResponse.t()
+  @callback delete!(url, headers) :: Response.t() | AsyncResponse.t()
+  @callback delete!(url, headers, options) :: Response.t() | AsyncResponse.t()
+
+  @callback get(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback get(url, headers) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback get(url, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback get!(url) :: Response.t() | AsyncResponse.t()
+  @callback get!(url, headers) :: Response.t() | AsyncResponse.t()
+  @callback get!(url, headers, options) :: Response.t() | AsyncResponse.t()
+
+  @callback head(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback head(url, headers) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback head(url, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback head!(url) :: Response.t() | AsyncResponse.t()
+  @callback head!(url, headers) :: Response.t() | AsyncResponse.t()
+  @callback head!(url, headers, options) :: Response.t() | AsyncResponse.t()
+
+  @callback options(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback options(url, headers) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback options(url, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback options!(url) :: Response.t() | AsyncResponse.t()
+  @callback options!(url, headers) :: Response.t() | AsyncResponse.t()
+  @callback options!(url, headers, options) :: Response.t() | AsyncResponse.t()
+
+  @callback patch(url, term) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback patch(url, term, headers) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback patch(url, term, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback patch!(url, term) :: Response.t() | AsyncResponse.t()
+  @callback patch!(url, term, headers) :: Response.t() | AsyncResponse.t()
+  @callback patch!(url, term, headers, options) :: Response.t() | AsyncResponse.t()
+
+  @callback post(url, term) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback post(url, term, headers) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback post(url, term, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback post!(url, term) :: Response.t() | AsyncResponse.t()
+  @callback post!(url, term, headers) :: Response.t() | AsyncResponse.t()
+  @callback post!(url, term, headers, options) :: Response.t() | AsyncResponse.t()
+
+  @callback process_headers(headers) :: headers
+
+  @callback process_request_body(term) :: body
+
+  @callback process_request_headers(headers) :: headers
+
+  @callback process_request_options(options) :: options
+
+  @callback process_response_body(binary) :: term
+
+  @callback process_response_chunk(binary) :: term
+
+  @callback process_status_code(integer) :: term
+
+  @callback process_url(binary) :: binary
+
+  @callback put(binary) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback put(binary, term) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback put(binary, term, headers) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback put(binary, term, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback put!(binary) :: Response.t() | AsyncResponse.t()
+  @callback put!(binary, term) :: Response.t() | AsyncResponse.t()
+  @callback put!(binary, term, headers) :: Response.t() | AsyncResponse.t()
+  @callback put!(binary, term, headers, options) :: Response.t() | AsyncResponse.t()
+
+  @callback request(atom, binary, term) :: {:ok, Response.t() | AsyncResponse.t()}
+  @callback request(atom, binary, term, headers) :: {:ok, Response.t() | AsyncResponse.t()}
+  @callback request(atom, binary, term, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()}
+
+  @callback request!(atom, binary) :: Response.t() | AsyncResponse.t()
+  @callback request!(atom, binary, term) :: Response.t() | AsyncResponse.t()
+  @callback request!(atom, binary, term, headers) :: Response.t() | AsyncResponse.t()
+
+  @callback start() :: {:ok, [atom]} | {:error, term}
+
+  @callback stream_next(AsyncResponse.t()) :: {:ok, AsyncResponse.t()} | {:error, Error.t()}
+
+  @type url :: binary
   @type headers :: [{atom, binary}] | [{binary, binary}] | %{binary => binary}
   @type body :: binary | {:form, [{atom, any}]} | {:file, binary}
+  @type options :: Keyword.t()
 
   defmacro __using__(_) do
     quote do
+      @behaviour HTTPoison.Base
       @type headers :: HTTPoison.Base.headers
       @type body :: HTTPoison.Base.body
 
