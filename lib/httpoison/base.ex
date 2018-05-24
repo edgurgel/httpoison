@@ -605,7 +605,7 @@ defmodule HTTPoison.Base do
     {:ok, %Response {
       status_code: process_status_code.(status_code),
       headers: process_headers.(headers),
-      body: process_response_body.(body),
+      body: process_response_body.(if (is_binary(body)), do: List.to_string(:binary.bin_to_list(body)), else: body),
       request_url: request_url
     } }
   end
