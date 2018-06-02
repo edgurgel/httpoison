@@ -6,14 +6,16 @@ defmodule HTTPoison.Mixfile do
   """
 
   def project do
-    [ app: :httpoison,
+    [
+      app: :httpoison,
       version: "1.2.0",
       elixir: "~> 1.5",
       name: "HTTPoison",
       description: @description,
       package: package(),
       deps: deps(),
-      source_url: "https://github.com/edgurgel/httpoison" ]
+      source_url: "https://github.com/edgurgel/httpoison"
+    ]
   end
 
   def application do
@@ -27,13 +29,15 @@ defmodule HTTPoison.Mixfile do
       {:httparrot, "~> 1.0", only: :test},
       {:meck, "~> 0.8.2", only: :test},
       {:earmark, "~> 1.0", only: :dev},
-      {:ex_doc, "~> 0.14", only: :dev},
+      {:ex_doc, "~> 0.14", only: :dev}
     ]
   end
 
   defp package do
-    [ maintainers: ["Eduardo Gurgel Pinho"],
+    [
+      maintainers: ["Eduardo Gurgel Pinho"],
       licenses: ["MIT"],
-      links: %{"Github" => "https://github.com/edgurgel/httpoison"} ]
+      links: %{"Github" => "https://github.com/edgurgel/httpoison"}
+    ]
   end
 end

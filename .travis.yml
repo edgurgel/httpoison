@@ -6,3 +6,6 @@ elixir:
 otp_release:
   - 19.3
   - 20.2
+script:
+  - mix test
+  - if [[ `elixir -v` = *"1.6"* ]]; then mix format --check-formatted; fi

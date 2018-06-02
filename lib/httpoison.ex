@@ -25,7 +25,7 @@ end
 
 defmodule HTTPoison.AsyncRedirect do
   defstruct id: nil, to: nil, headers: []
-  @type t :: %__MODULE__{id: reference, to: String.t, headers: list}
+  @type t :: %__MODULE__{id: reference, to: String.t(), headers: list}
 end
 
 defmodule HTTPoison.AsyncEnd do
@@ -38,7 +38,7 @@ defmodule HTTPoison.Error do
   @type t :: %__MODULE__{id: reference | nil, reason: any}
 
   def message(%__MODULE__{reason: reason, id: nil}), do: inspect(reason)
-  def message(%__MODULE__{reason: reason, id: id}), do: "[Reference: #{id}] - #{inspect reason}"
+  def message(%__MODULE__{reason: reason, id: id}), do: "[Reference: #{id}] - #{inspect(reason)}"
 end
 
 defmodule HTTPoison do
