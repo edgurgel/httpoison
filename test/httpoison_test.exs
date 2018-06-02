@@ -8,116 +8,147 @@ defmodule HTTPoisonTest do
   end
 
   test "get" do
-    assert_response HTTPoison.get("localhost:8080/deny"), fn(response) ->
+    assert_response(HTTPoison.get("localhost:8080/deny"), fn response ->
       assert :erlang.size(response.body) == 197
-    end
+    end)
   end
 
   test "get with params" do
     resp = HTTPoison.get("localhost:8080/get", [], params: %{foo: "bar", baz: "bong"})
-    assert_response resp, fn(response) ->
+
+    assert_response(resp, fn response ->
       args = JSX.decode!(response.body)["args"]
       assert args["foo"] == "bar"
       assert args["baz"] == "bong"
-      assert (args |> Map.keys |> length) == 2
-    end
+      assert args |> Map.keys() |> length == 2
+    end)
   end
 
   test "get with params in url and options" do
-    resp = HTTPoison.get("localhost:8080/get?bar=zing&foo=first", [], params: [{"foo", "second"}, {"baz", "bong"}])
-    assert_response resp, fn(response) ->
+    resp =
+      HTTPoison.get(
+        "localhost:8080/get?bar=zing&foo=first",
+        [],
+        params: [{"foo", "second"}, {"baz", "bong"}]
+      )
+
+    assert_response(resp, fn response ->
       args = JSX.decode!(response.body)["args"]
       assert args["foo"] == ["first", "second"]
       assert args["baz"] == "bong"
       assert args["bar"] == "zing"
-      assert (args |> Map.keys |> length) == 3
-    end
+      assert args |> Map.keys() |> length == 3
+    end)
   end
 
   test "head" do
-    assert_response HTTPoison.head("localhost:8080/get"), fn(response) ->
+    assert_response(HTTPoison.head("localhost:8080/get"), fn response ->
       assert response.body == ""
-    end
+    end)
   end
 
   test "post charlist body" do
-    assert_response HTTPoison.post("localhost:8080/post", 'test')
+    assert_response(HTTPoison.post("localhost:8080/post", 'test'))
   end
 
   test "post binary body" do
-    { :ok, file } = File.read(fixture_path("image.png"))
+    {:ok, file} = File.read(fixture_path("image.png"))
 
-    assert_response HTTPoison.post("localhost:8080/post", file)
+    assert_response(HTTPoison.post("localhost:8080/post", file))
   end
 
   test "post form data" do
-    assert_response HTTPoison.post("localhost:8080/post", {:form, [key: "value"]}, %{"Content-type" => "application/x-www-form-urlencoded"}), fn(response) ->
-      Regex.match?(~r/"key".*"value"/, response.body)
-    end
+    assert_response(
+      HTTPoison.post("localhost:8080/post", {:form, [key: "value"]}, %{
+        "Content-type" => "application/x-www-form-urlencoded"
+      }),
+      fn response ->
+        Regex.match?(~r/"key".*"value"/, response.body)
+      end
+    )
   end
 
   test "put" do
-    assert_response HTTPoison.put("localhost:8080/put", "test")
+    assert_response(HTTPoison.put("localhost:8080/put", "test"))
   end
 
   test "put without body" do
-    assert_response HTTPoison.put("localhost:8080/put")
+    assert_response(HTTPoison.put("localhost:8080/put"))
   end
 
   test "patch" do
-    assert_response HTTPoison.patch("localhost:8080/patch", "test")
+    assert_response(HTTPoison.patch("localhost:8080/patch", "test"))
   end
 
   test "delete" do
-    assert_response HTTPoison.delete("localhost:8080/delete")
+    assert_response(HTTPoison.delete("localhost:8080/delete"))
   end
 
   test "options" do
-    assert_response HTTPoison.options("localhost:8080/get"), fn(response) ->
+    assert_response(HTTPoison.options("localhost:8080/get"), fn response ->
       assert get_header(response.headers, "content-length") == "0"
       assert is_binary(get_header(response.headers, "allow"))
-    end
+    end)
   end
 
   test "option follow redirect absolute url" do
-    assert_response HTTPoison.get("http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget", [], [follow_redirect: true])
+    assert_response(
+      HTTPoison.get(
+        "http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget",
+        [],
+        follow_redirect: true
+      )
+    )
   end
 
   test "option follow redirect relative url" do
-    assert_response HTTPoison.get("http://localhost:8080/relative-redirect/1", [], [follow_redirect: true])
+    assert_response(
+      HTTPoison.get("http://localhost:8080/relative-redirect/1", [], follow_redirect: true)
+    )
   end
 
   test "basic_auth hackney option" do
     hackney = [basic_auth: {"user", "pass"}]
-    assert_response HTTPoison.get("http://localhost:8080/basic-auth/user/pass", [], [ hackney: hackney ])
+
+    assert_response(
+      HTTPoison.get("http://localhost:8080/basic-auth/user/pass", [], hackney: hackney)
+    )
   end
 
   test "explicit http scheme" do
-    assert_response HTTPoison.head("http://localhost:8080/get")
+    assert_response(HTTPoison.head("http://localhost:8080/get"))
   end
 
   test "https scheme" do
     httparrot_priv_dir = :code.priv_dir(:httparrot)
     cacert_file = "#{httparrot_priv_dir}/ssl/server-ca.crt"
     cert_file = "#{httparrot_priv_dir}/ssl/server.crt"
-    key_file =  "#{httparrot_priv_dir}/ssl/server.key"
+    key_file = "#{httparrot_priv_dir}/ssl/server.key"
 
-    assert_response HTTPoison.get("https://localhost:8433/get", [], ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file])
+    assert_response(
+      HTTPoison.get(
+        "https://localhost:8433/get",
+        [],
+        ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file]
+      )
+    )
   end
 
   test "http+unix scheme" do
     if Application.get_env(:httparrot, :unix_socket, false) do
-      case {HTTParrot.unix_socket_supported?, Application.fetch_env(:httparrot, :socket_path)} do
+      case {HTTParrot.unix_socket_supported?(), Application.fetch_env(:httparrot, :socket_path)} do
         {true, {:ok, path}} ->
           path = URI.encode_www_form(path)
-          assert_response HTTPoison.get("http+unix://#{path}/get")
-        _ -> :ok
+          assert_response(HTTPoison.get("http+unix://#{path}/get"))
+
+        _ ->
+          :ok
       end
     end
   end
 
   test "char list URL" do
-    assert_response HTTPoison.head('localhost:8080/get')
+    assert_response(HTTPoison.head('localhost:8080/get'))
   end
 
   test "request headers as a map" do
@@ -133,7 +164,11 @@ defmodule HTTPoisonTest do
 
   test "send cookies" do
     response = HTTPoison.get!("localhost:8080/cookies", %{}, hackney: [cookie: ["foo=1; bar=2"]])
-    assert response.body |> String.replace( ~r/\s|\r?\n/, "") |> String.replace(~r/\"/, "'") |> JSX.decode! == %{"cookies" => %{"foo" => "1", "bar" => "2"}}
+
+    assert response.body
+           |> String.replace(~r/\s|\r?\n/, "")
+           |> String.replace(~r/\"/, "'")
+           |> JSX.decode!() == %{"cookies" => %{"foo" => "1", "bar" => "2"}}
   end
 
   test "receive cookies" do
@@ -144,52 +179,66 @@ defmodule HTTPoisonTest do
   end
 
   test "exception" do
-    assert HTTPoison.get "localhost:1" == {:error, %HTTPoison.Error{reason: :econnrefused}}
+    assert HTTPoison.get("localhost:1" == {:error, %HTTPoison.Error{reason: :econnrefused}})
+
     assert_raise HTTPoison.Error, ":econnrefused", fn ->
-      HTTPoison.get! "localhost:1"
+      HTTPoison.get!("localhost:1")
     end
   end
 
   test "asynchronous request" do
-    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/get", [], [stream_to: self()]
+    {:ok, %HTTPoison.AsyncResponse{id: id}} =
+      HTTPoison.get("localhost:8080/get", [], stream_to: self())
 
-    assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 1_000
-    assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 1_000
-    assert_receive %HTTPoison.AsyncChunk{ id: ^id, chunk: _chunk }, 1_000
-    assert_receive %HTTPoison.AsyncEnd{ id: ^id }, 1_000
+    assert_receive %HTTPoison.AsyncStatus{id: ^id, code: 200}, 1_000
+    assert_receive %HTTPoison.AsyncHeaders{id: ^id, headers: headers}, 1_000
+    assert_receive %HTTPoison.AsyncChunk{id: ^id, chunk: _chunk}, 1_000
+    assert_receive %HTTPoison.AsyncEnd{id: ^id}, 1_000
     assert is_list(headers)
   end
 
   test "asynchronous request with explicit streaming using [async: :once]" do
-    {:ok, resp = %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/get", [], [stream_to: self(), async: :once]
+    {:ok, resp = %HTTPoison.AsyncResponse{id: id}} =
+      HTTPoison.get("localhost:8080/get", [], stream_to: self(), async: :once)
 
-    assert_receive %HTTPoison.AsyncStatus{ id: ^id, code: 200 }, 100
+    assert_receive %HTTPoison.AsyncStatus{id: ^id, code: 200}, 100
 
-    refute_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: _headers }, 100
+    refute_receive %HTTPoison.AsyncHeaders{id: ^id, headers: _headers}, 100
     {:ok, ^resp} = HTTPoison.stream_next(resp)
-    assert_receive %HTTPoison.AsyncHeaders{ id: ^id, headers: headers }, 100
+    assert_receive %HTTPoison.AsyncHeaders{id: ^id, headers: headers}, 100
 
-    refute_receive %HTTPoison.AsyncChunk{ id: ^id, chunk: _chunk }, 100
+    refute_receive %HTTPoison.AsyncChunk{id: ^id, chunk: _chunk}, 100
     {:ok, ^resp} = HTTPoison.stream_next(resp)
-    assert_receive %HTTPoison.AsyncChunk{ id: ^id, chunk: _chunk }, 100
+    assert_receive %HTTPoison.AsyncChunk{id: ^id, chunk: _chunk}, 100
 
-    refute_receive %HTTPoison.AsyncEnd{ id: ^id }, 100
+    refute_receive %HTTPoison.AsyncEnd{id: ^id}, 100
     {:ok, ^resp} = HTTPoison.stream_next(resp)
-    assert_receive %HTTPoison.AsyncEnd{ id: ^id }, 100
+    assert_receive %HTTPoison.AsyncEnd{id: ^id}, 100
 
     assert is_list(headers)
   end
 
   test "asynchronous redirected get request" do
-    {:ok, %HTTPoison.AsyncResponse{id: id}} = HTTPoison.get "localhost:8080/redirect/2", [], [stream_to: self(), hackney: [follow_redirect: true]]
+    {:ok, %HTTPoison.AsyncResponse{id: id}} =
+      HTTPoison.get(
+        "localhost:8080/redirect/2",
+        [],
+        stream_to: self(),
+        hackney: [follow_redirect: true]
+      )
 
-    assert_receive %HTTPoison.AsyncRedirect{ id: ^id, to: to, headers: headers }, 1_000
+    assert_receive %HTTPoison.AsyncRedirect{id: ^id, to: to, headers: headers}, 1_000
     assert to == "http://localhost:8080/redirect/1"
     assert is_list(headers)
   end
 
   test "multipart upload" do
-    response = HTTPoison.post("localhost:8080/post", {:multipart, [{:file, "test/test_helper.exs"}, {"name", "value"}]})
+    response =
+      HTTPoison.post(
+        "localhost:8080/post",
+        {:multipart, [{:file, "test/test_helper.exs"}, {"name", "value"}]}
+      )
+
     assert_response(response)
   end
 
@@ -198,7 +247,7 @@ defmodule HTTPoisonTest do
     enumerable = JSX.encode!(expected) |> String.split("")
     headers = %{"Content-type" => "application/json"}
     response = HTTPoison.post("localhost:8080/post", {:stream, enumerable}, headers)
-    assert_response response
+    assert_response(response)
     {:ok, %HTTPoison.Response{body: body}} = response
 
     assert JSX.decode!(body)["json"] == expected
@@ -214,7 +263,7 @@ defmodule HTTPoisonTest do
 
   defp get_header(headers, key) do
     headers
-    |> Enum.filter(fn({k, _}) -> k == key end)
+    |> Enum.filter(fn {k, _} -> k == key end)
     |> hd
     |> elem(1)
   end
