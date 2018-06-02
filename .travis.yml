@@ -1,9 +1,8 @@
 sudo: false
 language: elixir
 elixir:
-  - 1.4
   - 1.5
+  - 1.6
 otp_release:
-  - 18.3
   - 19.3
   - 20.2
