@@ -160,10 +160,12 @@ defmodule HTTPoison.Base do
   @callback put!(binary, term, headers) :: Response.t() | AsyncResponse.t()
   @callback put!(binary, term, headers, options) :: Response.t() | AsyncResponse.t()
 
-  @callback request(atom, binary, term) :: {:ok, Response.t() | AsyncResponse.t()}
-  @callback request(atom, binary, term, headers) :: {:ok, Response.t() | AsyncResponse.t()}
+  @callback request(atom, binary, term) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback request(atom, binary, term, headers) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   @callback request(atom, binary, term, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()}
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
 
   @callback request!(atom, binary) :: Response.t() | AsyncResponse.t()
   @callback request!(atom, binary, term) :: Response.t() | AsyncResponse.t()
