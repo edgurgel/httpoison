@@ -5,7 +5,12 @@ elixir:
   - 1.6
 otp_release:
   - 19.3
-  - 20.2
+  - 20.3
+  - 21.0
 script:
   - mix test
   - if [[ `elixir -v` = *"1.6"* ]]; then mix format --check-formatted; fi
+matrix:
+  exclude:
+    - elixir: 1.5
+      otp_release: 21.0
