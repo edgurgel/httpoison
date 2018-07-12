@@ -1,5 +1,23 @@
 # Changelog
 
+# 1.2.0 (2018-06-16)
+
+* HTTPoison.Base behaviour #330
+* mix format #332
+* Bump Elixir requirement to `~> 1.5`
+
+# 1.1.1 (2018-04-20)
+
+* Add support for socks5 user and pass parameters #323 #325 Thanks, @skie :tada:
+
+# 1.1.0 (2018-04-02)
+
+* Automatic use of `HTTP_PROXY` env var #306 Thanks to @amencarini
+
+# 1.0.0 (2018-01-07)
+
+* Fix @specs #288 #304 #289 Thanks to @jknipp, @jeffrom & @amclain
+
 # 0.13.0 (2017-08-04)
 
 * Relax hackney requirement (#277). Thanks to @tverlaan
