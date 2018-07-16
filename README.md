@@ -173,6 +173,11 @@ iex> flush
 :ok
 ```
 
+**Warning: this option can flood a receiver in messages.**
+
+If a server may send very large messages the `async: :once` option should be used.
+This will send only a single chunk at a time the receiver can call `HTTPoison.stream_next/1` to indicate ability to process more chunks. 
+
 ### Cookies
 
 HTTPoison allows you to send cookies:
