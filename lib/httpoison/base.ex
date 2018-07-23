@@ -253,7 +253,7 @@ defmodule HTTPoison.Base do
         * `:stream_to` - a PID to stream the response to
         * `:async` - if given `:once`, will only stream one message at a time, requires call to `stream_next`
         * `:proxy` - a proxy to be used for the request; it can be a regular url
-          or a `{Host, Port}` tuple, or a `{:socks5, ProxyHost, ProxyPort} tuple
+          or a `{Host, Port}` tuple, or a `{:socks5, ProxyHost, ProxyPort}` tuple
         * `:proxy_auth` - proxy authentication `{User, Password}` tuple
         * `:socks5_user`- socks5 username
         * `:socks5_pass`- socks5 password
