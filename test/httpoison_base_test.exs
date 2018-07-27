@@ -267,6 +267,110 @@ defmodule HTTPoisonBaseTest do
     assert validate(:hackney)
   end
 
+  test "having http_proxy env variable set with auth on http requests" do
+    expect(System, :get_env, [{["HTTP_PROXY"], "http://user:pass@proxy"}])
+
+    expect(:hackney, :request, [
+      {[
+         :post,
+         "http://localhost",
+         [],
+         "body",
+         [proxy_auth: {"user", "pass"}, proxy: "http://proxy"]
+       ], {:ok, 200, "headers", :client}}
+    ])
+
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost"
+             }
+
+    assert validate(:hackney)
+  end
+
+  test "having https_proxy env variable set with auth on https requests" do
+    expect(System, :get_env, [{["HTTPS_PROXY"], "http://user:pass@proxy"}])
+
+    expect(:hackney, :request, [
+      {[
+         :post,
+         "https://localhost",
+         [],
+         "body",
+         [proxy_auth: {"user", "pass"}, proxy: "http://proxy"]
+       ], {:ok, 200, "headers", :client}}
+    ])
+
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("https://localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "https://localhost"
+             }
+
+    assert validate(:hackney)
+  end
+
+  test "having http_proxy env variable set with socks5 on http requests" do
+    expect(System, :get_env, [{["HTTP_PROXY"], "socks5://user:pass@proxy:1080"}])
+
+    expect(:hackney, :request, [
+      {[
+         :post,
+         "http://localhost",
+         [],
+         "body",
+         [socks5_pass: "pass", socks5_user: "user", proxy: {:socks5, "proxy", 1080}]
+       ], {:ok, 200, "headers", :client}}
+    ])
+
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("http://localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost"
+             }
+
+    assert validate(:hackney)
+  end
+
+  test "having http_proxy env variable set with socks5 and no port defaults to 1080 on http requests" do
+    expect(System, :get_env, [{["HTTP_PROXY"], "socks5://user:pass@proxy"}])
+
+    expect(:hackney, :request, [
+      {[
+         :post,
+         "http://localhost",
+         [],
+         "body",
+         [socks5_pass: "pass", socks5_user: "user", proxy: {:socks5, "proxy", 1080}]
+       ], {:ok, 200, "headers", :client}}
+    ])
+
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("http://localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost"
+             }
+
+    assert validate(:hackney)
+  end
+
   test "passing ssl option" do
     expect(:hackney, :request, [
       {[:post, "http://localhost", [], "body", [ssl_options: [certfile: "certs/client.crt"]]],

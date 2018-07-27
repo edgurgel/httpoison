@@ -583,33 +583,60 @@ defmodule HTTPoison.Base do
   end
 
   defp build_hackney_proxy_options(options, request_url) do
-    proxy =
-      if Keyword.has_key?(options, :proxy) do
-        Keyword.get(options, :proxy)
-      else
-        case URI.parse(request_url).scheme do
-          "http" -> System.get_env("HTTP_PROXY") || System.get_env("http_proxy")
-          "https" -> System.get_env("HTTPS_PROXY") || System.get_env("https_proxy")
-          _ -> nil
+    case Keyword.get(options, :proxy) do
+      nil ->
+        request_url |> get_proxy_url_from_env |> proxy_opts_from_url
+
+      proxy ->
+        hn_proxy_options = [
+          socks5_pass: Keyword.get(options, :socks5_pass),
+          socks5_user: Keyword.get(options, :socks5_user),
+          proxy_auth: Keyword.get(options, :proxy_auth),
+          proxy: proxy
+        ]
+
+        hn_proxy_options |> Enum.filter(fn {k, v} -> not is_nil(v) end)
+    end
+  end
+
+  defp get_proxy_url_from_env(request_url) do
+    case URI.parse(request_url).scheme do
+      "http" -> System.get_env("HTTP_PROXY") || System.get_env("http_proxy")
+      "https" -> System.get_env("HTTPS_PROXY") || System.get_env("https_proxy")
+      _ -> nil
+    end
+  end
+
+  defp proxy_opts_from_url(proxy_url) do
+    case proxy_url do
+      nil ->
+        []
+
+      _ ->
+        case URI.parse(proxy_url) do
+          %URI{userinfo: nil, scheme: "socks5", host: host, port: port} ->
+            [proxy: {:socks5, host, port || 1080}]
+
+          %URI{userinfo: nil} ->
+            [proxy: proxy_url]
+
+          %URI{userinfo: userinfo, scheme: scheme, host: host, port: port} = parsed_proxy_url ->
+            case String.split(userinfo, ":") do
+              [user, pass] ->
+                case scheme do
+                  "socks5" ->
+                    [socks5_pass: pass, socks5_user: user, proxy: {:socks5, host, port || 1080}]
+
+                  _ ->
+                    url_without_auth = URI.to_string(%{parsed_proxy_url | userinfo: nil})
+                    [proxy_auth: {user, pass}, proxy: url_without_auth]
+                end
+
+              _ ->
+                []
+            end
         end
-      end
-
-    proxy_auth = Keyword.get(options, :proxy_auth)
-    socks5_user = Keyword.get(options, :socks5_user)
-    socks5_pass = Keyword.get(options, :socks5_pass)
-
-    hn_proxy_options = if proxy, do: [{:proxy, proxy}], else: []
-
-    hn_proxy_options =
-      if proxy_auth, do: [{:proxy_auth, proxy_auth} | hn_proxy_options], else: hn_proxy_options
-
-    hn_proxy_options =
-      if socks5_user, do: [{:socks5_user, socks5_user} | hn_proxy_options], else: hn_proxy_options
-
-    hn_proxy_options =
-      if socks5_pass, do: [{:socks5_pass, socks5_pass} | hn_proxy_options], else: hn_proxy_options
-
-    hn_proxy_options
+    end
   end
 
   @doc false
