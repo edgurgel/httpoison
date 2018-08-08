@@ -37,7 +37,10 @@ defmodule HTTPoison.Mixfile do
     [
       maintainers: ["Eduardo Gurgel Pinho"],
       licenses: ["MIT"],
-      links: %{"Github" => "https://github.com/edgurgel/httpoison"}
+      links: %{
+        Changelog: "https://github.com/edgurgel/httpoison/blob/master/CHANGELOG.md",
+        GitHub: "https://github.com/edgurgel/httpoison"
+      }
     ]
   end
 end
