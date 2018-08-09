@@ -16,8 +16,10 @@ defmodule HTTPoison.Mixfile do
       deps: deps(),
       source_url: "https://github.com/edgurgel/httpoison",
       docs: [
+        main: "readme",
         extras: [
-          "CHANGELOG.md",
+          "README.md",
+          "CHANGELOG.md"
         ]
       ]
     ]
