@@ -14,7 +14,15 @@ defmodule HTTPoison.Mixfile do
       description: @description,
       package: package(),
       deps: deps(),
-      source_url: "https://github.com/edgurgel/httpoison"
+      source_url: "https://github.com/edgurgel/httpoison",
+      docs: [
+        main: "readme",
+        logo: "logo.png",
+        extras: [
+          "README.md",
+          "CHANGELOG.md"
+        ]
+      ]
     ]
   end
 
