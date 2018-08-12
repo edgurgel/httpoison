@@ -598,7 +598,7 @@ defmodule HTTPoison.Base do
     socks5_user = Keyword.get(options, :socks5_user)
     socks5_pass = Keyword.get(options, :socks5_pass)
 
-    hn_proxy_options = if proxy, do: [{:proxy, proxy}], else: []
+    hn_proxy_options = if proxy && proxy != "", do: [{:proxy, proxy}], else: []
 
     hn_proxy_options =
       if proxy_auth, do: [{:proxy_auth, proxy_auth} | hn_proxy_options], else: hn_proxy_options
