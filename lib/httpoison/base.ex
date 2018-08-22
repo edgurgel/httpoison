@@ -248,8 +248,8 @@ defmodule HTTPoison.Base do
         * `{:stream, enumerable}` - lazily send a stream of binaries/charlists
 
       Options:
-        * `:timeout` - timeout to establish a connection, in milliseconds. Default is 8000
-        * `:recv_timeout` - timeout used when receiving a connection. Default is 5000
+        * `:timeout` - timeout for establishing a TCP or SSL connection, in milliseconds. Default is 8000
+        * `:recv_timeout` - timeout for receiving an HTTP response from the socket. Default is 5000
         * `:stream_to` - a PID to stream the response to
         * `:async` - if given `:once`, will only stream one message at a time, requires call to `stream_next`
         * `:proxy` - a proxy to be used for the request; it can be a regular url
