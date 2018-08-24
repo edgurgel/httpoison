@@ -248,6 +248,46 @@ children = [
 
 Add that to the application supervisor and `first_pool` will be available to be used by HTTPoison/hackney.
 
+### Multipart
+
+#### Request
+
+HTTPoison supports making `multipart` requests. E.g.:
+
+```elixir
+HTTPoison.post("https://myurl.php", {:multipart, [{:file, "test.txt", {"form-data", [{"name", "mytest"}, {"filename", "test.txt"}]}, []}]})
+```
+
+Further examples of `multipart` requests can be found [in the issues](https://github.com/edgurgel/httpoison/issues?utf8=%E2%9C%93&q=is%3Aissue+multipart) (e.g.: [here](https://github.com/edgurgel/httpoison/issues/144#issue-160035453) and [here](https://github.com/edgurgel/httpoison/issues/237#issuecomment-313132804)).
+
+For more complex queries regarding multipart requests, you should follow the [hackney docs for the `multipart` API](https://github.com/benoitc/hackney#send-a-body).
+
+#### Response
+
+HTTPoison supports parsing `multipart` responses. E.g.:
+
+```elixir
+iex(1)> response = %HTTPoison.Response{
+...(1)>   body: "--123\r\nContent-type: application/json\r\n\r\n{\"1\": \"first\"}\r\n--123\r\nContent-type: application/json\r\n\r\n{\"2\": \"second\"}\r\n--123--\r\n",
+...(1)>   headers: [{"Content-Type", "multipart/mixed;boundary=123"}],
+...(1)>   request_url: "http://localhost",
+...(1)>   status_code: 200
+...(1)> }
+%HTTPoison.Response{
+  body: "--123\r\nContent-type: application/json\r\n\r\n{\"1\": \"first\"}\r\n--123\r\nContent-type: application/json\r\n\r\n{\"2\": \"second\"}\r\n--123--\r\n",
+  headers: [{"Content-Type", "multipart/mixed;boundary=123"}],
+  request_url: "http://localhost",
+  status_code: 200
+}
+
+iex(2)> HTTPoison.Handlers.Multipart.decode_body(response)
+[
+  {[{"Content-Type", "application/json"}], "{\"1\": \"first\"}"},
+  {[{"Content-Type", "application/json"}], "{\"2\": \"second\"}"}
+]
+```
+
+For more complex queries regarding multipart response parsing, you should follow the [hackney docs for the `hackney_multipart` API](https://github.com/benoitc/hackney/blob/master/doc/hackney_multipart.md).
 
 ## License
 
