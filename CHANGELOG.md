@@ -1,5 +1,12 @@
 # Changelog
 
+# 1.3.0 (2018-08-26)
+
+* Add Multipart body helper
+* Fix issue with empty `HTTP_PROXY`
+* Update Docs
+* Fix incorrect typespec on request/5
+
 # 1.2.0 (2018-06-16)
 
 * HTTPoison.Base behaviour #330
