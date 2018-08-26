@@ -23,7 +23,15 @@ defmodule HTTPoisonBaseTest do
 
   setup do
     new(:hackney)
-    on_exit(fn -> unload() end)
+
+    on_exit(fn ->
+      System.delete_env("HTTP_PROXY")
+      System.delete_env("http_proxy")
+      System.delete_env("HTTPS_PROXY")
+      System.delete_env("https_proxy")
+      unload()
+    end)
+
     :ok
   end
 
@@ -204,7 +212,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "having http_proxy env variable set on http requests" do
-    expect(System, :get_env, [{["HTTP_PROXY"], "proxy"}])
+    System.put_env("HTTP_PROXY", "proxy")
 
     expect(:hackney, :request, [
       {[:post, "http://localhost", [], "body", [proxy: "proxy"]], {:ok, 200, "headers", :client}}
@@ -223,8 +231,28 @@ defmodule HTTPoisonBaseTest do
     assert validate(:hackney)
   end
 
+  test "having http_proxy env variable set on http requests as empty string" do
+    System.put_env("HTTP_PROXY", "")
+
+    expect(:hackney, :request, [
+      {[:post, "http://localhost", [], "body", []], {:ok, 200, "headers", :client}}
+    ])
+
+    expect(:hackney, :body, 1, {:ok, "response"})
+
+    assert HTTPoison.post!("localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost"
+             }
+
+    assert validate(:hackney)
+  end
+
   test "having https_proxy env variable set on https requests" do
-    expect(System, :get_env, [{["HTTPS_PROXY"], "proxy"}])
+    System.put_env("HTTPS_PROXY", "proxy")
 
     expect(:hackney, :request, [
       {[:post, "https://localhost", [], "body", [proxy: "proxy"]], {:ok, 200, "headers", :client}}
@@ -244,11 +272,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "having https_proxy env variable set on http requests" do
-    expect(System, :get_env, [
-      {["HTTPS_PROXY"], "proxy"},
-      {["HTTP_PROXY"], nil},
-      {["http_proxy"], nil}
-    ])
+    System.put_env("HTTPS_PROXY", "proxy")
 
     expect(:hackney, :request, [
       {[:post, "http://localhost", [], "body", []], {:ok, 200, "headers", :client}}
