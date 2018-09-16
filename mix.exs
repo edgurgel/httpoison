@@ -36,7 +36,6 @@ defmodule HTTPoison.Mixfile do
       {:mimic, "~> 0.1", only: :test},
       {:exjsx, "~> 3.1", only: :test},
       {:httparrot, "~> 1.0", only: :test},
-      {:meck, "~> 0.8.2", only: :test},
       {:earmark, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.14", only: :dev}
     ]
