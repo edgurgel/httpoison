@@ -2,11 +2,6 @@ defmodule HTTPoisonTest do
   use ExUnit.Case, async: true
   import PathHelpers
 
-  setup_all do
-    {:ok, _} = :application.ensure_all_started(:httparrot)
-    :ok
-  end
-
   test "get" do
     assert_response(HTTPoison.get("localhost:8080/deny"), fn response ->
       assert :erlang.size(response.body) == 197

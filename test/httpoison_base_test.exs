@@ -1,6 +1,8 @@
 defmodule HTTPoisonBaseTest do
-  use ExUnit.Case
-  import :meck
+  use ExUnit.Case, async: true
+  import Mimic
+
+  setup :verify_on_exit!
 
   defmodule Example do
     use HTTPoison.Base
@@ -22,31 +24,24 @@ defmodule HTTPoisonBaseTest do
   end
 
   setup do
-    new(:hackney)
-
     on_exit(fn ->
       System.delete_env("HTTP_PROXY")
       System.delete_env("http_proxy")
       System.delete_env("HTTPS_PROXY")
       System.delete_env("https_proxy")
-      unload()
     end)
 
+    stub(:hackney)
     :ok
   end
 
   test "request body using Example" do
-    expect(:hackney, :request, [
-      {[
-         :post,
-         "http://localhost",
-         {:req_headers, []},
-         {:req_body, "body"},
-         [{:connect_timeout, 10}]
-       ], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn
+      :post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [connect_timeout: 10] ->
+        {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert Example.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -55,16 +50,14 @@ defmodule HTTPoisonBaseTest do
                body: {:resp_body, "response"},
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "request body using params example" do
-    expect(:hackney, :request, [
-      {[:get, "http://localhost?foo=bar&key=fizz", [], "", []], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn :get, "http://localhost?foo=bar&key=fizz", [], "", [] ->
+      {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert ExampleParamsOptions.get!("localhost", [], params: %{foo: "bar"}) ==
              %HTTPoison.Response{
@@ -73,30 +66,28 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost?foo=bar&key=fizz"
              }
-
-    assert validate(:hackney)
   end
 
   test "request raises error tuple" do
     reason = {:closed, "Something happened"}
-    expect(:hackney, :request, 5, {:error, reason})
+
+    expect(:hackney, :request, fn _, _, _, _, _ -> {:error, reason} end)
+    expect(:hackney, :request, fn _, _, _, _, _ -> {:error, reason} end)
 
     assert_raise HTTPoison.Error, "{:closed, \"Something happened\"}", fn ->
       HTTPoison.get!("http://localhost")
     end
 
     assert HTTPoison.get("http://localhost") == {:error, %HTTPoison.Error{reason: reason}}
-
-    assert validate(:hackney)
   end
 
   test "passing connect_timeout option" do
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", [connect_timeout: 12345]],
-       {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn
+      :post, "http://localhost", [], "body", [connect_timeout: 12345] ->
+        {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body", [], timeout: 12345) ==
              %HTTPoison.Response{
@@ -105,17 +96,15 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "passing recv_timeout option" do
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", [recv_timeout: 12345]],
-       {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn
+      :post, "http://localhost", [], "body", [recv_timeout: 12345] ->
+        {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body", [], recv_timeout: 12345) ==
              %HTTPoison.Response{
@@ -124,16 +113,14 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "passing proxy option" do
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", [proxy: "proxy"]], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn
+      :post, "http://localhost", [], "body", [proxy: "proxy"] -> {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body", [], proxy: "proxy") ==
              %HTTPoison.Response{
@@ -142,26 +129,23 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "passing socks5 options" do
-    expect(:hackney, :request, [
-      {[
-         :post,
-         "http://localhost",
-         [],
-         "body",
-         [
-           socks5_pass: "secret",
-           socks5_user: "user",
-           proxy: {:socks5, 'localhost', 1080}
-         ]
-       ], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn
+      :post,
+      "http://localhost",
+      [],
+      "body",
+      [
+        socks5_pass: "secret",
+        socks5_user: "user",
+        proxy: {:socks5, 'localhost', 1080}
+      ] ->
+        {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!(
              "localhost",
@@ -177,22 +161,19 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "passing proxy option with proxy_auth" do
-    expect(:hackney, :request, [
-      {[
-         :post,
-         "http://localhost",
-         [],
-         "body",
-         [proxy_auth: {"username", "password"}, proxy: "proxy"]
-       ], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn
+      :post,
+      "http://localhost",
+      [],
+      "body",
+      [proxy_auth: {"username", "password"}, proxy: "proxy"] ->
+        {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!(
              "localhost",
@@ -207,18 +188,16 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "having http_proxy env variable set on http requests" do
     System.put_env("HTTP_PROXY", "proxy")
 
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", [proxy: "proxy"]], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn
+      :post, "http://localhost", [], "body", [proxy: "proxy"] -> {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -227,18 +206,16 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "having http_proxy env variable set on http requests as empty string" do
     System.put_env("HTTP_PROXY", "")
 
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", []], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn :post, "http://localhost", [], "body", [] ->
+      {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -247,18 +224,16 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "having https_proxy env variable set on https requests" do
     System.put_env("HTTPS_PROXY", "proxy")
 
-    expect(:hackney, :request, [
-      {[:post, "https://localhost", [], "body", [proxy: "proxy"]], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn :post, "https://localhost", [], "body", [proxy: "proxy"] ->
+      {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("https://localhost", "body") ==
              %HTTPoison.Response{
@@ -267,18 +242,16 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "https://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "having https_proxy env variable set on http requests" do
     System.put_env("HTTPS_PROXY", "proxy")
 
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", []], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn
+      :post, "http://localhost", [], "body", [] -> {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -287,17 +260,18 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "passing ssl option" do
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", [ssl_options: [certfile: "certs/client.crt"]]],
-       {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn :post,
+                                  "http://localhost",
+                                  [],
+                                  "body",
+                                  [ssl_options: [certfile: "certs/client.crt"]] ->
+      {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body", [], ssl: [certfile: "certs/client.crt"]) ==
              %HTTPoison.Response{
@@ -306,17 +280,18 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "passing follow_redirect option" do
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", [follow_redirect: true]],
-       {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn :post,
+                                  "http://localhost",
+                                  [],
+                                  "body",
+                                  [follow_redirect: true] ->
+      {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body", [], follow_redirect: true) ==
              %HTTPoison.Response{
@@ -325,16 +300,14 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 
   test "passing max_redirect option" do
-    expect(:hackney, :request, [
-      {[:post, "http://localhost", [], "body", [max_redirect: 2]], {:ok, 200, "headers", :client}}
-    ])
+    expect(:hackney, :request, fn :post, "http://localhost", [], "body", [max_redirect: 2] ->
+      {:ok, 200, "headers", :client}
+    end)
 
-    expect(:hackney, :body, 1, {:ok, "response"})
+    expect(:hackney, :body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.post!("localhost", "body", [], max_redirect: 2) ==
              %HTTPoison.Response{
@@ -343,7 +316,5 @@ defmodule HTTPoisonBaseTest do
                body: "response",
                request_url: "http://localhost"
              }
-
-    assert validate(:hackney)
   end
 end
