@@ -261,7 +261,8 @@ defmodule HTTPoison.Base do
         * `:follow_redirect` - a boolean that causes redirects to be followed
         * `:max_redirect` - an integer denoting the maximum number of redirects to follow
         * `:params` - an enumerable consisting of two-item tuples that will be appended to the url as query string parameters
-        * `:max_body_length` - a non-negative integer denoting the max response body length. See :hackney.body/2
+        * `:max_body_length` - a non-negative integer denoting the max response body length. default: :infinity
+        * `:partial_response` - a boolean denoting whether exceeding `:max_body_length` returns an error, or a partial response. default: false
 
       Timeouts can be an integer or `:infinity`
 
@@ -643,9 +644,12 @@ defmodule HTTPoison.Base do
         )
 
       {:ok, status_code, headers, client} ->
-        max_length = Keyword.get(options, :max_body_length, :infinity)
+        opts = %{
+          max_length: Keyword.get(options, :max_body_length, :infinity),
+          partial_response: Keyword.get(options, :partial_response, false)
+        }
 
-        case :hackney.body(client, max_length) do
+        case parse_request_body(client, opts, "") do
           {:ok, body} ->
             response(
               process_status_code,
@@ -668,6 +672,31 @@ defmodule HTTPoison.Base do
         {:error, %Error{reason: reason}}
     end
   end
+
+  defp parse_request_body(client, %{max_length: max} = opts, acc)
+       when max >= byte_size(acc) do
+    case :hackney.stream_body(client) do
+      {:ok, data} ->
+        parse_request_body(client, opts, acc <> data)
+
+      :done ->
+        {:ok, acc}
+
+      {:error, reason} = error ->
+        case reason do
+          {:closed, bin} when is_binary(bin) ->
+            {:error, {:closed, acc <> bin}}
+
+          _ ->
+            error
+        end
+    end
+  end
+
+  defp parse_request_body(_client, %{partial_response: true}, acc), do: {:ok, acc}
+
+  defp parse_request_body(_client, %{partial_response: false}, acc),
+    do: {:error, {:body_too_large, acc}}
 
   defp do_request(method, request_url, request_headers, {:stream, enumerable}, hn_options) do
     with {:ok, ref} <- :hackney.request(method, request_url, request_headers, :stream, hn_options) do
