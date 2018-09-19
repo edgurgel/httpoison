@@ -15,6 +15,7 @@ cache:
 script:
   - mix test
   - if [[ `elixir -v` = *"1.6"* ]]; then mix format --check-formatted; fi
+  - mix dialyzer --halt-exit-status --format term
 matrix:
   exclude:
     - elixir: 1.5
