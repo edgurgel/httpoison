@@ -33,8 +33,7 @@ defmodule HTTPoison.Mixfile do
           # "-Woverspecs",
           # "-Wspecdiffs",
         ]
-      ],
-
+      ]
     ]
   end
 
@@ -50,7 +49,7 @@ defmodule HTTPoison.Mixfile do
       {:httparrot, "~> 1.0", only: :test},
       {:earmark, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.14", only: :dev},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev, :test], runtime: false}
     ]
   end
 
