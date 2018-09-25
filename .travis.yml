@@ -8,9 +8,16 @@ otp_release:
   - 19.3
   - 20.3
   - 21.0
+cache:
+  directories:
+    - _build
+    - deps
 script:
   - mix test
-  - if [[ `elixir -v` = *"1.6"* ]]; then mix format --check-formatted; fi
+  - if [[ `elixir -v` = *"1.7"* ]]; then mix format --check-formatted; fi
+  - if [[ `elixir -v` = *"1.7"* ]]; then
+      travis_wait 30 mix dialyzer --halt-exit-status --format term;
+    fi
 matrix:
   exclude:
     - elixir: 1.5

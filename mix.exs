@@ -22,6 +22,17 @@ defmodule HTTPoison.Mixfile do
           "README.md",
           "CHANGELOG.md"
         ]
+      ],
+      dialyzer: [
+        plt_add_deps: :transitive,
+        flags: [
+          # "-Wunmatched_returns",
+          # "-Wrace_conditions",
+          # "-Wunderspecs",
+          # "-Wunknown",
+          # "-Woverspecs",
+          # "-Wspecdiffs",
+        ]
       ]
     ]
   end
@@ -37,7 +48,8 @@ defmodule HTTPoison.Mixfile do
       {:exjsx, "~> 3.1", only: :test},
       {:httparrot, "~> 1.0", only: :test},
       {:earmark, "~> 1.0", only: :dev},
-      {:ex_doc, "~> 0.14", only: :dev}
+      {:ex_doc, "~> 0.14", only: :dev},
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev, :test], runtime: false}
     ]
   end
 
