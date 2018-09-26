@@ -248,6 +248,26 @@ defmodule HTTPoisonTest do
     assert JSX.decode!(body)["json"] == expected
   end
 
+  test "max_body_length limits body size" do
+    {:ok, socket} = :gen_tcp.listen(0, [:binary, {:active, false}, {:packet, :raw}])
+    {:ok, [buffer: buffer_size]} = :inet.getopts(socket, [:buffer])
+    :ok = :gen_tcp.close(socket)
+
+    max_length = Kernel.trunc(buffer_size * 1.5)
+
+    expected_length =
+      Float.ceil(max_length / buffer_size)
+      |> Kernel.*(buffer_size)
+      |> Kernel.trunc()
+
+    resp = HTTPoison.get("localhost:8080/stream/20", [], max_body_length: max_length)
+
+    assert_response(resp, fn response ->
+      assert byte_size(response.body) <= expected_length
+      assert byte_size(response.body) >= max_length
+    end)
+  end
+
   defp assert_response({:ok, response}, function \\ nil) do
     assert is_list(response.headers)
     assert response.status_code == 200

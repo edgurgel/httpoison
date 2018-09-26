@@ -338,9 +338,15 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:error, "some error"} end)
+    expect(:hackney, :body, fn _, _ -> {:ok, "res"} end)
 
     assert HTTPoison.get("localhost", [], max_body_length: 3) ==
-             {:error, %HTTPoison.Error{id: nil, reason: "some error"}}
+             {:ok,
+              %HTTPoison.Response{
+                status_code: 200,
+                headers: "headers",
+                body: "res",
+                request_url: "http://localhost"
+              }}
   end
 end

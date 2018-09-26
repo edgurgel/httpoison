@@ -261,7 +261,7 @@ defmodule HTTPoison.Base do
         * `:follow_redirect` - a boolean that causes redirects to be followed
         * `:max_redirect` - an integer denoting the maximum number of redirects to follow
         * `:params` - an enumerable consisting of two-item tuples that will be appended to the url as query string parameters
-        * `:max_body_length` - a non-negative integer denoting the max response body length. Errors when body length exceeds. See :hackney.body/2
+        * `:max_body_length` - a non-negative integer denoting the max response body length. See :hackney.body/2
 
       Timeouts can be an integer or `:infinity`
 
