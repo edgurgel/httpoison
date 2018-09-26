@@ -41,7 +41,8 @@ defmodule HTTPoisonBaseTest do
         {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert Example.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -57,7 +58,8 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert ExampleParamsOptions.get!("localhost", [], params: %{foo: "bar"}) ==
              %HTTPoison.Response{
@@ -87,7 +89,8 @@ defmodule HTTPoisonBaseTest do
         {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body", [], timeout: 12345) ==
              %HTTPoison.Response{
@@ -104,7 +107,8 @@ defmodule HTTPoisonBaseTest do
         {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body", [], recv_timeout: 12345) ==
              %HTTPoison.Response{
@@ -120,7 +124,8 @@ defmodule HTTPoisonBaseTest do
       :post, "http://localhost", [], "body", [proxy: "proxy"] -> {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body", [], proxy: "proxy") ==
              %HTTPoison.Response{
@@ -145,7 +150,8 @@ defmodule HTTPoisonBaseTest do
         {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!(
              "localhost",
@@ -173,7 +179,8 @@ defmodule HTTPoisonBaseTest do
         {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!(
              "localhost",
@@ -197,7 +204,8 @@ defmodule HTTPoisonBaseTest do
       :post, "http://localhost", [], "body", [proxy: "proxy"] -> {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -215,7 +223,8 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -233,7 +242,8 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("https://localhost", "body") ==
              %HTTPoison.Response{
@@ -251,7 +261,8 @@ defmodule HTTPoisonBaseTest do
       :post, "http://localhost", [], "body", [] -> {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -271,7 +282,8 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body", [], ssl: [certfile: "certs/client.crt"]) ==
              %HTTPoison.Response{
@@ -291,7 +303,8 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body", [], follow_redirect: true) ==
              %HTTPoison.Response{
@@ -307,7 +320,8 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.post!("localhost", "body", [], max_redirect: 2) ==
              %HTTPoison.Response{
@@ -323,7 +337,8 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, :infinity -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> :done end)
 
     assert HTTPoison.get("localhost") ==
              {:ok,
@@ -338,14 +353,24 @@ defmodule HTTPoisonBaseTest do
       {:ok, 200, "headers", :client}
     end)
 
-    expect(:hackney, :body, fn _, _ -> {:ok, "res"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
 
     assert HTTPoison.get("localhost", [], max_body_length: 3) ==
+             {:error, %HTTPoison.Error{id: nil, reason: {:body_too_large, "response"}}}
+
+    expect(:hackney, :request, fn :get, "http://localhost", [], "", [] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :stream_body, fn _ -> {:ok, "response"} end)
+    expect(:hackney, :stream_body, fn _ -> {:ok, "additionalcontent"} end)
+
+    assert HTTPoison.get("localhost", [], max_body_length: 12, partial_response: true) ==
              {:ok,
               %HTTPoison.Response{
                 status_code: 200,
                 headers: "headers",
-                body: "res",
+                body: "responseadditionalcontent",
                 request_url: "http://localhost"
               }}
   end
