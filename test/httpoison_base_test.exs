@@ -29,6 +29,9 @@ defmodule HTTPoisonBaseTest do
       System.delete_env("http_proxy")
       System.delete_env("HTTPS_PROXY")
       System.delete_env("https_proxy")
+      System.delete_env("NO_PROXY")
+      System.delete_env("no_PROXY")
+      System.delete_env("no_proxy")
     end)
 
     stub(:hackney)
@@ -259,6 +262,125 @@ defmodule HTTPoisonBaseTest do
                headers: "headers",
                body: "response",
                request_url: "http://localhost"
+             }
+  end
+
+  test "having matching no_proxy env variable set with proxy env variable" do
+    # If the variable is specified directly, no_proxy should be ignored.
+    System.put_env("NO_PROXY", ".somedomain.com")
+
+    expect(:hackney, :request, fn :post,
+                                  "http://www.somedomain.com",
+                                  [],
+                                  "body",
+                                  [proxy: "proxy"] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("www.somedomain.com", "body", [], proxy: "proxy") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.somedomain.com"
+             }
+  end
+
+  test "having matching no_proxy env variable set with http_proxy env" do
+    # If the variable is specified indirectly, no_proxy should be used.
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", ".somedomain.com")
+
+    expect(:hackney, :request, fn :post, "http://www.somedomain.com", [], "body", [] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("www.somedomain.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.somedomain.com"
+             }
+  end
+
+  test "having no_proxy env variable set that does not match site" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", ".nonmatching.com")
+
+    expect(:hackney, :request, fn :post, "http://www.somedomain.com", [], "body", [proxy: "proxy"] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("http://www.somedomain.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.somedomain.com"
+             }
+  end
+
+  test "having no_proxy env variable with multiple domains" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", ".nonmatching.com,.matching.com")
+
+    expect(:hackney, :request, fn :post, "http://www.matching.com", [], "body", [] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("http://www.matching.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.matching.com"
+             }
+  end
+
+  test "having no_proxy env variable with wildcard domains" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", ".nonmatching.com,*.matching.com")
+
+    expect(:hackney, :request, fn :post, "http://www.matching.com", [], "body", [] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("http://www.matching.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.matching.com"
+             }
+  end
+
+  test "having no_proxy env variable with non-matching wildcard domains" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", "*.nonmatching.com")
+
+    expect(:hackney, :request, fn :post, "http://www.matching.com", [], "body", [proxy: "proxy"] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("http://www.matching.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.matching.com"
              }
   end
 
