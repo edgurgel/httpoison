@@ -622,9 +622,10 @@ defmodule HTTPoison.Base do
   defp check_no_proxy(proxy, request_url) do
     request_host = URI.parse(request_url).host
 
-    should_bypass_proxy = get_no_proxy_system_env()
-        |> String.split(",")
-        |> Enum.any?(fn domain -> matches_no_proxy_value?(request_host, domain) end)
+    should_bypass_proxy =
+      get_no_proxy_system_env()
+      |> String.split(",")
+      |> Enum.any?(fn domain -> matches_no_proxy_value?(request_host, domain) end)
 
     if should_bypass_proxy do
       nil
@@ -634,8 +635,7 @@ defmodule HTTPoison.Base do
   end
 
   defp get_no_proxy_system_env() do
-    System.get_env("NO_PROXY") || System.get_env("no_PROXY") || System.get_env("no_proxy") ||
-        ""
+    System.get_env("NO_PROXY") || System.get_env("no_PROXY") || System.get_env("no_proxy") || ""
   end
 
   defp matches_no_proxy_value?(request_host, no_proxy_value) do

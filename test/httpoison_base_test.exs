@@ -120,7 +120,7 @@ defmodule HTTPoisonBaseTest do
 
   test "passing proxy option" do
     expect_hackney_post_with_proxy("http://localhost", "proxy")
-    
+
     assert HTTPoison.post!("localhost", "body", [], proxy: "proxy") ==
              %HTTPoison.Response{
                status_code: 200,
@@ -337,7 +337,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   defp expect_hackney_post_with_proxy(url, proxy) do
-    expect_hackney_post(url, [proxy: proxy])
+    expect_hackney_post(url, proxy: proxy)
   end
 
   defp expect_hackney_post_with_no_proxy(url) do
