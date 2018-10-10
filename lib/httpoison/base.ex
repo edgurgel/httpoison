@@ -588,10 +588,14 @@ defmodule HTTPoison.Base do
       if Keyword.has_key?(options, :proxy) do
         Keyword.get(options, :proxy)
       else
-        case URI.parse(request_url).scheme do
-          "http" -> System.get_env("HTTP_PROXY") || System.get_env("http_proxy")
-          "https" -> System.get_env("HTTPS_PROXY") || System.get_env("https_proxy")
-          _ -> nil
+        if request_url_matches_no_proxy(request_url) do
+          nil
+        else
+          case URI.parse(request_url).scheme do
+            "http" -> System.get_env("HTTP_PROXY") || System.get_env("http_proxy")
+            "https" -> System.get_env("HTTPS_PROXY") || System.get_env("https_proxy")
+            _ -> nil
+          end
         end
       end
 
@@ -611,6 +615,17 @@ defmodule HTTPoison.Base do
       if socks5_pass, do: [{:socks5_pass, socks5_pass} | hn_proxy_options], else: hn_proxy_options
 
     hn_proxy_options
+  end
+
+  defp request_url_matches_no_proxy(request_url) do
+    host = URI.parse(request_url).host
+    no_proxies = System.get_env("no_proxy") || System.get_env("NO_PROXY")
+
+    if no_proxies do
+      String.ends_with?(host, String.split(no_proxies, ","))
+    else
+      false
+    end
   end
 
   @doc false

@@ -29,6 +29,8 @@ defmodule HTTPoisonBaseTest do
       System.delete_env("http_proxy")
       System.delete_env("HTTPS_PROXY")
       System.delete_env("https_proxy")
+      System.delete_env("no_proxy")
+      System.delete_env("NO_PROXY")
     end)
 
     stub(:hackney)
@@ -246,6 +248,25 @@ defmodule HTTPoisonBaseTest do
 
   test "having https_proxy env variable set on http requests" do
     System.put_env("HTTPS_PROXY", "proxy")
+
+    expect(:hackney, :request, fn
+      :post, "http://localhost", [], "body", [] -> {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("localhost", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost"
+             }
+  end
+
+  test "having no_proxy env variable set on http requests" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("no_proxy", "localhost")
 
     expect(:hackney, :request, fn
       :post, "http://localhost", [], "body", [] -> {:ok, 200, "headers", :client}
