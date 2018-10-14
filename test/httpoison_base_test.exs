@@ -4,7 +4,7 @@ defmodule HTTPoisonBaseTest do
 
   setup :verify_on_exit!
 
-  defmodule Example do
+  defmodule DeprecatedExample do
     use HTTPoison.Base
     def process_url(url), do: "http://" <> url
     def process_request_body(body), do: {:req_body, body}
@@ -13,6 +13,18 @@ defmodule HTTPoisonBaseTest do
     def process_response_body(body), do: {:resp_body, body}
     def process_headers(headers), do: {:headers, headers}
     def process_status_code(code), do: {:code, code}
+  end
+
+  defmodule Example do
+    use HTTPoison.Base
+    def process_request_url(url), do: "http://" <> url
+    def process_request_body(body), do: {:req_body, body}
+    def process_request_headers(headers), do: {:req_headers, headers}
+    def process_request_options(options), do: Keyword.put(options, :timeout, 10)
+    def process_response_body(body), do: {:resp_body, body}
+    def process_response_headers(headers), do: {:headers, headers}
+    def process_response_status_code(code), do: {:code, code}
+    def process_response(response), do: {:resp, response}
   end
 
   defmodule ExampleParamsOptions do
@@ -44,11 +56,45 @@ defmodule HTTPoisonBaseTest do
     expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
 
     assert Example.post!("localhost", "body") ==
+             {:resp,
+              %HTTPoison.Response{
+                status_code: {:code, 200},
+                headers: {:headers, "headers"},
+                body: {:resp_body, "response"},
+                request_url: "http://localhost",
+                request: %HTTPoison.Request{
+                  body: {:req_body, "body"},
+                  headers: {:req_headers, []},
+                  method: :post,
+                  options: [timeout: 10],
+                  params: %{},
+                  url: "http://localhost"
+                }
+              }}
+  end
+
+  test "request body using DeprecatedExample" do
+    expect(:hackney, :request, fn
+      :post, "http://localhost", {:req_headers, []}, {:req_body, "body"}, [connect_timeout: 10] ->
+        {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert DeprecatedExample.post!("localhost", "body") ==
              %HTTPoison.Response{
                status_code: {:code, 200},
                headers: {:headers, "headers"},
                body: {:resp_body, "response"},
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: {:req_body, "body"},
+                 headers: {:req_headers, []},
+                 method: :post,
+                 options: [timeout: 10],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -64,7 +110,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost?foo=bar&key=fizz"
+               request_url: "http://localhost?foo=bar&key=fizz",
+               request: %HTTPoison.Request{
+                 body: "",
+                 headers: [],
+                 method: :get,
+                 options: [params: %{foo: "bar", key: "fizz"}],
+                 params: %{foo: "bar", key: "fizz"},
+                 url: "http://localhost?foo=bar&key=fizz"
+               }
              }
   end
 
@@ -94,7 +148,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [timeout: 12345],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -111,7 +173,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [recv_timeout: 12345],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -127,7 +197,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [proxy: "proxy"],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -159,7 +237,19 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [
+                   proxy: {:socks5, 'localhost', 1080},
+                   socks5_user: "user",
+                   socks5_pass: "secret"
+                 ],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -186,7 +276,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [proxy: "proxy", proxy_auth: {"username", "password"}],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -204,7 +302,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -222,7 +328,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -240,7 +354,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "https://localhost"
+               request_url: "https://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [],
+                 params: %{},
+                 url: "https://localhost"
+               }
              }
   end
 
@@ -258,7 +380,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -278,7 +408,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [ssl: [certfile: "certs/client.crt"]],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -298,7 +436,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [follow_redirect: true],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -314,7 +460,15 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://localhost"
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [max_redirect: 2],
+                 params: %{},
+                 url: "http://localhost"
+               }
              }
   end
 
@@ -331,7 +485,15 @@ defmodule HTTPoisonBaseTest do
                 status_code: 200,
                 headers: "headers",
                 body: "response",
-                request_url: "http://localhost"
+                request_url: "http://localhost",
+                request: %HTTPoison.Request{
+                  body: "",
+                  headers: [],
+                  method: :get,
+                  options: [],
+                  params: %{},
+                  url: "http://localhost"
+                }
               }}
 
     expect(:hackney, :request, fn :get, "http://localhost", [], "", [] ->
@@ -346,7 +508,15 @@ defmodule HTTPoisonBaseTest do
                 status_code: 200,
                 headers: "headers",
                 body: "res",
-                request_url: "http://localhost"
+                request_url: "http://localhost",
+                request: %HTTPoison.Request{
+                  body: "",
+                  headers: [],
+                  method: :get,
+                  options: [max_body_length: 3],
+                  params: %{},
+                  url: "http://localhost"
+                }
               }}
   end
 end

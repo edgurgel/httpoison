@@ -67,11 +67,12 @@ defmodule HTTPoison.Base do
 
       # Used to arbitrarily process the status code of a response before
       # returning it to the caller.
-      @spec process_status_code(integer) :: term
-      def process_status_code(status_code)
+      @spec process_response_status_code(integer) :: term
+      def process_response_status_code(status_code)
 
   """
 
+  alias HTTPoison.Request
   alias HTTPoison.Response
   alias HTTPoison.AsyncResponse
   alias HTTPoison.Error
@@ -132,7 +133,8 @@ defmodule HTTPoison.Base do
   @callback post!(url, term, headers) :: Response.t() | AsyncResponse.t()
   @callback post!(url, term, headers, options) :: Response.t() | AsyncResponse.t()
 
-  @callback process_headers(headers) :: headers
+  @callback process_headers(list) :: term
+  @callback process_response_headers(list) :: term
 
   @callback process_request_body(term) :: body
 
@@ -145,8 +147,10 @@ defmodule HTTPoison.Base do
   @callback process_response_chunk(binary) :: term
 
   @callback process_status_code(integer) :: term
+  @callback process_response_status_code(integer) :: term
 
-  @callback process_url(binary) :: binary
+  @callback process_url(term) :: url
+  @callback process_request_url(term) :: url
 
   @callback put(binary) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   @callback put(binary, term) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
@@ -175,31 +179,42 @@ defmodule HTTPoison.Base do
 
   @callback stream_next(AsyncResponse.t()) :: {:ok, AsyncResponse.t()} | {:error, Error.t()}
 
-  @type url :: binary
-  @type headers :: [{atom, binary}] | [{binary, binary}] | %{binary => binary}
-  @type body :: binary | {:form, [{atom, any}]} | {:file, binary}
-  @type options :: Keyword.t()
+  @type response :: Response.t()
+  @type request :: Request.t()
+  @type url :: Request.url()
+  @type headers :: Request.headers()
+  @type body :: Request.body()
+  @type options :: Request.options()
+  @type params :: Request.params()
 
   defmacro __using__(_) do
     quote do
       @behaviour HTTPoison.Base
+
+      @type response :: HTTPoison.Base.response()
+      @type request :: HTTPoison.Base.request()
+      @type url :: HTTPoison.Base.url()
       @type headers :: HTTPoison.Base.headers()
       @type body :: HTTPoison.Base.body()
+      @type options :: HTTPoison.Base.options()
+      @type params :: HTTPoison.Base.params()
 
       @doc """
       Starts HTTPoison and its dependencies.
       """
       def start, do: :application.ensure_all_started(:httpoison)
 
+      @deprecated "Use process_request_url/1 instead"
+      @spec process_url(url) :: url
       def process_url(url) do
-        HTTPoison.Base.default_process_url(url)
+        HTTPoison.Base.default_process_request_url(url)
       end
+
+      @spec process_request_url(url) :: url
+      def process_request_url(url), do: process_url(url)
 
       @spec process_request_body(any) :: body
       def process_request_body(body), do: body
-
-      @spec process_response_body(binary) :: any
-      def process_response_body(body), do: body
 
       @spec process_request_headers(headers) :: headers
       def process_request_headers(headers) when is_map(headers) do
@@ -208,13 +223,34 @@ defmodule HTTPoison.Base do
 
       def process_request_headers(headers), do: headers
 
+      @spec process_request_options(options) :: options
       def process_request_options(options), do: options
 
-      def process_response_chunk(chunk), do: chunk
+      @spec process_request_params(any) :: params
+      def process_request_params(params), do: params
 
+      @spec process_response(response) :: any
+      def process_response(%Response{} = response), do: response
+
+      @deprecated "Use process_response_headers/1 instead"
+      @spec process_headers(list) :: any
       def process_headers(headers), do: headers
 
+      @spec process_response_headers(list) :: any
+      def process_response_headers(headers), do: process_headers(headers)
+
+      @deprecated "Use process_response_status_code/1 instead"
+      @spec process_status_code(integer) :: any
       def process_status_code(status_code), do: status_code
+
+      @spec process_response_status_code(integer) :: any
+      def process_response_status_code(status_code), do: process_status_code(status_code)
+
+      @spec process_response_body(binary) :: any
+      def process_response_body(body), do: body
+
+      @spec process_response_chunk(binary) :: any
+      def process_response_chunk(chunk), do: chunk
 
       @doc false
       @spec transformer(pid) :: :ok
@@ -222,9 +258,61 @@ defmodule HTTPoison.Base do
         HTTPoison.Base.transformer(
           __MODULE__,
           target,
-          &process_status_code/1,
-          &process_headers/1,
+          &process_response_status_code/1,
+          &process_response_headers/1,
           &process_response_chunk/1
+        )
+      end
+
+      @doc ~S"""
+      Issues an HTTP request using a `Request` struct.
+
+      This function returns `{:ok, response}` or `{:ok, async_response}` if the
+      request is successful, `{:error, reason}` otherwise.
+
+      ## Examples
+
+          request = %HTTPoison.Request{
+            method: :post,
+            url: "https://my.website.com",
+            body: "{\"foo\": 3}",
+            headers: [{"Accept", "application/json"}]
+          }
+
+          request(request)
+
+      """
+      @spec request(Request.t()) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+      def request(%Request{} = request) do
+        options = process_request_options(request.options)
+
+        params =
+          request.params
+          |> HTTPoison.Base.merge_params(options[:params])
+          |> process_request_params()
+
+        url =
+          request.url
+          |> to_string()
+          |> process_request_url()
+          |> HTTPoison.Base.build_request_url(params)
+
+        request = %Request{
+          method: request.method,
+          url: url,
+          headers: process_request_headers(request.headers),
+          body: process_request_body(request.body),
+          params: params,
+          options: options
+        }
+
+        HTTPoison.Base.request(
+          __MODULE__,
+          request,
+          &process_response_status_code/1,
+          &process_response_headers/1,
+          &process_response_body/1,
+          &process_response/1
         )
       end
 
@@ -241,29 +329,9 @@ defmodule HTTPoison.Base do
         * `headers` - HTTP headers as an orddict (e.g., `[{"Accept", "application/json"}]`)
         * `options` - Keyword list of options
 
-      Body:
-        * binary, char list or an iolist
-        * `{:form, [{K, V}, ...]}` - send a form url encoded
-        * `{:file, "/path/to/file"}` - send a file
-        * `{:stream, enumerable}` - lazily send a stream of binaries/charlists
+      Body: see type `HTTPoison.Request`
 
-      Options:
-        * `:timeout` - timeout for establishing a TCP or SSL connection, in milliseconds. Default is 8000
-        * `:recv_timeout` - timeout for receiving an HTTP response from the socket. Default is 5000
-        * `:stream_to` - a PID to stream the response to
-        * `:async` - if given `:once`, will only stream one message at a time, requires call to `stream_next`
-        * `:proxy` - a proxy to be used for the request; it can be a regular url
-          or a `{Host, Port}` tuple, or a `{:socks5, ProxyHost, ProxyPort}` tuple
-        * `:proxy_auth` - proxy authentication `{User, Password}` tuple
-        * `:socks5_user`- socks5 username
-        * `:socks5_pass`- socks5 password
-        * `:ssl` - SSL options supported by the `ssl` erlang module
-        * `:follow_redirect` - a boolean that causes redirects to be followed
-        * `:max_redirect` - an integer denoting the maximum number of redirects to follow
-        * `:params` - an enumerable consisting of two-item tuples that will be appended to the url as query string parameters
-        * `:max_body_length` - a non-negative integer denoting the max response body length. See :hackney.body/2
-
-      Timeouts can be an integer or `:infinity`
+      Options: see type `HTTPoison.Request`
 
       This function returns `{:ok, response}` or `{:ok, async_response}` if the
       request is successful, `{:error, reason}` otherwise.
@@ -274,33 +342,15 @@ defmodule HTTPoison.Base do
 
       """
       @spec request(atom, binary, any, headers, Keyword.t()) ::
-              {:ok, Response.t() | AsyncResponse.t()}
-              | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
-        options = process_request_options(options)
-
-        url =
-          cond do
-            not Keyword.has_key?(options, :params) -> url
-            URI.parse(url).query -> url <> "&" <> URI.encode_query(options[:params])
-            true -> url <> "?" <> URI.encode_query(options[:params])
-          end
-
-        url = process_url(to_string(url))
-        body = process_request_body(body)
-        headers = process_request_headers(headers)
-
-        HTTPoison.Base.request(
-          __MODULE__,
-          method,
-          url,
-          body,
-          headers,
-          options,
-          &process_status_code/1,
-          &process_headers/1,
-          &process_response_body/1
-        )
+        request(%Request{
+          method: method,
+          url: url,
+          headers: headers,
+          body: body,
+          options: options
+        })
       end
 
       @doc """
@@ -508,15 +558,35 @@ defmodule HTTPoison.Base do
   end
 
   @doc false
-  def transformer(module, target, process_status_code, process_headers, process_response_chunk) do
+  def transformer(
+        module,
+        target,
+        process_response_status_code,
+        process_response_headers,
+        process_response_chunk
+      ) do
     receive do
       {:hackney_response, id, {:status, code, _reason}} ->
-        send(target, %HTTPoison.AsyncStatus{id: id, code: process_status_code.(code)})
-        transformer(module, target, process_status_code, process_headers, process_response_chunk)
+        send(target, %HTTPoison.AsyncStatus{id: id, code: process_response_status_code.(code)})
+
+        transformer(
+          module,
+          target,
+          process_response_status_code,
+          process_response_headers,
+          process_response_chunk
+        )
 
       {:hackney_response, id, {:headers, headers}} ->
-        send(target, %HTTPoison.AsyncHeaders{id: id, headers: process_headers.(headers)})
-        transformer(module, target, process_status_code, process_headers, process_response_chunk)
+        send(target, %HTTPoison.AsyncHeaders{id: id, headers: process_response_headers.(headers)})
+
+        transformer(
+          module,
+          target,
+          process_response_status_code,
+          process_response_headers,
+          process_response_chunk
+        )
 
       {:hackney_response, id, :done} ->
         send(target, %HTTPoison.AsyncEnd{id: id})
@@ -525,16 +595,27 @@ defmodule HTTPoison.Base do
         send(target, %Error{id: id, reason: reason})
 
       {:hackney_response, id, {redirect, to, headers}} when redirect in [:redirect, :see_other] ->
-        send(target, %HTTPoison.AsyncRedirect{id: id, to: to, headers: process_headers.(headers)})
+        send(target, %HTTPoison.AsyncRedirect{
+          id: id,
+          to: to,
+          headers: process_response_headers.(headers)
+        })
 
       {:hackney_response, id, chunk} ->
         send(target, %HTTPoison.AsyncChunk{id: id, chunk: process_response_chunk.(chunk)})
-        transformer(module, target, process_status_code, process_headers, process_response_chunk)
+
+        transformer(
+          module,
+          target,
+          process_response_status_code,
+          process_response_headers,
+          process_response_chunk
+        )
     end
   end
 
   @doc false
-  def default_process_url(url) do
+  def default_process_request_url(url) do
     case url |> String.slice(0, 12) |> String.downcase() do
       "http://" <> _ -> url
       "https://" <> _ -> url
@@ -543,7 +624,28 @@ defmodule HTTPoison.Base do
     end
   end
 
-  defp build_hackney_options(module, options) do
+  @doc false
+  def merge_params(params, nil), do: params
+
+  def merge_params(request_params, options_params) do
+    Map.merge(
+      Enum.into(request_params, %{}),
+      Enum.into(options_params, %{})
+    )
+  end
+
+  @doc false
+  def build_request_url(url, nil), do: url
+
+  def build_request_url(url, params) do
+    cond do
+      Enum.count(params) === 0 -> url
+      URI.parse(url).query -> url <> "&" <> URI.encode_query(params)
+      true -> url <> "?" <> URI.encode_query(params)
+    end
+  end
+
+  defp build_hackney_options(module, %Request{options: options}) do
     timeout = Keyword.get(options, :timeout)
     recv_timeout = Keyword.get(options, :recv_timeout)
     stream_to = Keyword.get(options, :stream_to)
@@ -583,7 +685,7 @@ defmodule HTTPoison.Base do
     hn_options
   end
 
-  defp build_hackney_proxy_options(options, request_url) do
+  defp build_hackney_proxy_options(%Request{options: options, url: request_url}) do
     proxy =
       if Keyword.has_key?(options, :proxy) do
         Keyword.get(options, :proxy)
@@ -614,47 +716,46 @@ defmodule HTTPoison.Base do
   end
 
   @doc false
-  @spec request(atom, atom, binary, body, headers, any, fun, fun, fun) ::
+  @spec request(atom, request, fun, fun, fun, fun) ::
           {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   def request(
         module,
-        method,
-        request_url,
-        request_body,
-        request_headers,
-        options,
-        process_status_code,
-        process_headers,
-        process_response_body
+        request,
+        process_response_status_code,
+        process_response_headers,
+        process_response_body,
+        process_response
       ) do
-    hn_proxy_options = build_hackney_proxy_options(options, request_url)
-    hn_options = hn_proxy_options ++ build_hackney_options(module, options)
+    hn_proxy_options = build_hackney_proxy_options(request)
+    hn_options = hn_proxy_options ++ build_hackney_options(module, request)
 
-    case do_request(method, request_url, request_headers, request_body, hn_options) do
+    case do_request(request, hn_options) do
       {:ok, status_code, headers} ->
         response(
-          process_status_code,
-          process_headers,
+          process_response_status_code,
+          process_response_headers,
           process_response_body,
+          process_response,
           status_code,
           headers,
           "",
-          request_url
+          request
         )
 
       {:ok, status_code, headers, client} ->
-        max_length = Keyword.get(options, :max_body_length, :infinity)
+        max_length = Keyword.get(request.options, :max_body_length, :infinity)
 
         case :hackney.body(client, max_length) do
           {:ok, body} ->
             response(
-              process_status_code,
-              process_headers,
+              process_response_status_code,
+              process_response_headers,
               process_response_body,
+              process_response,
               status_code,
               headers,
               body,
-              request_url
+              request
             )
 
           {:error, reason} ->
@@ -669,8 +770,9 @@ defmodule HTTPoison.Base do
     end
   end
 
-  defp do_request(method, request_url, request_headers, {:stream, enumerable}, hn_options) do
-    with {:ok, ref} <- :hackney.request(method, request_url, request_headers, :stream, hn_options) do
+  defp do_request(%Request{body: {:stream, enumerable}} = request, hn_options) do
+    with {:ok, ref} <-
+           :hackney.request(request.method, request.url, request.headers, :stream, hn_options) do
       failures =
         Stream.transform(enumerable, :ok, fn
           _, :error -> {:halt, :error}
@@ -689,25 +791,28 @@ defmodule HTTPoison.Base do
     end
   end
 
-  defp do_request(method, request_url, request_headers, request_body, hn_options) do
-    :hackney.request(method, request_url, request_headers, request_body, hn_options)
+  defp do_request(request, hn_options) do
+    :hackney.request(request.method, request.url, request.headers, request.body, hn_options)
   end
 
   defp response(
-         process_status_code,
-         process_headers,
+         process_response_status_code,
+         process_response_headers,
          process_response_body,
+         process_response,
          status_code,
          headers,
          body,
-         request_url
+         request
        ) do
     {:ok,
      %Response{
-       status_code: process_status_code.(status_code),
-       headers: process_headers.(headers),
+       status_code: process_response_status_code.(status_code),
+       headers: process_response_headers.(headers),
        body: process_response_body.(body),
-       request_url: request_url
-     }}
+       request: request,
+       request_url: request.url
+     }
+     |> process_response.()}
   end
 end
