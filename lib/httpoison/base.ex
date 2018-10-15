@@ -142,6 +142,10 @@ defmodule HTTPoison.Base do
 
   @callback process_request_options(options) :: options
 
+  @callback process_request_params(params) :: params
+
+  @callback process_response(response) :: term
+
   @callback process_response_body(binary) :: term
 
   @callback process_response_chunk(binary) :: term
@@ -164,6 +168,7 @@ defmodule HTTPoison.Base do
   @callback put!(binary, term, headers) :: Response.t() | AsyncResponse.t()
   @callback put!(binary, term, headers, options) :: Response.t() | AsyncResponse.t()
 
+  @callback request(atom, binary) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   @callback request(atom, binary, term) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   @callback request(atom, binary, term, headers) ::
@@ -174,6 +179,7 @@ defmodule HTTPoison.Base do
   @callback request!(atom, binary) :: Response.t() | AsyncResponse.t()
   @callback request!(atom, binary, term) :: Response.t() | AsyncResponse.t()
   @callback request!(atom, binary, term, headers) :: Response.t() | AsyncResponse.t()
+  @callback request!(atom, binary, term, headers, options) :: Response.t() | AsyncResponse.t()
 
   @callback start() :: {:ok, [atom]} | {:error, term}
 
