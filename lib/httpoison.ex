@@ -37,11 +37,11 @@ defmodule HTTPoison.Request do
   defstruct method: :get, url: nil, headers: [], body: "", params: %{}, options: []
 
   @type method :: :get | :post | :put | :patch | :delete | :options | :head
-  @type headers :: [{atom, binary}] | [{binary, binary}] | %{binary => binary}
-  @type url :: binary
-  @type body :: binary | {:form, [{atom, any}]} | {:file, binary}
-  @type params :: map | keyword | [{binary, binary}]
-  @type options :: keyword
+  @type headers :: [{atom, binary}] | [{binary, binary}] | %{binary => binary} | any
+  @type url :: binary | any
+  @type body :: binary | {:form, [{atom, any}]} | {:file, binary} | any
+  @type params :: map | keyword | [{binary, binary}] | any
+  @type options :: keyword | any
 
   @type t :: %__MODULE__{
           method: method,

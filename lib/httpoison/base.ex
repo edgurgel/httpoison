@@ -113,34 +113,36 @@ defmodule HTTPoison.Base do
   @callback options!(url, headers) :: Response.t() | AsyncResponse.t()
   @callback options!(url, headers, options) :: Response.t() | AsyncResponse.t()
 
-  @callback patch(url, term) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback patch(url, term, headers) ::
+  @callback patch(url, body) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback patch(url, body, headers) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback patch(url, term, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-
-  @callback patch!(url, term) :: Response.t() | AsyncResponse.t()
-  @callback patch!(url, term, headers) :: Response.t() | AsyncResponse.t()
-  @callback patch!(url, term, headers, options) :: Response.t() | AsyncResponse.t()
-
-  @callback post(url, term) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback post(url, term, headers) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback post(url, term, headers, options) ::
+  @callback patch(url, body, headers, options) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
 
-  @callback post!(url, term) :: Response.t() | AsyncResponse.t()
-  @callback post!(url, term, headers) :: Response.t() | AsyncResponse.t()
-  @callback post!(url, term, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback patch!(url, body) :: Response.t() | AsyncResponse.t()
+  @callback patch!(url, body, headers) :: Response.t() | AsyncResponse.t()
+  @callback patch!(url, body, headers, options) :: Response.t() | AsyncResponse.t()
 
+  @callback post(url, body) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback post(url, body, headers) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback post(url, body, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback post!(url, body) :: Response.t() | AsyncResponse.t()
+  @callback post!(url, body, headers) :: Response.t() | AsyncResponse.t()
+  @callback post!(url, body, headers, options) :: Response.t() | AsyncResponse.t()
+
+  # deprecated: Use process_request_headers/1 instead
   @callback process_headers(list) :: term
-  @callback process_response_headers(list) :: term
 
-  @callback process_request_body(term) :: body
+  @callback process_request_body(body) :: body
 
   @callback process_request_headers(headers) :: headers
 
   @callback process_request_options(options) :: options
+
+  @callback process_request_url(url) :: url
 
   @callback process_request_params(params) :: params
 
@@ -150,36 +152,40 @@ defmodule HTTPoison.Base do
 
   @callback process_response_chunk(binary) :: term
 
-  @callback process_status_code(integer) :: term
+  @callback process_response_headers(list) :: term
+
   @callback process_response_status_code(integer) :: term
 
-  @callback process_url(term) :: url
-  @callback process_request_url(term) :: url
+  # deprecated: Use process_response_status_code/1 instead
+  @callback process_status_code(integer) :: term
 
-  @callback put(binary) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback put(binary, term) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback put(binary, term, headers) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback put(binary, term, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  # deprecated: Use process_request_url/1 instead
+  @callback process_url(url) :: url
 
-  @callback put!(binary) :: Response.t() | AsyncResponse.t()
-  @callback put!(binary, term) :: Response.t() | AsyncResponse.t()
-  @callback put!(binary, term, headers) :: Response.t() | AsyncResponse.t()
-  @callback put!(binary, term, headers, options) :: Response.t() | AsyncResponse.t()
-
-  @callback request(atom, binary) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback request(atom, binary, term) ::
+  @callback put(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback put(url, body) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback put(url, body, headers) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback request(atom, binary, term, headers) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback request(atom, binary, term, headers, options) ::
+  @callback put(url, body, headers, options) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
 
-  @callback request!(atom, binary) :: Response.t() | AsyncResponse.t()
-  @callback request!(atom, binary, term) :: Response.t() | AsyncResponse.t()
-  @callback request!(atom, binary, term, headers) :: Response.t() | AsyncResponse.t()
-  @callback request!(atom, binary, term, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback put!(url) :: Response.t() | AsyncResponse.t()
+  @callback put!(url, body) :: Response.t() | AsyncResponse.t()
+  @callback put!(url, body, headers) :: Response.t() | AsyncResponse.t()
+  @callback put!(url, body, headers, options) :: Response.t() | AsyncResponse.t()
+
+  @callback request(atom, url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback request(atom, url, body) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback request(atom, url, body, headers) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback request(atom, url, body, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+
+  @callback request!(atom, url) :: Response.t() | AsyncResponse.t()
+  @callback request!(atom, url, body) :: Response.t() | AsyncResponse.t()
+  @callback request!(atom, url, body, headers) :: Response.t() | AsyncResponse.t()
+  @callback request!(atom, url, body, headers, options) :: Response.t() | AsyncResponse.t()
 
   @callback start() :: {:ok, [atom]} | {:error, term}
 
@@ -219,7 +225,7 @@ defmodule HTTPoison.Base do
       @spec process_request_url(url) :: url
       def process_request_url(url), do: process_url(url)
 
-      @spec process_request_body(any) :: body
+      @spec process_request_body(body) :: body
       def process_request_body(body), do: body
 
       @spec process_request_headers(headers) :: headers
@@ -232,7 +238,7 @@ defmodule HTTPoison.Base do
       @spec process_request_options(options) :: options
       def process_request_options(options), do: options
 
-      @spec process_request_params(any) :: params
+      @spec process_request_params(params) :: params
       def process_request_params(params), do: params
 
       @spec process_response(response) :: any
