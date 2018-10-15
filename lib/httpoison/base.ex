@@ -627,6 +627,8 @@ defmodule HTTPoison.Base do
   @doc false
   def merge_params(params, nil), do: params
 
+  def merge_params(request_params, params) when map_size(request_params) === 0, do: params
+
   def merge_params(request_params, options_params) do
     Map.merge(
       Enum.into(request_params, %{}),
