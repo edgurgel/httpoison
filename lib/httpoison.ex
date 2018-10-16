@@ -39,7 +39,7 @@ defmodule HTTPoison.Request do
   @type method :: :get | :post | :put | :patch | :delete | :options | :head
   @type headers :: [{atom, binary}] | [{binary, binary}] | %{binary => binary} | any
   @type url :: binary | any
-  @type body :: binary | {:form, [{atom, any}]} | {:file, binary} | any
+  @type body :: binary | charlist | iodata | {:form, [{atom, any}]} | {:file, binary} | any
   @type params :: map | keyword | [{binary, binary}] | any
   @type options :: keyword | any
 
