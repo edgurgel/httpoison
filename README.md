@@ -115,7 +115,7 @@ defmodule GitHub do
     public_repos public_gists followers following created_at updated_at
   )
 
-  def process_url(url) do
+  def process_request_url(url) do
     "https://api.github.com" <> url
   end
 
@@ -139,8 +139,6 @@ It's possible to extend the functions listed below:
 ```elixir
 def process_request_body(body), do: body
 
-def process_response_body(body), do: body
-
 def process_request_headers(headers) when is_map(headers) do
   Enum.into(headers, [])
 end
@@ -149,13 +147,15 @@ def process_request_headers(headers), do: headers
 
 def process_request_options(options), do: options
 
+def process_request_url(url), do: url
+
+def process_response_body(body), do: body
+
 def process_response_chunk(chunk), do: chunk
 
-def process_headers(headers), do: headers
+def process_response_headers(headers), do: headers
 
-def process_status_code(status_code), do: status_code
-
-def process_url(url), do: url
+def process_response_status_code(status_code), do: status_code
 ```
 
 ### Async requests
@@ -176,7 +176,7 @@ iex> flush
 **Warning: this option can flood a receiver in messages.**
 
 If a server may send very large messages the `async: :once` option should be used.
-This will send only a single chunk at a time the receiver can call `HTTPoison.stream_next/1` to indicate ability to process more chunks. 
+This will send only a single chunk at a time the receiver can call `HTTPoison.stream_next/1` to indicate ability to process more chunks.
 
 ### Cookies
 
