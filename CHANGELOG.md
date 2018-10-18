@@ -1,5 +1,17 @@
 # Changelog
 
+# 1.4.0 (2018-10-18)
+* Run dialyzer as part of the travis build process #357 Thanks to @mmrobins
+* Add support to max_body_length #354 #355 Thanks to @pedep
+* Add `HTTPoison.Request` and `process_response` #311 #363 #364 #365 #366
+* Deprecations:
+  - `process_headers/1` in favour of `process_request_headers/1`
+  - `process_status_code/1 in favour of `process_response_status_code/1`
+  - `process_url/1` in favour of `process_request_url/1`
+
+# 1.3.1 (2018-09-17)
+* Add option `max_body_length` #354
+
 # 1.3.0 (2018-08-26)
 
 * Add Multipart body helper
