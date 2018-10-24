@@ -194,8 +194,7 @@ You can also receive cookies from the server by reading the `"set-cookie"` heade
 ```elixir
 iex(1)> response = HTTPoison.get!("http://httparrot.herokuapp.com/cookies/set?foo=1")
 iex(2)> cookies = Enum.filter(response.headers, fn
-...(2)> {"Set-Cookie", _} -> true
-...(2)> _ -> false
+...(2)> {key, _} -> String.match?(key, ~r/\Aset-cookie\z/i)
 ...(2)> end)
 [{"Set-Cookie", "foo=1; Version=1; Path=/"}]
 ```
