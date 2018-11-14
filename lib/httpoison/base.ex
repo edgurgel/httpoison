@@ -709,6 +709,7 @@ defmodule HTTPoison.Base do
           "https" -> System.get_env("HTTPS_PROXY") || System.get_env("https_proxy")
           _ -> nil
         end
+        |> check_no_proxy(request_url)
       end
 
     proxy_auth = Keyword.get(options, :proxy_auth)
@@ -727,6 +728,46 @@ defmodule HTTPoison.Base do
       if socks5_pass, do: [{:socks5_pass, socks5_pass} | hn_proxy_options], else: hn_proxy_options
 
     hn_proxy_options
+  end
+
+  defp check_no_proxy(nil, _) do
+    # Don't bother to check no_proxy if there's no proxy to use anyway.
+    nil
+  end
+
+  defp check_no_proxy(proxy, request_url) do
+    request_host = URI.parse(request_url).host
+
+    should_bypass_proxy =
+      get_no_proxy_system_env()
+      |> String.split(",")
+      |> Enum.any?(fn domain -> matches_no_proxy_value?(request_host, domain) end)
+
+    if should_bypass_proxy do
+      nil
+    else
+      proxy
+    end
+  end
+
+  defp get_no_proxy_system_env() do
+    System.get_env("NO_PROXY") || System.get_env("no_PROXY") || System.get_env("no_proxy") || ""
+  end
+
+  defp matches_no_proxy_value?(request_host, no_proxy_value) do
+    cond do
+      no_proxy_value == "" -> false
+      String.starts_with?(no_proxy_value, ".") -> String.ends_with?(request_host, no_proxy_value)
+      String.contains?(no_proxy_value, "*") -> matches_wildcard?(request_host, no_proxy_value)
+      true -> request_host == no_proxy_value
+    end
+  end
+
+  defp matches_wildcard?(request_host, wildcard_domain) do
+    Regex.escape(wildcard_domain)
+    |> String.replace("\\*", ".*")
+    |> Regex.compile!()
+    |> Regex.match?(request_host)
   end
 
   @doc false

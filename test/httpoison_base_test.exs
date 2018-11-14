@@ -41,6 +41,9 @@ defmodule HTTPoisonBaseTest do
       System.delete_env("http_proxy")
       System.delete_env("HTTPS_PROXY")
       System.delete_env("https_proxy")
+      System.delete_env("NO_PROXY")
+      System.delete_env("no_PROXY")
+      System.delete_env("no_proxy")
     end)
 
     stub(:hackney)
@@ -186,11 +189,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "passing proxy option" do
-    expect(:hackney, :request, fn
-      :post, "http://localhost", [], "body", [proxy: "proxy"] -> {:ok, 200, "headers", :client}
-    end)
-
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect_hackney_post_with_proxy("http://localhost", "proxy")
 
     assert HTTPoison.post!("localhost", "body", [], proxy: "proxy") ==
              %HTTPoison.Response{
@@ -291,11 +290,7 @@ defmodule HTTPoisonBaseTest do
   test "having http_proxy env variable set on http requests" do
     System.put_env("HTTP_PROXY", "proxy")
 
-    expect(:hackney, :request, fn
-      :post, "http://localhost", [], "body", [proxy: "proxy"] -> {:ok, 200, "headers", :client}
-    end)
-
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect_hackney_post_with_proxy("http://localhost", "proxy")
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -317,11 +312,7 @@ defmodule HTTPoisonBaseTest do
   test "having http_proxy env variable set on http requests as empty string" do
     System.put_env("HTTP_PROXY", "")
 
-    expect(:hackney, :request, fn :post, "http://localhost", [], "body", [] ->
-      {:ok, 200, "headers", :client}
-    end)
-
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect_hackney_post_with_no_proxy("http://localhost")
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -343,11 +334,7 @@ defmodule HTTPoisonBaseTest do
   test "having https_proxy env variable set on https requests" do
     System.put_env("HTTPS_PROXY", "proxy")
 
-    expect(:hackney, :request, fn :post, "https://localhost", [], "body", [proxy: "proxy"] ->
-      {:ok, 200, "headers", :client}
-    end)
-
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect_hackney_post_with_proxy("https://localhost", "proxy")
 
     assert HTTPoison.post!("https://localhost", "body") ==
              %HTTPoison.Response{
@@ -369,11 +356,7 @@ defmodule HTTPoisonBaseTest do
   test "having https_proxy env variable set on http requests" do
     System.put_env("HTTPS_PROXY", "proxy")
 
-    expect(:hackney, :request, fn
-      :post, "http://localhost", [], "body", [] -> {:ok, 200, "headers", :client}
-    end)
-
-    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    expect_hackney_post_with_no_proxy("http://localhost")
 
     assert HTTPoison.post!("localhost", "body") ==
              %HTTPoison.Response{
@@ -390,6 +373,113 @@ defmodule HTTPoisonBaseTest do
                  url: "http://localhost"
                }
              }
+  end
+
+  test "having matching no_proxy env variable set with proxy env variable" do
+    # If the variable is specified directly, no_proxy should be ignored.
+    System.put_env("NO_PROXY", ".somedomain.com")
+
+    expect_hackney_post_with_proxy("http://www.somedomain.com", "proxy")
+
+    assert HTTPoison.post!("www.somedomain.com", "body", [], proxy: "proxy") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.somedomain.com"
+             }
+  end
+
+  test "having matching no_proxy env variable set with http_proxy env" do
+    # If the variable is specified indirectly, no_proxy should be used.
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", ".somedomain.com")
+
+    expect_hackney_post_with_no_proxy("http://www.somedomain.com")
+
+    assert HTTPoison.post!("www.somedomain.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.somedomain.com"
+             }
+  end
+
+  test "having no_proxy env variable set that does not match site" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", ".nonmatching.com")
+
+    expect_hackney_post_with_proxy("http://www.somedomain.com", "proxy")
+
+    assert HTTPoison.post!("http://www.somedomain.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.somedomain.com"
+             }
+  end
+
+  test "having no_proxy env variable with multiple domains" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", ".nonmatching.com,.matching.com")
+
+    expect_hackney_post_with_no_proxy("http://www.matching.com")
+
+    assert HTTPoison.post!("http://www.matching.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.matching.com"
+             }
+  end
+
+  test "having no_proxy env variable with wildcard domains" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", ".nonmatching.com,*.matching.com")
+
+    expect_hackney_post_with_no_proxy("http://www.matching.com")
+
+    assert HTTPoison.post!("http://www.matching.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.matching.com"
+             }
+  end
+
+  test "having no_proxy env variable with non-matching wildcard domains" do
+    System.put_env("HTTP_PROXY", "proxy")
+    System.put_env("NO_PROXY", "*.nonmatching.com")
+
+    expect_hackney_post_with_proxy("http://www.matching.com", "proxy")
+
+    assert HTTPoison.post!("http://www.matching.com", "body") ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://www.matching.com"
+             }
+  end
+
+  defp expect_hackney_post_with_proxy(url, proxy) do
+    expect_hackney_post(url, proxy: proxy)
+  end
+
+  defp expect_hackney_post_with_no_proxy(url) do
+    expect_hackney_post(url, [])
+  end
+
+  def expect_hackney_post(url, expected_options) do
+    expect(:hackney, :request, fn
+      :post, ^url, [], "body", ^expected_options -> {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
   end
 
   test "passing ssl option" do
