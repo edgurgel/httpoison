@@ -386,7 +386,13 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://www.somedomain.com"
+               request_url: "http://www.somedomain.com",
+               request: %HTTPoison.Request{
+                 url: "http://www.somedomain.com",
+                 body: "body",
+                 method: :post,
+                 options: [proxy: "proxy"]
+               }
              }
   end
 
@@ -402,7 +408,12 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://www.somedomain.com"
+               request_url: "http://www.somedomain.com",
+               request: %HTTPoison.Request{
+                 url: "http://www.somedomain.com",
+                 body: "body",
+                 method: :post
+               }
              }
   end
 
@@ -417,7 +428,12 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://www.somedomain.com"
+               request_url: "http://www.somedomain.com",
+               request: %HTTPoison.Request{
+                 url: "http://www.somedomain.com",
+                 body: "body",
+                 method: :post
+               }
              }
   end
 
@@ -432,7 +448,12 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://www.matching.com"
+               request_url: "http://www.matching.com",
+               request: %HTTPoison.Request{
+                 url: "http://www.matching.com",
+                 body: "body",
+                 method: :post
+               }
              }
   end
 
@@ -447,7 +468,12 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://www.matching.com"
+               request_url: "http://www.matching.com",
+               request: %HTTPoison.Request{
+                 url: "http://www.matching.com",
+                 body: "body",
+                 method: :post
+               }
              }
   end
 
@@ -462,7 +488,12 @@ defmodule HTTPoisonBaseTest do
                status_code: 200,
                headers: "headers",
                body: "response",
-               request_url: "http://www.matching.com"
+               request_url: "http://www.matching.com",
+               request: %HTTPoison.Request{
+                 url: "http://www.matching.com",
+                 body: "body",
+                 method: :post
+               }
              }
   end
 
