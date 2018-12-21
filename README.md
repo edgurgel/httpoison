@@ -115,8 +115,8 @@ defmodule GitHub do
     public_repos public_gists followers following created_at updated_at
   )
 
-  def process_request_url(url) do
-    "https://api.github.com" <> url
+  def process_request_url(endpoint) do
+    "https://api.github.com" <> endpoint
   end
 
   def process_response_body(body) do
