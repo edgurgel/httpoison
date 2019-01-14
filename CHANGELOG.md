@@ -1,5 +1,9 @@
 # Changelog
 
+# 1.5.0 (2018-12-15)
+* Add support for `NO_PROXY` env variable #361
+* Updated Docs
+
 # 1.4.0 (2018-10-18)
 * Run dialyzer as part of the travis build process #357 Thanks to @mmrobins
 * Add support to max_body_length #354 #355 Thanks to @pedep
