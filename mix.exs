@@ -24,14 +24,14 @@ defmodule HTTPoison.Mixfile do
         ]
       ],
       dialyzer: [
-        plt_add_deps: :transitive,
+        plt_add_deps: :apps_direct,
         flags: [
-          # "-Wunmatched_returns",
-          # "-Wrace_conditions",
-          # "-Wunderspecs",
-          # "-Wunknown",
-          # "-Woverspecs",
-          # "-Wspecdiffs",
+          :error_handling,
+          # :overspecs,
+          :race_conditions,
+          # :specdiffs,
+          # :underspecs,
+          :unmatched_returns
         ]
       ]
     ]
@@ -49,7 +49,7 @@ defmodule HTTPoison.Mixfile do
       {:httparrot, "~> 1.0", only: :test},
       {:earmark, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.14", only: :dev},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 1.0.0-rc.4", only: [:dev, :test], runtime: false}
     ]
   end
 
