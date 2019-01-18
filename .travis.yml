@@ -15,8 +15,8 @@ cache:
     - deps
 script:
   - mix test
-  - if [[ `elixir -v` = *"1.7"* ]]; then mix format --check-formatted; fi
-  - if [[ `elixir -v` = *"1.7"* ]]; then
+  - if [[ `elixir -v` = *"1.8"* ]]; then mix format --check-formatted; fi
+  - if [[ `elixir -v` = *"1.8"* ]]; then
       travis_wait 30 mix dialyzer --halt-exit-status --format term;
     fi
 matrix:
