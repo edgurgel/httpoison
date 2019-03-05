@@ -78,7 +78,7 @@ end
 ```
 ### Options
 
-There are a number of supported options(*not to be confused with the HTTP options method*), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#request/5), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by th [Erlang SSL module](http://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
+There are a number of supported options(*not to be confused with the HTTP options method*), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#request/5), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by the [Erlang SSL module](http://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
 
 ```elixir
 token = "some_token_from_another_request"
