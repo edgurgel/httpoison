@@ -27,7 +27,7 @@ defmodule HTTPoison.Request do
     * `:socks5_pass`- socks5 password
     * `:ssl` - SSL options supported by the `ssl` erlang module
     * `:follow_redirect` - a boolean that causes redirects to be followed
-    * `:max_redirect` - an integer denoting the maximum number of redirects to follow
+    * `:max_redirect` - an integer denoting the maximum number of redirects to follow. Default is 5
     * `:params` - an enumerable consisting of two-item tuples that will be appended to the url as query string parameters
     * `:max_body_length` - a non-negative integer denoting the max response body length. See :hackney.body/2
 
