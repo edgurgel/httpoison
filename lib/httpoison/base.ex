@@ -203,7 +203,6 @@ defmodule HTTPoison.Base do
     quote do
       @behaviour HTTPoison.Base
 
-      @type response :: HTTPoison.Base.response()
       @type request :: HTTPoison.Base.request()
       @type url :: HTTPoison.Base.url()
       @type headers :: HTTPoison.Base.headers()
@@ -241,7 +240,7 @@ defmodule HTTPoison.Base do
       @spec process_request_params(params) :: params
       def process_request_params(params), do: params
 
-      @spec process_response(response) :: any
+      @spec process_response(HTTPoison.Base.response()) :: any
       def process_response(%Response{} = response), do: response
 
       @deprecated "Use process_response_headers/1 instead"
