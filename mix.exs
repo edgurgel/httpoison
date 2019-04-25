@@ -48,7 +48,7 @@ defmodule HTTPoison.Mixfile do
       {:exjsx, "~> 3.1", only: :test},
       {:httparrot, "~> 1.0", only: :test},
       {:earmark, "~> 1.0", only: :dev},
-      {:ex_doc, "~> 0.14", only: :dev},
+      {:ex_doc, "~> 0.18", only: :dev},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev, :test], runtime: false}
     ]
   end
