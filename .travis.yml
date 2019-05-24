@@ -1,14 +1,6 @@
 sudo: false
 language: elixir
-elixir:
-  - 1.5
-  - 1.6
-  - 1.7
-  - 1.8
-otp_release:
-  - 19.3
-  - 20.3
-  - 21.0
+
 cache:
   directories:
     - _build
@@ -20,8 +12,26 @@ script:
       travis_wait 30 mix dialyzer --halt-exit-status --format term;
     fi
 matrix:
-  exclude:
+  include:
     - elixir: 1.5
+      otp_release: 19.3
+    - elixir: 1.5
+      otp_release: 20.3
+    - elixir: 1.6
+      otp_release: 19.3
+    - elixir: 1.6
+      otp_release: 20.3
+    - elixir: 1.6
+      otp_release: 21.0
+    - elixir: 1.7
+      otp_release: 19.3
+    - elixir: 1.7
+      otp_release: 20.3
+    - elixir: 1.7
       otp_release: 21.0
     - elixir: 1.8
-      otp_release: 19.3
+      otp_release: 20.3
+    - elixir: 1.8
+      otp_release: 21.0
+    - elixir: 1.8
+      otp_release: 22.0.1
