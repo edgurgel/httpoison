@@ -46,7 +46,7 @@ defmodule HTTPoison.Mixfile do
       {:hackney, "~> 1.8"},
       {:mimic, "~> 0.1", only: :test},
       {:exjsx, "~> 3.1", only: :test},
-      {:httparrot, "~> 1.0", only: :test},
+      {:httparrot, "~> 1.2", only: :test},
       {:earmark, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.18", only: :dev},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev, :test], runtime: false}
