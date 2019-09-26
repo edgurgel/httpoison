@@ -576,6 +576,9 @@ defmodule HTTPoison.Base do
         process_response_headers,
         process_response_chunk
       ) do
+    # Track the target process so we can exit when it dies
+    Process.monitor(target)
+
     receive do
       {:hackney_response, id, {:status, code, _reason}} ->
         send(target, %HTTPoison.AsyncStatus{id: id, code: process_response_status_code.(code)})
@@ -622,6 +625,10 @@ defmodule HTTPoison.Base do
           process_response_headers,
           process_response_chunk
         )
+
+      # Exit if the target process dies as this will be a zombie
+      {:DOWN, _ref, :process, ^target, _reason} ->
+        :ok
     end
   end
 
