@@ -1,5 +1,15 @@
 # Changelog
 
+# 1.6.1 (2019-10-03)
+* Fix process leak issue for async requests #395. Thanks to @chazsconi
+
+# 1.6.0 (2019-09-30)
+* Update hackney version #394 Thanks to @perrycate
+
+# 1.5.1 (2019-04-24)
+* Ensure support to 1.8.0 #374 Thanks, @rodrigues
+* Remove request type from HTTPoison #382 Thanks @meagonqz
+
 # 1.5.0 (2018-12-15)
 * Add support for `NO_PROXY` env variable #361
 * Updated Docs
