@@ -26,12 +26,11 @@ defmodule HTTPoison.Mixfile do
       dialyzer: [
         plt_add_deps: :transitive,
         flags: [
-          # "-Wunmatched_returns",
-          # "-Wrace_conditions",
-          # "-Wunderspecs",
-          # "-Wunknown",
-          # "-Woverspecs",
-          # "-Wspecdiffs",
+          :unmatched_returns,
+          :race_conditions,
+          :underspecs
+          # :overspecs,
+          # :specdiffs
         ]
       ]
     ]

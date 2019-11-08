@@ -174,18 +174,18 @@ defmodule HTTPoison.Base do
   @callback put!(url, body, headers) :: Response.t() | AsyncResponse.t()
   @callback put!(url, body, headers, options) :: Response.t() | AsyncResponse.t()
 
-  @callback request(atom, url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback request(atom, url, body) ::
+  @callback request(method, url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback request(method, url, body) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback request(atom, url, body, headers) ::
+  @callback request(method, url, body, headers) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback request(atom, url, body, headers, options) ::
+  @callback request(method, url, body, headers, options) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
 
-  @callback request!(atom, url) :: Response.t() | AsyncResponse.t()
-  @callback request!(atom, url, body) :: Response.t() | AsyncResponse.t()
-  @callback request!(atom, url, body, headers) :: Response.t() | AsyncResponse.t()
-  @callback request!(atom, url, body, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback request!(method, url) :: Response.t() | AsyncResponse.t()
+  @callback request!(method, url, body) :: Response.t() | AsyncResponse.t()
+  @callback request!(method, url, body, headers) :: Response.t() | AsyncResponse.t()
+  @callback request!(method, url, body, headers, options) :: Response.t() | AsyncResponse.t()
 
   @callback start() :: {:ok, [atom]} | {:error, term}
 
@@ -193,6 +193,7 @@ defmodule HTTPoison.Base do
 
   @type response :: Response.t()
   @type request :: Request.t()
+  @type method :: Request.method()
   @type url :: Request.url()
   @type headers :: Request.headers()
   @type body :: Request.body()
@@ -204,6 +205,7 @@ defmodule HTTPoison.Base do
       @behaviour HTTPoison.Base
 
       @type request :: HTTPoison.Base.request()
+      @type method :: HTTPoison.Base.method()
       @type url :: HTTPoison.Base.url()
       @type headers :: HTTPoison.Base.headers()
       @type body :: HTTPoison.Base.body()
@@ -352,7 +354,7 @@ defmodule HTTPoison.Base do
           request(:post, "https://my.website.com", "{\"foo\": 3}", [{"Accept", "application/json"}])
 
       """
-      @spec request(atom, binary, any, headers, Keyword.t()) ::
+      @spec request(method, binary, any, headers, Keyword.t()) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         request(%Request{
@@ -372,7 +374,8 @@ defmodule HTTPoison.Base do
       response in case of a successful request, raising an exception in case the
       request fails.
       """
-      @spec request!(atom, binary, any, headers, Keyword.t()) :: Response.t() | AsyncResponse.t()
+      @spec request!(method, binary, any, headers, Keyword.t()) ::
+              Response.t() | AsyncResponse.t()
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         case request(method, url, body, headers, options) do
           {:ok, response} -> response
@@ -777,7 +780,7 @@ defmodule HTTPoison.Base do
   end
 
   @doc false
-  @spec request(atom, request, fun, fun, fun, fun) ::
+  @spec request(module, request, fun, fun, fun, fun) ::
           {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   def request(
         module,
