@@ -44,7 +44,6 @@ defmodule HTTPoison.Mixfile do
     [
       {:hackney, "~> 1.15 and >= 1.15.2"},
       {:mimic, "~> 0.1", only: :test},
-      {:exjsx, "~> 3.1", only: :test},
       {:jason, "~> 1.2", only: :test},
       {:httparrot, "~> 1.2", only: :test},
       {:earmark, "~> 1.0", only: :dev},
