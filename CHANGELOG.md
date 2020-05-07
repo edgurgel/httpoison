@@ -1,5 +1,8 @@
 # Changelog
 
+# 1.6.2 (2019-11-09)
+* Dialyzer fixes #401. Thanks to @howleysv
+
 # 1.6.1 (2019-10-03)
 * Fix process leak issue for async requests #395. Thanks to @chazsconi
 
