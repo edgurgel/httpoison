@@ -1,6 +1,7 @@
 defmodule HTTPoisonTest do
   use ExUnit.Case, async: true
   import PathHelpers
+  alias Jason
 
   test "get" do
     assert_response(HTTPoison.get("localhost:8080/deny"), fn response ->
@@ -12,7 +13,7 @@ defmodule HTTPoisonTest do
     resp = HTTPoison.get("localhost:8080/get", [], params: %{foo: "bar", baz: "bong"})
 
     assert_response(resp, fn response ->
-      args = JSX.decode!(response.body)["args"]
+      args = Jason.decode!(response.body)["args"]
       assert args["foo"] == "bar"
       assert args["baz"] == "bong"
       assert args |> Map.keys() |> length == 2
@@ -28,7 +29,7 @@ defmodule HTTPoisonTest do
       )
 
     assert_response(resp, fn response ->
-      args = JSX.decode!(response.body)["args"]
+      args = Jason.decode!(response.body)["args"]
       assert args["foo"] == ["first", "second"]
       assert args["baz"] == "bong"
       assert args["bar"] == "zing"
@@ -159,11 +160,7 @@ defmodule HTTPoisonTest do
 
   test "send cookies" do
     response = HTTPoison.get!("localhost:8080/cookies", %{}, hackney: [cookie: ["foo=1; bar=2"]])
-
-    assert response.body
-           |> String.replace(~r/\s|\r?\n/, "")
-           |> String.replace(~r/\"/, "'")
-           |> JSX.decode!() == %{"cookies" => %{"foo" => "1", "bar" => "2"}}
+    assert Jason.decode!(response.body) == %{"cookies" => %{"foo" => "1", "bar" => "2"}}
   end
 
   test "receive cookies" do
@@ -239,13 +236,13 @@ defmodule HTTPoisonTest do
 
   test "post streaming body" do
     expected = %{"some" => "bytes"}
-    enumerable = JSX.encode!(expected) |> String.split("")
+    enumerable = Jason.encode!(expected) |> String.split("")
     headers = %{"Content-type" => "application/json"}
     response = HTTPoison.post("localhost:8080/post", {:stream, enumerable}, headers)
     assert_response(response)
     {:ok, %HTTPoison.Response{body: body}} = response
 
-    assert JSX.decode!(body)["json"] == expected
+    assert Jason.decode!(body)["json"] == expected
   end
 
   test "max_body_length limits body size" do
