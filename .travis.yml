@@ -5,25 +5,25 @@ elixir:
   - 1.9
   - 1.10
 otp_release:
-  - 19.0
-  - 20.0
-  - 21.0
-  - 22.0
+  - 19.3
+  - 20.3
+  - 21.3
+  - 22.3
   - 23.0
 matrix:
   exclude:
     - elixir: 1.8
-      otp_release: 19.0
+      otp_release: 19.3
     - elixir: 1.8
       otp_release: 23.0
     - elixir: 1.9
-      otp_release: 19.0
+      otp_release: 19.3
     - elixir: 1.9
       otp_release: 23.0
     - elixir: 1.10
-      otp_release: 19.0
+      otp_release: 19.3
     - elixir: 1.10
-      otp_release: 20.0
+      otp_release: 20.3
 cache:
   directories:
     - _build
