@@ -42,7 +42,7 @@ defmodule HTTPoison.Mixfile do
 
   defp deps do
     [
-      {:hackney, "~> 1.15 and >= 1.15.2"},
+      {:hackney, "~> 1.16"},
       {:mimic, "~> 0.1", only: :test},
       {:jason, "~> 1.2", only: :test},
       {:httparrot, "~> 1.2", only: :test},
