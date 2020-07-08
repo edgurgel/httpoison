@@ -174,6 +174,7 @@ defmodule HTTPoison.Base do
   @callback put!(url, body, headers) :: Response.t() | AsyncResponse.t()
   @callback put!(url, body, headers, options) :: Response.t() | AsyncResponse.t()
 
+  @callback request(Request.t()) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   @callback request(method, url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   @callback request(method, url, body) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
