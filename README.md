@@ -243,10 +243,31 @@ Add that to the application supervisor and `first_pool` will be available to be 
 
 #### Request
 
-HTTPoison supports making `multipart` requests. E.g.:
+HTTPoison supports making `multipart` requests. E.g. with a local file:
 
 ```elixir
 HTTPoison.post("https://myurl.php", {:multipart, [{:file, "test.txt", {"form-data", [{"name", "mytest"}, {"filename", "test.txt"}]}, []}]})
+```
+
+Sometimes you may already have the file contents in memory and want to upload
+it elsewhere. A common example is fetching the file from a service like S3 and
+uploading it somewhere else. There is no need to persist the file locally, you
+can do the below:
+
+```elixir
+binary_file_content = "Something you fetched and now have it in memory"
+token = "some_token_from_another_request"
+headers = ["Authorization": "Bearer #{token}", {"Content-Type", "multipart/form-data"}]
+options = [ssl: [{:versions, [:'tlsv1.2']}], recv_timeout: 500]
+
+HTTPoison.request(
+  :post,
+  "https://myurl.com",
+  {:multipart,
+   [{"file", binary_file_content, {"form-data", [name: "file", filename: "a_file_name.txt"]}, []}]},
+  headers,
+  options
+)
 ```
 
 Further examples of `multipart` requests can be found [in the issues](https://github.com/edgurgel/httpoison/issues?utf8=%E2%9C%93&q=is%3Aissue+multipart) (e.g.: [here](https://github.com/edgurgel/httpoison/issues/144#issue-160035453) and [here](https://github.com/edgurgel/httpoison/issues/237#issuecomment-313132804)).
