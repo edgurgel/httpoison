@@ -67,7 +67,10 @@ end
 
 defmodule HTTPoison.AsyncResponse do
   defstruct id: nil
-  @type t :: %__MODULE__{id: reference}
+
+  @type maybe_redirect :: {:maybe_redirect, status :: integer, headers :: list, client :: any}
+
+  @type t :: %__MODULE__{id: reference | maybe_redirect}
 end
 
 defmodule HTTPoison.AsyncStatus do
