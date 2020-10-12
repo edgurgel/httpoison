@@ -569,6 +569,33 @@ defmodule HTTPoisonBaseTest do
              }
   end
 
+  test "request returns MaybeRedirect when passing follow_redirect option" do
+    expect(:hackney, :request, fn :post,
+                                  "http://localhost",
+                                  [],
+                                  "body",
+                                  [follow_redirect: true] ->
+      # Mock a redirect from `http://localhost` to `https://localhost`
+      {:ok, {:maybe_redirect, 302, _headers = [{"Location", "https://localhost"}], :client}}
+    end)
+
+    assert HTTPoison.post!("localhost", "body", [], follow_redirect: true) ==
+             %HTTPoison.MaybeRedirect{
+               status_code: 302,
+               headers: [{"Location", "https://localhost"}],
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [follow_redirect: true],
+                 params: %{},
+                 url: "http://localhost"
+               },
+               redirect_url: "https://localhost"
+             }
+  end
+
   test "passing max_redirect option" do
     expect(:hackney, :request, fn :post, "http://localhost", [], "body", [max_redirect: 2] ->
       {:ok, 200, "headers", :client}

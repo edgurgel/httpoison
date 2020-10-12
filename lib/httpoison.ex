@@ -26,7 +26,8 @@ defmodule HTTPoison.Request do
     * `:socks5_user`- socks5 username
     * `:socks5_pass`- socks5 password
     * `:ssl` - SSL options supported by the `ssl` erlang module
-    * `:follow_redirect` - a boolean that causes redirects to be followed
+    * `:follow_redirect` - a boolean that causes redirects to be followed, can cause a request to return
+      a `MaybeRedirect` struct. See: HTTPoison.MaybeRedirect
     * `:max_redirect` - an integer denoting the maximum number of redirects to follow. Default is 5
     * `:params` - an enumerable consisting of two-item tuples that will be appended to the url as query string parameters
     * `:max_body_length` - a non-negative integer denoting the max response body length. See :hackney.body/2
@@ -67,10 +68,7 @@ end
 
 defmodule HTTPoison.AsyncResponse do
   defstruct id: nil
-
-  @type maybe_redirect :: {:maybe_redirect, status :: integer, headers :: list, client :: any}
-
-  @type t :: %__MODULE__{id: reference | maybe_redirect}
+  @type t :: %__MODULE__{id: reference}
 end
 
 defmodule HTTPoison.AsyncStatus do
@@ -96,6 +94,30 @@ end
 defmodule HTTPoison.AsyncEnd do
   defstruct id: nil
   @type t :: %__MODULE__{id: reference}
+end
+
+defmodule HTTPoison.MaybeRedirect do
+  @moduledoc """
+    If the option `:follow_redirect` is given to a request, HTTP redirects are automatically follow if
+    the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or `307`.
+
+    If the method is set to `:post`, then the only `status_code` that get's automatically
+    followed is `303`.
+
+    If any other method or `status_code` is returned, then this struct is returned in place of a
+    `HTTPoison.Response` or `HTTPoison.AsyncResponse`, containing the `redirect_url` to allow you
+    to optionally re-request with the method set to `:get`.
+  """
+
+  defstruct status_code: nil, request_url: nil, request: nil, redirect_url: nil, headers: []
+
+  @type t :: %__MODULE__{
+          status_code: integer,
+          headers: list,
+          request: HTTPoison.Request.t(),
+          request_url: HTTPoison.Request.url(),
+          redirect_url: HTTPoison.Request.url()
+        }
 end
 
 defmodule HTTPoison.Error do
