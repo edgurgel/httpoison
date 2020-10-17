@@ -75,19 +75,22 @@ defmodule HTTPoison.Base do
   alias HTTPoison.Request
   alias HTTPoison.Response
   alias HTTPoison.AsyncResponse
+  alias HTTPoison.MaybeRedirect
   alias HTTPoison.Error
 
-  @callback delete(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback delete(url, headers) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback delete(url) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
+  @callback delete(url, headers) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback delete(url, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
 
-  @callback delete!(url) :: Response.t() | AsyncResponse.t()
-  @callback delete!(url, headers) :: Response.t() | AsyncResponse.t()
-  @callback delete!(url, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback delete!(url) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback delete!(url, headers) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback delete!(url, headers, options) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
 
   @callback get(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback get(url, headers) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback get(url, headers) :: {:ok, Response.t() | AsyncResponse.t() | {:error, Error.t()}}
   @callback get(url, headers, options) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
 
@@ -104,34 +107,41 @@ defmodule HTTPoison.Base do
   @callback head!(url, headers) :: Response.t() | AsyncResponse.t()
   @callback head!(url, headers, options) :: Response.t() | AsyncResponse.t()
 
-  @callback options(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback options(url, headers) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback options(url) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
+  @callback options(url, headers) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback options(url, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
 
-  @callback options!(url) :: Response.t() | AsyncResponse.t()
-  @callback options!(url, headers) :: Response.t() | AsyncResponse.t()
-  @callback options!(url, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback options!(url) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback options!(url, headers) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback options!(url, headers, options) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
 
-  @callback patch(url, body) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback patch(url, body) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback patch(url, body, headers) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback patch(url, body, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
 
-  @callback patch!(url, body) :: Response.t() | AsyncResponse.t()
-  @callback patch!(url, body, headers) :: Response.t() | AsyncResponse.t()
-  @callback patch!(url, body, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback patch!(url, body) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback patch!(url, body, headers) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback patch!(url, body, headers, options) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
 
-  @callback post(url, body) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback post(url, body) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback post(url, body, headers) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback post(url, body, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
 
-  @callback post!(url, body) :: Response.t() | AsyncResponse.t()
-  @callback post!(url, body, headers) :: Response.t() | AsyncResponse.t()
-  @callback post!(url, body, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback post!(url, body) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback post!(url, body, headers) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback post!(url, body, headers, options) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
 
   # deprecated: Use process_request_headers/1 instead
   @callback process_headers(list) :: term
@@ -162,31 +172,38 @@ defmodule HTTPoison.Base do
   # deprecated: Use process_request_url/1 instead
   @callback process_url(url) :: url
 
-  @callback put(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback put(url, body) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback put(url) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
+  @callback put(url, body) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback put(url, body, headers) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback put(url, body, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
 
-  @callback put!(url) :: Response.t() | AsyncResponse.t()
-  @callback put!(url, body) :: Response.t() | AsyncResponse.t()
-  @callback put!(url, body, headers) :: Response.t() | AsyncResponse.t()
-  @callback put!(url, body, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback put!(url) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback put!(url, body) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback put!(url, body, headers) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback put!(url, body, headers, options) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
 
-  @callback request(Request.t()) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback request(method, url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+  @callback request(Request.t()) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
+  @callback request(method, url) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback request(method, url, body) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback request(method, url, body, headers) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback request(method, url, body, headers, options) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
 
-  @callback request!(method, url) :: Response.t() | AsyncResponse.t()
-  @callback request!(method, url, body) :: Response.t() | AsyncResponse.t()
-  @callback request!(method, url, body, headers) :: Response.t() | AsyncResponse.t()
-  @callback request!(method, url, body, headers, options) :: Response.t() | AsyncResponse.t()
+  @callback request!(method, url) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback request!(method, url, body) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback request!(method, url, body, headers) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback request!(method, url, body, headers, options) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
 
   @callback start() :: {:ok, [atom]} | {:error, term}
 
@@ -281,8 +298,21 @@ defmodule HTTPoison.Base do
       @doc ~S"""
       Issues an HTTP request using a `Request` struct.
 
-      This function returns `{:ok, response}` or `{:ok, async_response}` if the
-      request is successful, `{:error, reason}` otherwise.
+      This function returns `{:ok, response}`, `{:ok, async_response}`, or `{:ok, maybe_redirect}`
+      if the request is successful, `{:error, reason}` otherwise.
+
+      ## Redirect handling
+
+      If the option `:follow_redirect` is given, HTTP redirects are automatically follow if
+      the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or
+      `307`.
+
+      If the method is set to `:post`, then the only `status_code` that get's automatically
+      followed is `303`.
+
+      If any other method or `status_code` is returned, then this function returns a
+      returns a `{:ok, %HTTPoison.MaybeRedirect{}}` containing the `redirect_url` for you to
+      re-request with the method set to `:get`.
 
       ## Examples
 
@@ -296,7 +326,8 @@ defmodule HTTPoison.Base do
           request(request)
 
       """
-      @spec request(Request.t()) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+      @spec request(Request.t()) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
       def request(%Request{} = request) do
         options = process_request_options(request.options)
 
@@ -347,8 +378,21 @@ defmodule HTTPoison.Base do
 
       Options: see type `HTTPoison.Request`
 
-      This function returns `{:ok, response}` or `{:ok, async_response}` if the
-      request is successful, `{:error, reason}` otherwise.
+      This function returns `{:ok, response}`, `{:ok, async_response}`, or `{:ok, maybe_redirect}`
+      if the request is successful, `{:error, reason}` otherwise.
+
+      ## Redirect handling
+
+      If the option `:follow_redirect` is given, HTTP redirects are automatically follow if
+      the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or
+      `307`.
+
+      If the method is set to `:post`, then the only `status_code` that get's automatically
+      followed is `303`.
+
+      If any other method or `status_code` is returned, then this function returns a
+      returns a `{:ok, %HTTPoison.MaybeRedirect{}}` containing the `redirect_url` for you to
+      re-request with the method set to `:get`.
 
       ## Examples
 
@@ -356,7 +400,7 @@ defmodule HTTPoison.Base do
 
       """
       @spec request(method, binary, any, headers, Keyword.t()) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
       def request(method, url, body \\ "", headers \\ [], options \\ []) do
         request(%Request{
           method: method,
@@ -376,7 +420,7 @@ defmodule HTTPoison.Base do
       request fails.
       """
       @spec request!(method, binary, any, headers, Keyword.t()) ::
-              Response.t() | AsyncResponse.t()
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
       def request!(method, url, body \\ "", headers \\ [], options \\ []) do
         case request(method, url, body, headers, options) do
           {:ok, response} -> response
@@ -416,7 +460,7 @@ defmodule HTTPoison.Base do
       See `request/5` for more detailed information.
       """
       @spec put(binary, any, headers, Keyword.t()) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
       def put(url, body \\ "", headers \\ [], options \\ []),
         do: request(:put, url, body, headers, options)
 
@@ -428,7 +472,8 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec put!(binary, any, headers, Keyword.t()) :: Response.t() | AsyncResponse.t()
+      @spec put!(binary, any, headers, Keyword.t()) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
       def put!(url, body \\ "", headers \\ [], options \\ []),
         do: request!(:put, url, body, headers, options)
 
@@ -464,7 +509,7 @@ defmodule HTTPoison.Base do
       See `request/5` for more detailed information.
       """
       @spec post(binary, any, headers, Keyword.t()) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
       def post(url, body, headers \\ [], options \\ []),
         do: request(:post, url, body, headers, options)
 
@@ -476,7 +521,8 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec post!(binary, any, headers, Keyword.t()) :: Response.t() | AsyncResponse.t()
+      @spec post!(binary, any, headers, Keyword.t()) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
       def post!(url, body, headers \\ [], options \\ []),
         do: request!(:post, url, body, headers, options)
 
@@ -489,7 +535,7 @@ defmodule HTTPoison.Base do
       See `request/5` for more detailed information.
       """
       @spec patch(binary, any, headers, Keyword.t()) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
       def patch(url, body, headers \\ [], options \\ []),
         do: request(:patch, url, body, headers, options)
 
@@ -501,7 +547,8 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec patch!(binary, any, headers, Keyword.t()) :: Response.t() | AsyncResponse.t()
+      @spec patch!(binary, any, headers, Keyword.t()) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
       def patch!(url, body, headers \\ [], options \\ []),
         do: request!(:patch, url, body, headers, options)
 
@@ -514,7 +561,7 @@ defmodule HTTPoison.Base do
       See `request/5` for more detailed information.
       """
       @spec delete(binary, headers, Keyword.t()) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
       def delete(url, headers \\ [], options \\ []),
         do: request(:delete, url, "", headers, options)
 
@@ -526,7 +573,8 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec delete!(binary, headers, Keyword.t()) :: Response.t() | AsyncResponse.t()
+      @spec delete!(binary, headers, Keyword.t()) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
       def delete!(url, headers \\ [], options \\ []),
         do: request!(:delete, url, "", headers, options)
 
@@ -539,7 +587,7 @@ defmodule HTTPoison.Base do
       See `request/5` for more detailed information.
       """
       @spec options(binary, headers, Keyword.t()) ::
-              {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
       def options(url, headers \\ [], options \\ []),
         do: request(:options, url, "", headers, options)
 
@@ -551,7 +599,8 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec options!(binary, headers, Keyword.t()) :: Response.t() | AsyncResponse.t()
+      @spec options!(binary, headers, Keyword.t()) ::
+              Response.t() | AsyncResponse.t() | MaybeRedirect.t()
       def options!(url, headers \\ [], options \\ []),
         do: request!(:options, url, "", headers, options)
 
@@ -782,7 +831,7 @@ defmodule HTTPoison.Base do
 
   @doc false
   @spec request(module, request, fun, fun, fun, fun) ::
-          {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
+          {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   def request(
         module,
         request,
@@ -826,6 +875,15 @@ defmodule HTTPoison.Base do
           {:error, reason} ->
             {:error, %Error{reason: reason}}
         end
+
+      {:ok, {:maybe_redirect, status_code, headers, _client}} ->
+        maybe_redirect(
+          process_response_status_code,
+          process_response_headers,
+          status_code,
+          headers,
+          request
+        )
 
       {:ok, id} ->
         {:ok, %HTTPoison.AsyncResponse{id: id}}
@@ -879,5 +937,22 @@ defmodule HTTPoison.Base do
        request_url: request.url
      }
      |> process_response.()}
+  end
+
+  defp maybe_redirect(
+         process_response_status_code,
+         process_response_headers,
+         status_code,
+         headers,
+         request
+       ) do
+    {:ok,
+     %MaybeRedirect{
+       status_code: process_response_status_code.(status_code),
+       headers: process_response_headers.(headers),
+       request: request,
+       request_url: request.url,
+       redirect_url: :proplists.get_value("Location", headers, nil)
+     }}
   end
 end
