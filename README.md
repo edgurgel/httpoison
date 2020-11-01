@@ -68,6 +68,7 @@ case HTTPoison.get(url) do
     IO.inspect reason
 end
 ```
+
 ### Options
 
 There are a number of supported options(*not to be confused with the HTTP options method*), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#request/5), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by the [Erlang SSL module](http://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
@@ -300,6 +301,16 @@ iex(2)> HTTPoison.Handlers.Multipart.decode_body(response)
 ```
 
 For more complex queries regarding multipart response parsing, you should follow the [hackney docs for the `hackney_multipart` API](https://github.com/benoitc/hackney/blob/master/doc/hackney_multipart.md).
+
+### Logging
+
+If you're running on top of hackney (which you probably are) there's a handy way to get detailed request logging:
+
+```
+:hackney_trace.enable(:max, :io)
+```
+
+Just throw this in your code before your HTTPoison call and you'll get low-level log output.
 
 ## License
 
