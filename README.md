@@ -1,9 +1,9 @@
-![](http://i.imgur.com/WwqN8JO.png)
-# HTTPoison [![Build Status](https://travis-ci.org/edgurgel/httpoison.svg?branch=master)](https://travis-ci.org/edgurgel/httpoison) [![Hex pm](http://img.shields.io/hexpm/v/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison) [![hex.pm downloads](https://img.shields.io/hexpm/dt/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison)
+![](https://i.imgur.com/WwqN8JO.png)
+# HTTPoison [![Build Status](https://travis-ci.org/edgurgel/httpoison.svg?branch=master)](https://travis-ci.org/edgurgel/httpoison) [![Hex pm](https://img.shields.io/hexpm/v/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison) [![hex.pm downloads](https://img.shields.io/hexpm/dt/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison)
 
 HTTP client for Elixir, based on
 [HTTPotion](https://github.com/myfreeweb/httpotion)
-([documentation](http://hexdocs.pm/httpoison/)).
+([documentation](https://hexdocs.pm/httpoison/)).
 
 ## But... why something so similar to HTTPotion?
 
@@ -71,7 +71,7 @@ end
 
 ### Options
 
-There are a number of supported options(*not to be confused with the HTTP options method*), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#request/5), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by the [Erlang SSL module](http://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
+There are a number of supported options(*not to be confused with the HTTP options method*), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#request/5), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by the [Erlang SSL module](https://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
 
 ```elixir
 token = "some_token_from_another_request"
@@ -218,7 +218,7 @@ HTTPoison.get("httpbin.org/get", [], hackney: [pool: :second_pool])
 
 #### Explicit pool creation
 
-If you want to use different configuration options you can create a pool manually [when your app starts](http://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html#the-application-callback) with `:hackney_pool.start_pool/2`.
+If you want to use different configuration options you can create a pool manually [when your app starts](https://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html#the-application-callback) with `:hackney_pool.start_pool/2`.
 
 ```elixir
 :ok = :hackney_pool.start_pool(:first_pool, [timeout: 15000, max_connections: 100])
