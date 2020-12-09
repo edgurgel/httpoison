@@ -1,0 +1,60 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  format:
+    name: Format and compile with warnings as errors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.1
+
+      - name: Install OTP and Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: 23.0
+          elixir-version: 1.11.2
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Run "mix format"
+        run: mix format --check-formatted
+
+      - name: Compile with --warnings-as-errors
+        run: mix compile --warnings-as-errors
+
+  test:
+    name: Test (Elixir ${{matrix.elixir}} | Erlang/OTP ${{matrix.otp}})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - otp: 23.0
+            elixir: 1.11.2
+            coverage: true
+          - otp: 23.0
+            elixir: 1.10.3
+          - otp: 22.3
+            elixir: 1.10.3
+          - otp: 22.1
+            elixir: 1.9.4
+          - otp: 21.3
+            elixir: 1.8.2
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install OTP and Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+
+      - name: Install dependencies
+        run: mix deps.get --only test
+
+      - name: Run tests
+        run: mix test --trace

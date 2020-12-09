@@ -37,7 +37,7 @@ defmodule HTTPoison.Mixfile do
   end
 
   def application do
-    [applications: [:hackney]]
+    []
   end
 
   defp deps do

@@ -1,5 +1,3 @@
-Application.ensure_all_started(:mimic)
-{:ok, _} = :application.ensure_all_started(:httparrot)
 Mimic.copy(:hackney)
 ExUnit.start()
 

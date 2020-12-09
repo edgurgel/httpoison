@@ -4,7 +4,6 @@
 /doc
 erl_crash.dump
 *.ez
-mix.lock
 /.idea
 *.iml
 /.elixir_ls
