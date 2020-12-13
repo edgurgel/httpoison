@@ -1,5 +1,5 @@
 ![](https://i.imgur.com/WwqN8JO.png)
-# HTTPoison [![Build Status](https://travis-ci.org/edgurgel/httpoison.svg?branch=master)](https://travis-ci.org/edgurgel/httpoison) [![Hex pm](https://img.shields.io/hexpm/v/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison) [![hex.pm downloads](https://img.shields.io/hexpm/dt/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison)
+# HTTPoison ![Build Status](https://github.com/edgurgel/httpoison/workflows/CI/badge.svg?branch=master) [![Hex pm](https://img.shields.io/hexpm/v/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison) [![hex.pm downloads](https://img.shields.io/hexpm/dt/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison)
 
 HTTP client for Elixir, based on
 [HTTPotion](https://github.com/myfreeweb/httpotion)
