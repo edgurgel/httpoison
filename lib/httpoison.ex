@@ -1,6 +1,7 @@
 defmodule HTTPoison.Request do
   @moduledoc """
   `Request` properties:
+
     * `:method` - HTTP method as an atom (`:get`, `:head`, `:post`, `:put`,
       `:delete`, etc.)
     * `:url` - target url as a binary string or char list
@@ -10,12 +11,14 @@ defmodule HTTPoison.Request do
     * `:params` - Query parameters as a map, keyword, or orddict
 
   `:body`:
+
     * binary, char list or an iolist
     * `{:form, [{K, V}, ...]}` - send a form url encoded
     * `{:file, "/path/to/file"}` - send a file
     * `{:stream, enumerable}` - lazily send a stream of binaries/charlists
 
   `:options`:
+
     * `:timeout` - timeout for establishing a TCP or SSL connection, in milliseconds. Default is 8000
     * `:recv_timeout` - timeout for receiving an HTTP response from the socket. Default is 5000
     * `:stream_to` - a PID to stream the response to
@@ -98,15 +101,15 @@ end
 
 defmodule HTTPoison.MaybeRedirect do
   @moduledoc """
-    If the option `:follow_redirect` is given to a request, HTTP redirects are automatically follow if
-    the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or `307`.
+  If the option `:follow_redirect` is given to a request, HTTP redirects are automatically follow if
+  the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or `307`.
 
-    If the method is set to `:post`, then the only `status_code` that get's automatically
-    followed is `303`.
+  If the method is set to `:post`, then the only `status_code` that get's automatically
+  followed is `303`.
 
-    If any other method or `status_code` is returned, then this struct is returned in place of a
-    `HTTPoison.Response` or `HTTPoison.AsyncResponse`, containing the `redirect_url` to allow you
-    to optionally re-request with the method set to `:get`.
+  If any other method or `status_code` is returned, then this struct is returned in place of a
+  `HTTPoison.Response` or `HTTPoison.AsyncResponse`, containing the `redirect_url` to allow you
+  to optionally re-request with the method set to `:get`.
   """
 
   defstruct status_code: nil, request_url: nil, request: nil, redirect_url: nil, headers: []
@@ -132,7 +135,7 @@ defmodule HTTPoison do
   @moduledoc """
   The HTTP client for Elixir.
 
-  The `HTTPoison` module can be used to issue HTTP requests and parse HTTP responses to arbitrary urls.
+  The `HTTPoison` module can be used to issue HTTP requests and parse HTTP responses to arbitrary URLs.
 
       iex> HTTPoison.get!("https://api.github.com")
       %HTTPoison.Response{status_code: 200,

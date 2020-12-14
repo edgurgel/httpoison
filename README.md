@@ -1,5 +1,5 @@
 ![](https://i.imgur.com/WwqN8JO.png)
-# HTTPoison ![Build Status](https://github.com/edgurgel/httpoison/workflows/CI/badge.svg?branch=master) [![Hex pm](https://img.shields.io/hexpm/v/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison) [![hex.pm downloads](https://img.shields.io/hexpm/dt/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison)
+# HTTPoison [![Build Status](https://github.com/edgurgel/httpoison/workflows/CI/badge.svg?branch=master)](https://github.com/edgurgel/httpoison/actions?query=workflow%3ACI) [![Hex pm](https://img.shields.io/hexpm/v/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison) [![hex.pm downloads](https://img.shields.io/hexpm/dt/httpoison.svg?style=flat)](https://hex.pm/packages/httpoison)
 
 HTTP client for Elixir, based on
 [HTTPotion](https://github.com/myfreeweb/httpotion)
@@ -314,7 +314,7 @@ Just throw this in your code before your HTTPoison call and you'll get low-level
 
 ## License
 
-    Copyright © 2013-2019 Eduardo Gurgel <eduardo@gurgel.me>
+    Copyright © 2013-present Eduardo Gurgel <eduardo@gurgel.me>
 
     This work is free. You can redistribute it and/or modify it under the
     terms of the MIT License. See the LICENSE file for more details.

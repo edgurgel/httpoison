@@ -1,9 +1,8 @@
 defmodule HTTPoison.Mixfile do
   use Mix.Project
 
-  @description """
-    Yet Another HTTP client for Elixir powered by hackney
-  """
+  @description "Yet Another HTTP client for Elixir powered by hackney"
+  @source_url "https://github.com/edgurgel/httpoison"
 
   def project do
     [
@@ -14,7 +13,7 @@ defmodule HTTPoison.Mixfile do
       description: @description,
       package: package(),
       deps: deps(),
-      source_url: "https://github.com/edgurgel/httpoison",
+      source_url: @source_url,
       docs: [
         main: "readme",
         logo: "logo.png",
@@ -57,8 +56,8 @@ defmodule HTTPoison.Mixfile do
       maintainers: ["Eduardo Gurgel Pinho"],
       licenses: ["MIT"],
       links: %{
-        Changelog: "https://github.com/edgurgel/httpoison/blob/master/CHANGELOG.md",
-        GitHub: "https://github.com/edgurgel/httpoison"
+        Changelog: @source_url <> "/blob/master/CHANGELOG.md",
+        GitHub: @source_url
       }
     ]
   end
