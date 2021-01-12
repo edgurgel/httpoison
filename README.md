@@ -18,7 +18,7 @@ First, add HTTPoison to your `mix.exs` dependencies:
 ```elixir
 def deps do
   [
-    {:httpoison, "~> 1.7"}
+    {:httpoison, "~> 1.8"}
   ]
 end
 ```
