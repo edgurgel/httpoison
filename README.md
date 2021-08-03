@@ -228,6 +228,20 @@ From the already linked [hackney's readme](https://github.com/benoitc/hackney#us
 
 > `timeout` is the time we keep the connection alive in the pool, `max_connections` is the number of connections maintained in the pool. Each connection in a pool is monitored and closed connections are removed automatically.
 
+#### Disabling pool
+
+If you don't want to use a pool for a single http request, you can do it by passing an option: 
+```elixir
+HTTPoison.get("httpbin.org/get", [], hackney: [pool: false])
+```
+
+If you want to disable the usage of the pool for every request you can do it by adding this to your environment configuration:
+```elixir
+config :hackney, use_default_pool: false
+```
+
+You can find a little explanation here [hackney's readme](https://github.com/benoitc/hackney#use-the-default-pool).
+
 #### Pools as supervised processes
 
 A third option is to add the pool as part of your supervision tree:
