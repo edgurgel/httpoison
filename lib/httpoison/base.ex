@@ -84,10 +84,13 @@ defmodule HTTPoison.Base do
               {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback delete(url, headers, options) ::
               {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
+  @callback delete(url, body, headers, options) ::
+              {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
 
   @callback delete!(url) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
   @callback delete!(url, headers) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
   @callback delete!(url, headers, options) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
+  @callback delete!(url, body, headers, options) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
 
   @callback get(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   @callback get(url, headers) :: {:ok, Response.t() | AsyncResponse.t() | {:error, Error.t()}}
@@ -560,10 +563,10 @@ defmodule HTTPoison.Base do
 
       See `request/5` for more detailed information.
       """
-      @spec delete(binary, headers, Keyword.t()) ::
+      @spec delete(binary, body, headers, Keyword.t()) ::
               {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
-      def delete(url, headers \\ [], options \\ []),
-        do: request(:delete, url, "", headers, options)
+      def delete(url, body \\ "", headers \\ [], options \\ []),
+        do: request(:delete, url, body, headers, options)
 
       @doc """
       Issues a DELETE request to the given url, raising an exception in case of
@@ -573,10 +576,10 @@ defmodule HTTPoison.Base do
 
       See `request!/5` for more detailed information.
       """
-      @spec delete!(binary, headers, Keyword.t()) ::
+      @spec delete!(binary, body, headers, Keyword.t()) ::
               Response.t() | AsyncResponse.t() | MaybeRedirect.t()
-      def delete!(url, headers \\ [], options \\ []),
-        do: request!(:delete, url, "", headers, options)
+      def delete!(url, body \\ "", headers \\ [], options \\ []),
+        do: request!(:delete, url, body, headers, options)
 
       @doc """
       Issues an OPTIONS request to the given url.
