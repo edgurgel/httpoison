@@ -69,6 +69,8 @@ case HTTPoison.get(url) do
 end
 ```
 
+[Here](https://www.erlang.org/doc/man/inet.html#posix-error-codes) is the list of all possible error reasons.
+
 ### Options
 
 There are a number of supported options(*not to be confused with the HTTP options method*), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#request/5), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by the [Erlang SSL module](https://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
