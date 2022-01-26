@@ -952,7 +952,16 @@ defmodule HTTPoison.Base do
        headers: process_response_headers.(headers),
        request: request,
        request_url: request.url,
-       redirect_url: :proplists.get_value("Location", headers, nil)
+       redirect_url: get_header(headers, "Location", nil)
      }}
+  end
+
+  defp get_header(headers, key, default) do
+    key = String.downcase(key)
+
+    Enum.find_value(headers, default, fn
+      {k, v} -> if String.downcase(k) == key, do: v, else: nil
+      _ -> nil
+    end)
   end
 end
