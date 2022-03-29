@@ -286,6 +286,9 @@ defmodule HTTPoison.Base do
       @doc false
       @spec transformer(pid) :: :ok
       def transformer(target) do
+        # Track the target process so we can exit when it dies
+        Process.monitor(target)
+
         HTTPoison.Base.transformer(
           __MODULE__,
           target,
@@ -629,9 +632,6 @@ defmodule HTTPoison.Base do
         process_response_headers,
         process_response_chunk
       ) do
-    # Track the target process so we can exit when it dies
-    Process.monitor(target)
-
     receive do
       {:hackney_response, id, {:status, code, _reason}} ->
         send(target, %HTTPoison.AsyncStatus{id: id, code: process_response_status_code.(code)})
