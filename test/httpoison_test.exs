@@ -2,6 +2,7 @@ defmodule HTTPoisonTest do
   use ExUnit.Case, async: true
   import PathHelpers
   alias Jason
+  alias HTTPoison.Request
 
   test "get" do
     assert_response(HTTPoison.get("localhost:8080/deny"), fn response ->
@@ -17,6 +18,9 @@ defmodule HTTPoisonTest do
       assert args["foo"] == "bar"
       assert args["baz"] == "bong"
       assert args |> Map.keys() |> length == 2
+
+      assert Request.to_curl(response.request) ==
+               "curl -X GET http://localhost:8080/get?baz=bong&foo=bar ;"
     end)
   end
 
@@ -34,23 +38,32 @@ defmodule HTTPoisonTest do
       assert args["baz"] == "bong"
       assert args["bar"] == "zing"
       assert args |> Map.keys() |> length == 3
+
+      assert Request.to_curl(response.request) ==
+               "curl -X GET http://localhost:8080/get?bar=zing&foo=first&foo=second&baz=bong ;"
     end)
   end
 
   test "head" do
     assert_response(HTTPoison.head("localhost:8080/get"), fn response ->
       assert response.body == ""
+      assert Request.to_curl(response.request) == "curl -X HEAD http://localhost:8080/get ;"
     end)
   end
 
   test "post charlist body" do
-    assert_response(HTTPoison.post("localhost:8080/post", 'test'))
+    assert_response(HTTPoison.post("localhost:8080/post", 'test'), fn response ->
+      assert Request.to_curl(response.request) == "curl -X POST http://localhost:8080/post ;"
+    end)
   end
 
   test "post binary body" do
     {:ok, file} = File.read(fixture_path("image.png"))
 
-    assert_response(HTTPoison.post("localhost:8080/post", file))
+    assert_response(HTTPoison.post("localhost:8080/post", file), fn response ->
+      assert Request.to_curl(response.request) ==
+               "curl -X POST -d '#{file}' http://localhost:8080/post ;"
+    end)
   end
 
   test "post form data" do
@@ -60,30 +73,48 @@ defmodule HTTPoisonTest do
       }),
       fn response ->
         Regex.match?(~r/"key".*"value"/, response.body)
+
+        assert Request.to_curl(response.request) ==
+                 "curl -X POST -H 'Content-type: application/x-www-form-urlencoded' -F 'key=value' http://localhost:8080/post ;"
       end
     )
   end
 
   test "put" do
-    assert_response(HTTPoison.put("localhost:8080/put", "test"))
+    assert_response(HTTPoison.put("localhost:8080/put", "test"), fn response ->
+      assert Request.to_curl(response.request) ==
+               "curl -X PUT -d 'test' http://localhost:8080/put ;"
+    end)
   end
 
   test "put without body" do
-    assert_response(HTTPoison.put("localhost:8080/put"))
+    assert_response(HTTPoison.put("localhost:8080/put"), fn response ->
+      assert Request.to_curl(response.request) ==
+               "curl -X PUT http://localhost:8080/put ;"
+    end)
   end
 
   test "patch" do
-    assert_response(HTTPoison.patch("localhost:8080/patch", "test"))
+    assert_response(HTTPoison.patch("localhost:8080/patch", "test"), fn response ->
+      assert Request.to_curl(response.request) ==
+               "curl -X PATCH -d 'test' http://localhost:8080/patch ;"
+    end)
   end
 
   test "delete" do
-    assert_response(HTTPoison.delete("localhost:8080/delete"))
+    assert_response(HTTPoison.delete("localhost:8080/delete"), fn response ->
+      assert Request.to_curl(response.request) ==
+               "curl -X DELETE http://localhost:8080/delete ;"
+    end)
   end
 
   test "options" do
     assert_response(HTTPoison.options("localhost:8080/get"), fn response ->
       assert get_header(response.headers, "content-length") == "0"
       assert is_binary(get_header(response.headers, "allow"))
+
+      assert Request.to_curl(response.request) ==
+               "curl -X OPTIONS http://localhost:8080/get ;"
     end)
   end
 
@@ -93,13 +124,21 @@ defmodule HTTPoisonTest do
         "http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget",
         [],
         follow_redirect: true
-      )
+      ),
+      fn response ->
+        assert Request.to_curl(response.request) ==
+                 "curl -L --max-redirs 5 -X GET http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget ;"
+      end
     )
   end
 
   test "option follow redirect relative url" do
     assert_response(
-      HTTPoison.get("http://localhost:8080/relative-redirect/1", [], follow_redirect: true)
+      HTTPoison.get("http://localhost:8080/relative-redirect/1", [], follow_redirect: true),
+      fn response ->
+        assert Request.to_curl(response.request) ==
+                 "curl -L --max-redirs 5 -X GET http://localhost:8080/relative-redirect/1 ;"
+      end
     )
   end
 
@@ -112,7 +151,10 @@ defmodule HTTPoisonTest do
   end
 
   test "explicit http scheme" do
-    assert_response(HTTPoison.head("http://localhost:8080/get"))
+    assert_response(HTTPoison.head("http://localhost:8080/get"), fn response ->
+      assert Request.to_curl(response.request) ==
+               "curl -X HEAD http://localhost:8080/get ;"
+    end)
   end
 
   test "https scheme" do
@@ -126,7 +168,11 @@ defmodule HTTPoisonTest do
         "https://localhost:8433/get",
         [],
         ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file]
-      )
+      ),
+      fn response ->
+        assert Request.to_curl(response.request) ==
+                 "curl --cert #{cert_file} --key #{key_file} --cacert #{cacert_file} -X GET https://localhost:8433/get ;"
+      end
     )
   end
 
@@ -135,7 +181,14 @@ defmodule HTTPoisonTest do
       case {HTTParrot.unix_socket_supported?(), Application.fetch_env(:httparrot, :socket_path)} do
         {true, {:ok, path}} ->
           path = URI.encode_www_form(path)
-          assert_response(HTTPoison.get("http+unix://#{path}/get"))
+
+          assert_response(
+            HTTPoison.get("http+unix://#{path}/get"),
+            fn response ->
+              assert Request.to_curl(response.request) ==
+                       "curl --unix-socket #{path} -X GET http:/get ;"
+            end
+          )
 
         _ ->
           :ok
@@ -144,18 +197,28 @@ defmodule HTTPoisonTest do
   end
 
   test "char list URL" do
-    assert_response(HTTPoison.head('localhost:8080/get'))
+    assert_response(HTTPoison.head('localhost:8080/get'), fn response ->
+      assert Request.to_curl(response.request) ==
+               "curl -X HEAD http://localhost:8080/get ;"
+    end)
   end
 
   test "request headers as a map" do
     map_header = %{"X-Header" => "X-Value"}
-    assert HTTPoison.get!("localhost:8080/get", map_header).body =~ "X-Value"
+    assert response = HTTPoison.get!("localhost:8080/get", map_header)
+    assert response.body =~ "X-Value"
+
+    assert Request.to_curl(response.request) ==
+             "curl -X GET -H 'X-Header: X-Value' http://localhost:8080/get ;"
   end
 
   test "cached request" do
     if_modified = %{"If-Modified-Since" => "Tue, 11 Dec 2012 10:10:24 GMT"}
     response = HTTPoison.get!("localhost:8080/cache", if_modified)
     assert %HTTPoison.Response{status_code: 304, body: ""} = response
+
+    assert Request.to_curl(response.request) ==
+             "curl -X GET -H 'If-Modified-Since: Tue, 11 Dec 2012 10:10:24 GMT' http://localhost:8080/cache ;"
   end
 
   test "send cookies" do
@@ -168,6 +231,9 @@ defmodule HTTPoisonTest do
     has_foo = Enum.member?(response.headers, {"set-cookie", "foo=1; Version=1; Path=/"})
     has_bar = Enum.member?(response.headers, {"set-cookie", "bar=2; Version=1; Path=/"})
     assert has_foo and has_bar
+
+    assert Request.to_curl(response.request) ==
+             "curl -X GET http://localhost:8080/cookies/set?foo=1&bar=2 ;"
   end
 
   test "exception" do
@@ -239,10 +305,13 @@ defmodule HTTPoisonTest do
     enumerable = Jason.encode!(expected) |> String.split("")
     headers = %{"Content-type" => "application/json"}
     response = HTTPoison.post("localhost:8080/post", {:stream, enumerable}, headers)
-    assert_response(response)
-    {:ok, %HTTPoison.Response{body: body}} = response
 
-    assert Jason.decode!(body)["json"] == expected
+    assert_response(response, fn response ->
+      assert Jason.decode!(response.body)["json"] == expected
+
+      assert Request.to_curl(response.request) ==
+               "curl -X POST -H 'Content-type: application/json' -d '{\"some\":\"bytes\"}' http://localhost:8080/post ;"
+    end)
   end
 
   test "max_body_length limits body size" do
