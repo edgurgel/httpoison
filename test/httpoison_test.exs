@@ -20,7 +20,7 @@ defmodule HTTPoisonTest do
       assert args |> Map.keys() |> length == 2
 
       assert Request.to_curl(response.request) ==
-               "curl -X GET http://localhost:8080/get?baz=bong&foo=bar ;"
+               {:ok, "curl -X GET http://localhost:8080/get?baz=bong&foo=bar"}
     end)
   end
 
@@ -40,20 +40,21 @@ defmodule HTTPoisonTest do
       assert args |> Map.keys() |> length == 3
 
       assert Request.to_curl(response.request) ==
-               "curl -X GET http://localhost:8080/get?bar=zing&foo=first&foo=second&baz=bong ;"
+               {:ok,
+                "curl -X GET http://localhost:8080/get?bar=zing&foo=first&foo=second&baz=bong"}
     end)
   end
 
   test "head" do
     assert_response(HTTPoison.head("localhost:8080/get"), fn response ->
       assert response.body == ""
-      assert Request.to_curl(response.request) == "curl -X HEAD http://localhost:8080/get ;"
+      assert Request.to_curl(response.request) == {:ok, "curl -X HEAD http://localhost:8080/get"}
     end)
   end
 
   test "post charlist body" do
     assert_response(HTTPoison.post("localhost:8080/post", 'test'), fn response ->
-      assert Request.to_curl(response.request) == "curl -X POST http://localhost:8080/post ;"
+      assert Request.to_curl(response.request) == {:ok, "curl -X POST http://localhost:8080/post"}
     end)
   end
 
@@ -62,7 +63,7 @@ defmodule HTTPoisonTest do
 
     assert_response(HTTPoison.post("localhost:8080/post", file), fn response ->
       assert Request.to_curl(response.request) ==
-               "curl -X POST -d '#{file}' http://localhost:8080/post ;"
+               {:ok, "curl -X POST -d '#{file}' http://localhost:8080/post"}
     end)
   end
 
@@ -75,7 +76,8 @@ defmodule HTTPoisonTest do
         Regex.match?(~r/"key".*"value"/, response.body)
 
         assert Request.to_curl(response.request) ==
-                 "curl -X POST -H 'Content-type: application/x-www-form-urlencoded' -F 'key=value' http://localhost:8080/post ;"
+                 {:ok,
+                  "curl -X POST -H 'Content-type: application/x-www-form-urlencoded' -F 'key=value' http://localhost:8080/post"}
       end
     )
   end
@@ -83,28 +85,28 @@ defmodule HTTPoisonTest do
   test "put" do
     assert_response(HTTPoison.put("localhost:8080/put", "test"), fn response ->
       assert Request.to_curl(response.request) ==
-               "curl -X PUT -d 'test' http://localhost:8080/put ;"
+               {:ok, "curl -X PUT -d 'test' http://localhost:8080/put"}
     end)
   end
 
   test "put without body" do
     assert_response(HTTPoison.put("localhost:8080/put"), fn response ->
       assert Request.to_curl(response.request) ==
-               "curl -X PUT http://localhost:8080/put ;"
+               {:ok, "curl -X PUT http://localhost:8080/put"}
     end)
   end
 
   test "patch" do
     assert_response(HTTPoison.patch("localhost:8080/patch", "test"), fn response ->
       assert Request.to_curl(response.request) ==
-               "curl -X PATCH -d 'test' http://localhost:8080/patch ;"
+               {:ok, "curl -X PATCH -d 'test' http://localhost:8080/patch"}
     end)
   end
 
   test "delete" do
     assert_response(HTTPoison.delete("localhost:8080/delete"), fn response ->
       assert Request.to_curl(response.request) ==
-               "curl -X DELETE http://localhost:8080/delete ;"
+               {:ok, "curl -X DELETE http://localhost:8080/delete"}
     end)
   end
 
@@ -114,7 +116,7 @@ defmodule HTTPoisonTest do
       assert is_binary(get_header(response.headers, "allow"))
 
       assert Request.to_curl(response.request) ==
-               "curl -X OPTIONS http://localhost:8080/get ;"
+               {:ok, "curl -X OPTIONS http://localhost:8080/get"}
     end)
   end
 
@@ -127,7 +129,8 @@ defmodule HTTPoisonTest do
       ),
       fn response ->
         assert Request.to_curl(response.request) ==
-                 "curl -L --max-redirs 5 -X GET http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget ;"
+                 {:ok,
+                  "curl -L --max-redirs 5 -X GET http://localhost:8080/redirect-to?url=http%3A%2F%2Flocalhost:8080%2Fget"}
       end
     )
   end
@@ -137,7 +140,7 @@ defmodule HTTPoisonTest do
       HTTPoison.get("http://localhost:8080/relative-redirect/1", [], follow_redirect: true),
       fn response ->
         assert Request.to_curl(response.request) ==
-                 "curl -L --max-redirs 5 -X GET http://localhost:8080/relative-redirect/1 ;"
+                 {:ok, "curl -L --max-redirs 5 -X GET http://localhost:8080/relative-redirect/1"}
       end
     )
   end
@@ -153,7 +156,7 @@ defmodule HTTPoisonTest do
   test "explicit http scheme" do
     assert_response(HTTPoison.head("http://localhost:8080/get"), fn response ->
       assert Request.to_curl(response.request) ==
-               "curl -X HEAD http://localhost:8080/get ;"
+               {:ok, "curl -X HEAD http://localhost:8080/get"}
     end)
   end
 
@@ -171,7 +174,8 @@ defmodule HTTPoisonTest do
       ),
       fn response ->
         assert Request.to_curl(response.request) ==
-                 "curl --cert #{cert_file} --key #{key_file} --cacert #{cacert_file} -X GET https://localhost:8433/get ;"
+                 {:ok,
+                  "curl --cert #{cert_file} --key #{key_file} --cacert #{cacert_file} -X GET https://localhost:8433/get"}
       end
     )
   end
@@ -186,7 +190,7 @@ defmodule HTTPoisonTest do
             HTTPoison.get("http+unix://#{path}/get"),
             fn response ->
               assert Request.to_curl(response.request) ==
-                       "curl --unix-socket #{path} -X GET http:/get ;"
+                       {:ok, "curl --unix-socket #{path} -X GET http:/get"}
             end
           )
 
@@ -199,7 +203,7 @@ defmodule HTTPoisonTest do
   test "char list URL" do
     assert_response(HTTPoison.head('localhost:8080/get'), fn response ->
       assert Request.to_curl(response.request) ==
-               "curl -X HEAD http://localhost:8080/get ;"
+               {:ok, "curl -X HEAD http://localhost:8080/get"}
     end)
   end
 
@@ -209,7 +213,7 @@ defmodule HTTPoisonTest do
     assert response.body =~ "X-Value"
 
     assert Request.to_curl(response.request) ==
-             "curl -X GET -H 'X-Header: X-Value' http://localhost:8080/get ;"
+             {:ok, "curl -X GET -H 'X-Header: X-Value' http://localhost:8080/get"}
   end
 
   test "cached request" do
@@ -218,7 +222,8 @@ defmodule HTTPoisonTest do
     assert %HTTPoison.Response{status_code: 304, body: ""} = response
 
     assert Request.to_curl(response.request) ==
-             "curl -X GET -H 'If-Modified-Since: Tue, 11 Dec 2012 10:10:24 GMT' http://localhost:8080/cache ;"
+             {:ok,
+              "curl -X GET -H 'If-Modified-Since: Tue, 11 Dec 2012 10:10:24 GMT' http://localhost:8080/cache"}
   end
 
   test "send cookies" do
@@ -233,7 +238,7 @@ defmodule HTTPoisonTest do
     assert has_foo and has_bar
 
     assert Request.to_curl(response.request) ==
-             "curl -X GET http://localhost:8080/cookies/set?foo=1&bar=2 ;"
+             {:ok, "curl -X GET http://localhost:8080/cookies/set?foo=1&bar=2"}
   end
 
   test "exception" do
@@ -310,7 +315,8 @@ defmodule HTTPoisonTest do
       assert Jason.decode!(response.body)["json"] == expected
 
       assert Request.to_curl(response.request) ==
-               "curl -X POST -H 'Content-type: application/json' -d '{\"some\":\"bytes\"}' http://localhost:8080/post ;"
+               {:ok,
+                "curl -X POST -H 'Content-type: application/json' -d '{\"some\":\"bytes\"}' http://localhost:8080/post"}
     end)
   end
 

@@ -68,7 +68,7 @@ defmodule HTTPoison.Request do
       iex> HTTPoison.Request.to_curl(request)
       "curl -X GET -H 'Content-Type: application/json' https://api.github.com ;"
   """
-  @spec to_curl(t()) :: binary()
+  @spec to_curl(t()) :: {:ok, binary()} | {:error, atom()}
   def to_curl(request = %__MODULE__{}) do
     options =
       Enum.reduce(request.options, [], fn
@@ -110,7 +110,7 @@ defmodule HTTPoison.Request do
           ["-L --max-redirs #{max_redirs}" | acc]
 
         {:hackney, _}, _ ->
-          throw("hackney opts not supported")
+          throw({:error, :hackney_opts_not_supported})
 
         _, acc ->
           acc
@@ -136,24 +136,24 @@ defmodule HTTPoison.Request do
         {:file, filename} -> "-d @#{filename}"
         {:form, form} -> form |> Enum.map(fn {k, v} -> "-F '#{k}=#{v}'" end) |> Enum.join(" ")
         {:stream, stream} -> "-d '#{Enum.join(stream, "")}'"
-        {:multipart, _} -> throw("multipart not supported")
+        {:multipart, _} -> throw({:error, :multipart_not_supported})
         body when is_binary(body) -> "-d '#{body}'"
         _ -> ""
       end
 
-    [
-      "curl",
-      options,
-      scheme_opts,
-      method,
-      headers,
-      body,
-      url,
-      ";"
-    ]
-    |> Enum.map(&String.trim/1)
-    |> Enum.filter(&(&1 != ""))
-    |> Enum.join(" ")
+    {:ok,
+     [
+       "curl",
+       options,
+       scheme_opts,
+       method,
+       headers,
+       body,
+       url
+     ]
+     |> Enum.map(&String.trim/1)
+     |> Enum.filter(&(&1 != ""))
+     |> Enum.join(" ")}
   catch
     e -> e
   end
