@@ -55,6 +55,108 @@ defmodule HTTPoison.Request do
           params: params,
           options: options
         }
+
+  @doc """
+  Returns an equivalent `curl` command for the given request.
+
+  ## Examples
+      iex> request = %HTTPoison.Request{url: "https://api.github.com", method: :get, headers: [{"Content-Type", "application/json"}]}
+      iex> HTTPoison.Request.to_curl(request)
+      "curl -X GET -H 'Content-Type: application/json' https://api.github.com ;"
+
+      iex> request = HTTPoison.get!("https://api.github.com", [{"Content-Type", "application/json"}]).request
+      iex> HTTPoison.Request.to_curl(request)
+      "curl -X GET -H 'Content-Type: application/json' https://api.github.com ;"
+  """
+  @spec to_curl(t()) :: {:ok, binary()} | {:error, atom()}
+  def to_curl(request = %__MODULE__{}) do
+    options =
+      Enum.reduce(request.options, [], fn
+        {:timeout, timeout}, acc ->
+          ["--connect-timeout #{Float.round(timeout / 1000, 3)}" | acc]
+
+        {:recv_timeout, timeout}, acc ->
+          ["--max-time #{Float.round(timeout / 1000, 3)}" | acc]
+
+        {:proxy, {:socks5, host, port}}, acc ->
+          proxy_auth =
+            if request.options[:socks5_user] do
+              user = request.options[:socks5_user]
+              pass = request.options[:socks5_pass]
+              " --proxy-basic --proxy-user #{user}:#{pass}"
+            end
+
+          ["--socks5 #{host}:#{port}#{proxy_auth}" | acc]
+
+        {:proxy, {host, port}}, acc ->
+          ["--proxy #{host}:#{port}" | acc]
+
+        {:proxy_auth, {user, pass}}, acc ->
+          ["--proxy-user #{user}:#{pass}" | acc]
+
+        {:ssl, ssl_opts}, acc ->
+          ssl_opts =
+            Enum.reduce(ssl_opts, [], fn
+              {:keyfile, keyfile}, acc -> ["--key #{keyfile}" | acc]
+              {:certfile, certfile}, acc -> ["--cert #{certfile}" | acc]
+              {:cacertfile, cacertfile}, acc -> ["--cacert #{cacertfile}" | acc]
+            end)
+            |> Enum.join(" ")
+
+          [ssl_opts | acc]
+
+        {:follow_redirect, true}, acc ->
+          max_redirs = Keyword.get(request.options, :max_redirect, 5)
+          ["-L --max-redirs #{max_redirs}" | acc]
+
+        {:hackney, _}, _ ->
+          throw({:error, :hackney_opts_not_supported})
+
+        _, acc ->
+          acc
+      end)
+      |> Enum.join(" ")
+
+    {scheme_opts, url} =
+      case URI.parse(request.url) do
+        %URI{scheme: "http+unix"} = uri ->
+          uri = %URI{uri | scheme: "http", host: nil, authority: nil}
+          {"--unix-socket #{uri.host}", URI.to_string(uri)}
+
+        _ ->
+          {"", request.url}
+      end
+
+    method = "-X " <> (request.method |> to_string() |> String.upcase())
+    headers = request.headers |> Enum.map(fn {k, v} -> "-H '#{k}: #{v}'" end) |> Enum.join(" ")
+
+    body =
+      case request.body do
+        "" -> ""
+        {:file, filename} -> "-d @#{filename}"
+        {:form, form} -> form |> Enum.map(fn {k, v} -> "-F '#{k}=#{v}'" end) |> Enum.join(" ")
+        {:stream, stream} -> "-d '#{Enum.join(stream, "")}'"
+        {:multipart, _} -> throw({:error, :multipart_not_supported})
+        body when is_binary(body) -> "-d '#{body}'"
+        _ -> ""
+      end
+
+    {:ok,
+     [
+       "curl",
+       options,
+       scheme_opts,
+       method,
+       headers,
+       body,
+       url
+     ]
+     |> Enum.map(&String.trim/1)
+     |> Enum.filter(&(&1 != ""))
+     |> Enum.join(" ")}
+  catch
+    e -> e
+  end
 end
 
 defmodule HTTPoison.Response do
