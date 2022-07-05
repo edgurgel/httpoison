@@ -90,7 +90,7 @@ defmodule HTTPoison.Base do
   @callback delete!(url, headers, options) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
 
   @callback get(url) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
-  @callback get(url, headers) :: {:ok, Response.t() | AsyncResponse.t() | {:error, Error.t()}}
+  @callback get(url, headers) :: {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
   @callback get(url, headers, options) ::
               {:ok, Response.t() | AsyncResponse.t()} | {:error, Error.t()}
 
