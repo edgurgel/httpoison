@@ -11,7 +11,7 @@ defmodule HTTPoison.Base do
 
         @endpoint "https://api.github.com"
 
-        def process_url(url) do
+        def process_request_url(url) do
           @endpoint <> url
         end
       end
@@ -32,8 +32,8 @@ defmodule HTTPoison.Base do
 
       # Called in order to process the url passed to any request method before
       # actually issuing the request.
-      @spec process_url(binary) :: binary
-      def process_url(url)
+      @spec process_request_url(binary) :: binary
+      def process_request_url(url)
 
       # Called to arbitrarily process the request body before sending it with the
       # request.
