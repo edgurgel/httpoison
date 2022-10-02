@@ -299,7 +299,7 @@ defmodule HTTPoison.Base do
       end
 
       @doc ~S"""
-      Issues an HTTP request using a `Request` struct.
+      Issues an HTTP request using an `HTTPoison.Request` struct.
 
       This function returns `{:ok, response}`, `{:ok, async_response}`, or `{:ok, maybe_redirect}`
       if the request is successful, `{:error, reason}` otherwise.
