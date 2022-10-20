@@ -28,7 +28,10 @@ defmodule HTTPoison.Request do
     * `:proxy_auth` - proxy authentication `{User, Password}` tuple
     * `:socks5_user`- socks5 username
     * `:socks5_pass`- socks5 password
-    * `:ssl` - SSL options supported by the `ssl` erlang module
+    * `:ssl` - SSL options supported by the `ssl` erlang module. SSL defaults will be used where options
+               are not specified.
+    * `:ssl_override` - if `:ssl` is specified, this option is ignored, otherwise it can be used to
+              completely override SSL settings.
     * `:follow_redirect` - a boolean that causes redirects to be followed, can cause a request to return
       a `MaybeRedirect` struct. See: HTTPoison.MaybeRedirect
     * `:max_redirect` - an integer denoting the maximum number of redirects to follow. Default is 5

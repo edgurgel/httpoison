@@ -513,12 +513,40 @@ defmodule HTTPoisonBaseTest do
     expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
   end
 
-  test "passing ssl option" do
+  test "passing ssl override option" do
     expect(:hackney, :request, fn :post,
                                   "http://localhost",
                                   [],
                                   "body",
                                   [ssl_options: [certfile: "certs/client.crt"]] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("localhost", "body", [], ssl_override: [certfile: "certs/client.crt"]) ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [ssl_override: [certfile: "certs/client.crt"]],
+                 params: %{},
+                 url: "http://localhost"
+               }
+             }
+  end
+
+  test "passing ssl option" do
+    expect(:hackney, :request, fn :post, "http://localhost", [], "body", [ssl_options: opts] ->
+      assert opts[:versions] == [:"tlsv1.2", :"tlsv1.3"]
+      assert opts[:verify] == :verify_peer
+      assert opts[:customize_hostname_check][:match_fun]
+      assert opts[:certfile] == "certs/client.crt"
       {:ok, 200, "headers", :client}
     end)
 

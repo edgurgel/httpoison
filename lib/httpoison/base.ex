@@ -723,7 +723,15 @@ defmodule HTTPoison.Base do
     recv_timeout = Keyword.get(options, :recv_timeout)
     stream_to = Keyword.get(options, :stream_to)
     async = Keyword.get(options, :async)
-    ssl = Keyword.get(options, :ssl)
+
+    ssl =
+      if Keyword.get(options, :ssl) do
+        default_ssl_options()
+        |> Keyword.merge(Keyword.get(options, :ssl))
+      else
+        Keyword.get(options, :ssl_override)
+      end
+
     follow_redirect = Keyword.get(options, :follow_redirect)
     max_redirect = Keyword.get(options, :max_redirect)
 
@@ -787,6 +795,19 @@ defmodule HTTPoison.Base do
       if socks5_pass, do: [{:socks5_pass, socks5_pass} | hn_proxy_options], else: hn_proxy_options
 
     hn_proxy_options
+  end
+
+  defp default_ssl_options() do
+    [
+      {:versions, [:"tlsv1.2", :"tlsv1.3"]},
+      {:verify, :verify_peer},
+      {:cacertfile, :certifi.cacertfile()},
+      {:depth, 10},
+      {:customize_hostname_check,
+       [
+         match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+       ]}
+    ]
   end
 
   defp check_no_proxy(nil, _) do

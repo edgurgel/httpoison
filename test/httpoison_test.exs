@@ -160,26 +160,6 @@ defmodule HTTPoisonTest do
     end)
   end
 
-  test "https scheme" do
-    httparrot_priv_dir = :code.priv_dir(:httparrot)
-    cacert_file = "#{httparrot_priv_dir}/ssl/server-ca.crt"
-    cert_file = "#{httparrot_priv_dir}/ssl/server.crt"
-    key_file = "#{httparrot_priv_dir}/ssl/server.key"
-
-    assert_response(
-      HTTPoison.get(
-        "https://localhost:8433/get",
-        [],
-        ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file]
-      ),
-      fn response ->
-        assert Request.to_curl(response.request) ==
-                 {:ok,
-                  "curl --cert #{cert_file} --key #{key_file} --cacert #{cacert_file} -X GET https://localhost:8433/get"}
-      end
-    )
-  end
-
   test "http+unix scheme" do
     if Application.get_env(:httparrot, :unix_socket, false) do
       case {HTTParrot.unix_socket_supported?(), Application.fetch_env(:httparrot, :socket_path)} do
@@ -353,5 +333,128 @@ defmodule HTTPoisonTest do
     |> Enum.filter(fn {k, _} -> k == key end)
     |> hd
     |> elem(1)
+  end
+
+  describe "ssl config tests" do
+    test "https scheme" do
+      httparrot_priv_dir = :code.priv_dir(:httparrot)
+      cacert_file = "#{httparrot_priv_dir}/ssl/server-ca.crt"
+      cert_file = "#{httparrot_priv_dir}/ssl/server.crt"
+      key_file = "#{httparrot_priv_dir}/ssl/server.key"
+
+      assert_response(
+        HTTPoison.get(
+          "https://localhost:8433/get",
+          [],
+          ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file]
+        ),
+        fn response ->
+          assert Request.to_curl(response.request) ==
+                   {:ok,
+                    "curl --cert #{cert_file} --key #{key_file} --cacert #{cacert_file} -X GET https://localhost:8433/get"}
+        end
+      )
+    end
+
+    test "expired certificate" do
+      assert {:error, %HTTPoison.Error{reason: {:tls_alert, {:certificate_expired, reason}}}} =
+               HTTPoison.get("https://expired.badssl.com/")
+
+      assert to_string(reason) =~ "Certificate Expired"
+      # TLS version should not matter
+      assert {:error, %HTTPoison.Error{reason: {:tls_alert, _}}} =
+               HTTPoison.get("https://expired.badssl.com/", [], ssl: [{:versions, [:"tlsv1.2"]}])
+
+      assert {:ok, _} =
+               HTTPoison.get("https://expired.badssl.com/", [], ssl: [{:verify, :verify_none}])
+
+      # Can be disabled via verify_fun
+      assert {:ok, _} =
+               HTTPoison.get("https://expired.badssl.com/", [],
+                 ssl: [
+                   verify_fun:
+                     {fn _, reason, state ->
+                        case reason do
+                          {:bad_cert, :cert_expired} -> {:valid, state}
+                          {:bad_cert, :unknown_ca} -> {:valid, state}
+                          {:extension, _} -> {:valid, state}
+                          :valid -> {:valid, state}
+                          :valid_peer -> {:valid, state}
+                          error -> {:fail, error}
+                        end
+                      end, []}
+                 ]
+               )
+    end
+
+    test "allows changing TLS1.0 settings" do
+      assert {:error,
+              %HTTPoison.Error{
+                reason: {:tls_alert, {:protocol_version, reason}}
+              }} =
+               HTTPoison.get("https://tls-v1-0.badssl.com:1010/", [],
+                 ssl: [{:versions, [:"tlsv1.2"]}]
+               )
+
+      assert to_string(reason) =~ "Protocol Version"
+
+      if :tlsv1 in :ssl.versions()[:available] do
+        assert {:ok, _} =
+                 HTTPoison.get("https://tls-v1-0.badssl.com:1010/", [],
+                   ssl: [
+                     {:versions, [:tlsv1]}
+                   ]
+                 )
+      end
+    end
+
+    test "allows changing TLS1.1 settings" do
+      assert {:error,
+              %HTTPoison.Error{
+                reason: {:tls_alert, {:protocol_version, reason}}
+              }} =
+               HTTPoison.get("https://tls-v1-1.badssl.com:1011/", [],
+                 ssl: [versions: [:"tlsv1.2", :tlsv1]]
+               )
+
+      assert to_string(reason) =~ "Protocol Version"
+
+      if :"tlsv1.1" in :ssl.versions()[:available] do
+        assert {:ok, _} =
+                 HTTPoison.get("https://tls-v1-1.badssl.com:1011/", [],
+                   ssl: [versions: [:"tlsv1.1"]]
+                 )
+      end
+    end
+
+    test "does support tls1.2" do
+      if :"tlsv1.2" in :ssl.versions()[:supported] do
+        assert {:ok, _} = HTTPoison.get("https://tls-v1-2.badssl.com:1012/", [])
+      end
+
+      if :"tlsv1.2" in :ssl.versions()[:available] do
+        assert {:ok, _} =
+                 HTTPoison.get("https://tls-v1-2.badssl.com:1012/", [],
+                   ssl: [versions: [:"tlsv1.2"]]
+                 )
+      end
+    end
+
+    test "invalid common name" do
+      assert {:error,
+              %HTTPoison.Error{
+                reason: {:tls_alert, {:handshake_failure, reason}}
+              }} = HTTPoison.get("https://wrong.host.badssl.com/")
+
+      assert to_string(reason) =~ ~r"hostname|altnames"
+
+      assert {:error,
+              %HTTPoison.Error{
+                reason: {:tls_alert, _}
+              }} =
+               HTTPoison.get("https://wrong.host.badssl.com/", [],
+                 ssl: [{:versions, [:"tlsv1.2"]}]
+               )
+    end
   end
 end
