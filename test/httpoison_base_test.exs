@@ -598,9 +598,7 @@ defmodule HTTPoisonBaseTest do
   end
 
   for loc_header <- ["Location", "location"] do
-    test "request returns MaybeRedirect when passing follow_redirect option and server sets #{
-           loc_header
-         } header" do
+    test "request returns MaybeRedirect when passing follow_redirect option and server sets #{loc_header} header" do
       expect(:hackney, :request, fn :post,
                                     "http://localhost",
                                     [],
