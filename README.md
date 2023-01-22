@@ -5,11 +5,6 @@ HTTP client for Elixir, based on
 [HTTPotion](https://github.com/myfreeweb/httpotion)
 ([documentation](https://hexdocs.pm/httpoison/)).
 
-## But... why something so similar to HTTPotion?
-
-HTTPoison uses [hackney](https://github.com/benoitc/hackney) to execute HTTP requests instead of ibrowse. I like hackney :thumbsup:
-
-Using hackney we work only with binaries instead of string lists.
 
 ## Installation
 
@@ -18,7 +13,7 @@ First, add HTTPoison to your `mix.exs` dependencies:
 ```elixir
 def deps do
   [
-    {:httpoison, "~> 1.8"}
+    {:httpoison, "~> 2.0"}
   ]
 end
 ```
@@ -30,6 +25,29 @@ def application do
   [applications: [:httpoison]]
 end
 ```
+
+
+## Upgrading to 2.x.x
+
+The main change that caused a major version is that `ssl` option now _merges_ with the default options where previously it would override the ssl options. The new option `ssl_override` was added to allow people to keep the previous behaviour but it's more explicit now. 
+
+```elixir
+defp default_ssl_options() do
+    [
+      {:versions, [:"tlsv1.2", :"tlsv1.3"]},
+      {:verify, :verify_peer},
+      {:cacertfile, :certifi.cacertfile()},
+      {:depth, 10},
+      {:customize_hostname_check,
+       [
+         match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
+       ]}
+    ]
+  end
+```
+
+More context here: https://github.com/edgurgel/httpoison/pull/466
+
 
 ## Usage
 
