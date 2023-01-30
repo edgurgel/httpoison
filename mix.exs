@@ -45,6 +45,7 @@ defmodule HTTPoison.Mixfile do
       {:mimic, "~> 0.1", only: :test},
       {:jason, "~> 1.2", only: :test},
       {:httparrot, "~> 1.2", only: :test},
+      {:cowboy, "~> 2.8", only: :test, override: true},
       {:earmark, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.18", only: :dev},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev, :test], runtime: false}

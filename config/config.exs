@@ -1,8 +1,8 @@
-use Mix.Config
+import Config
 
-if Mix.env() == :test do
+if config_env() == :test do
   config :httparrot,
-    http_port: 8080,
-    ssl: true,
-    https_port: 8433
+    https_port: 8433,
+    http_port: 4002,
+    ssl: true
 end
