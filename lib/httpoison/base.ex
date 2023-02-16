@@ -345,11 +345,16 @@ defmodule HTTPoison.Base do
           |> process_request_url()
           |> HTTPoison.Base.build_request_url(params)
 
+        body =
+          request.body
+          |> process_request_body()
+          |> HTTPoison.Base.maybe_process_form()
+
         request = %Request{
           method: request.method,
           url: url,
           headers: process_request_headers(request.headers),
-          body: process_request_body(request.body),
+          body: body,
           params: params,
           options: options
         }
@@ -984,5 +989,30 @@ defmodule HTTPoison.Base do
       {k, v} -> if String.downcase(k) == key, do: v, else: nil
       _ -> nil
     end)
+  end
+
+  def maybe_process_form({:form, body}) do
+    {:form,
+     Enum.flat_map(body, fn
+       {k, [{_k, _v} | _rest] = v} -> flatten_nested_body(v, k)
+       {k, v} -> [{k, v}]
+     end)}
+  end
+
+  def maybe_process_form(body) do
+    body
+  end
+
+  defp flatten_nested_body(body, parent_key) do
+    flattened_body =
+      Enum.reduce(body, [], fn
+        {key, [{_key, _value} | _rest] = nested_key_values}, acc ->
+          flatten_nested_body(nested_key_values, "#{parent_key}[#{key}]") ++ acc
+
+        {key, value}, acc ->
+          [{"#{parent_key}[#{key}]", value} | acc]
+      end)
+
+    Enum.reverse(flattened_body)
   end
 end
