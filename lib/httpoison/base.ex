@@ -995,6 +995,7 @@ defmodule HTTPoison.Base do
     {:form,
      Enum.flat_map(body, fn
        {k, [{_k, _v} | _rest] = v} -> flatten_nested_body(v, k)
+       {k, v} when is_map(v) -> flatten_nested_body(v, k)
        {k, v} -> [{k, v}]
      end)}
   end
@@ -1006,6 +1007,9 @@ defmodule HTTPoison.Base do
   defp flatten_nested_body(body, parent_key) do
     flattened_body =
       Enum.reduce(body, [], fn
+        {key, nested_key_values}, acc when is_map(nested_key_values) ->
+          flatten_nested_body(nested_key_values, "#{parent_key}[#{key}]") ++ acc
+
         {key, [{_key, _value} | _rest] = nested_key_values}, acc ->
           flatten_nested_body(nested_key_values, "#{parent_key}[#{key}]") ++ acc
 
