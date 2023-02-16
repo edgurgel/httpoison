@@ -82,7 +82,7 @@ defmodule HTTPoisonTest do
     )
   end
 
-  test "post nested form data" do
+  test "post nested form data when given as keyword list" do
     assert_response(
       HTTPoison.post(
         "localhost:4002/post",
@@ -101,6 +101,35 @@ defmodule HTTPoisonTest do
         assert Request.to_curl(response.request) ==
                  {:ok,
                   "curl -X POST -H 'Content-type: application/x-www-form-urlencoded' -F 'not_nested=\x01\x02' -F 'nested[foo]=bar' -F 'nested[again][hello]=world' http://localhost:4002/post"}
+      end
+    )
+  end
+
+  test "post nested form data when given as map (no order guaranteed)" do
+    assert_response(
+      HTTPoison.post(
+        "localhost:4002/post",
+        {:form, %{not_nested: [1, 2], nested: %{foo: "bar", again: %{hello: "world"}}}},
+        %{"Content-type" => "application/x-www-form-urlencoded"}
+      ),
+      fn %HTTPoison.Response{request: request} = response ->
+        assert {:form, body} = request.body
+
+        assert [{:not_nested, [1, 2]}, {"nested[foo]", "bar"}, {"nested[again][hello]", "world"}]
+               |> MapSet.new()
+               |> MapSet.equal?(MapSet.new(body))
+
+        Regex.match?(~r/"not_nested".*\x01\x02/, response.body)
+        Regex.match?(~r/"nested\[foo\]".*"bar"/, response.body)
+        Regex.match?(~r/"nested\[again\]\[hello\]".*"world"/, response.body)
+
+        assert {:ok,
+                "curl -X POST -H 'Content-type: application/x-www-form-urlencoded'" <> form_params} =
+                 Request.to_curl(response.request)
+
+        assert form_params =~ "-F 'not_nested=\x01\x02'"
+        assert form_params =~ "-F 'nested[foo]=bar'"
+        assert form_params =~ "-F 'nested[again][hello]=world'"
       end
     )
   end
