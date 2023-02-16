@@ -134,7 +134,7 @@ defmodule HTTPoison.Request do
     headers = request.headers |> Enum.map(fn {k, v} -> "-H '#{k}: #{v}'" end) |> Enum.join(" ")
 
     body =
-      case request.body do
+      case HTTPoison.Base.maybe_process_form(request.body) do
         "" -> ""
         {:file, filename} -> "-d @#{filename}"
         {:form, form} -> form |> Enum.map(fn {k, v} -> "-F '#{k}=#{v}'" end) |> Enum.join(" ")
