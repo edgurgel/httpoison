@@ -292,7 +292,7 @@ can do the below:
 ```elixir
 binary_file_content = "Something you fetched and now have it in memory"
 token = "some_token_from_another_request"
-headers = ["Authorization": "Bearer #{token}", {"Content-Type", "multipart/form-data"}]
+headers = [{"Authorization", "Bearer #{token}"}, {"Content-Type", "multipart/form-data"}]
 options = [ssl: [{:versions, [:'tlsv1.2']}], recv_timeout: 500]
 
 HTTPoison.request(
