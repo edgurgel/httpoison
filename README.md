@@ -53,25 +53,26 @@ More context here: https://github.com/edgurgel/httpoison/pull/466
 
 ```elixir
 iex> HTTPoison.start
-iex> HTTPoison.get! "http://httparrot.herokuapp.com/get"
+iex> HTTPoison.get! "https://postman-echo.com/get"
 %HTTPoison.Response{
-  body: "{\n  \"args\": {},\n  \"headers\": {} ...",
-  headers: [{"Connection", "keep-alive"}, {"Server", "Cowboy"},
-  {"Date", "Sat, 06 Jun 2015 03:52:13 GMT"}, {"Content-Length", "495"},
-  {"Content-Type", "application/json"}, {"Via", "1.1 vegur"}],
-  status_code: 200
+  status_code: 200,
+  body: "{\n  \"args\": {},\n  \"headers\": {\n    \"x-forwarded-proto\": \"https\",\n    \"x-forwarded-port\": \"443\",\n    \"host\": \"postman-echo.com\",\n    \"x-amzn-trace-id\": \"Root=1-644624fb-769bca0458e739dc07f6b630\",\n    \"user-agent\": \"hackney/1.18.1\"\n  },\n  \"url\": \"https://postman-echo.com/get\"\n}",
+  headers: [ ... ]
 }
+
 iex> HTTPoison.get! "http://localhost:1"
 ** (HTTPoison.Error) :econnrefused
 iex> HTTPoison.get "http://localhost:1"
 {:error, %HTTPoison.Error{id: nil, reason: :econnrefused}}
 
-iex> HTTPoison.post "http://httparrot.herokuapp.com/post", "{\"body\": \"test\"}", [{"Content-Type", "application/json"}]
-{:ok, %HTTPoison.Response{body: "{\n  \"args\": {},\n  \"headers\": {\n    \"host\": \"httparrot.herokuapp.com\",\n    \"connection\": \"close\",\n    \"accept\": \"application/json\",\n    \"content-type\": \"application/json\",\n    \"user-agent\": \"hackney/1.6.1\",\n    \"x-request-id\": \"4b85de44-6227-4480-b506-e3b9b4f0318a\",\n    \"x-forwarded-for\": \"76.174.231.199\",\n    \"x-forwarded-proto\": \"http\",\n    \"x-forwarded-port\": \"80\",\n    \"via\": \"1.1 vegur\",\n    \"connect-time\": \"1\",\n    \"x-request-start\": \"1475945832992\",\n    \"total-route-time\": \"0\",\n    \"content-length\": \"16\"\n  },\n  \"url\": \"http://httparrot.herokuapp.com/post\",\n  \"origin\": \"10.180.37.142\",\n  \"form\": {},\n  \"data\": \"{\\\"body\\\": \\\"test\\\"}\",\n  \"json\": {\n    \"body\": \"test\"\n  }\n}",
-    headers: [{"Connection", "keep-alive"}, {"Server", "Cowboy"},
-    {"Date", "Sat, 08 Oct 2016 16:57:12 GMT"}, {"Content-Length", "681"},
-    {"Content-Type", "application/json"}, {"Via", "1.1 vegur"}],
-status_code: 200}}
+iex> HTTPoison.post "https://postman-echo.com/post", "{\"body\": \"test\"}", [{"Content-Type", "application/json"}]
+{:ok,
+ %HTTPoison.Response{
+   status_code: 200,
+   body: "{\n  \"args\": {},\n  \"data\": {\n    \"body\": \"test\"\n  },\n  \"files\": {},\n  \"form\": {},\n  \"headers\": {\n    \"x-forwarded-proto\": \"https\",\n    \"x-forwarded-port\": \"443\",\n    \"host\": \"postman-echo.com\",\n    \"x-amzn-trace-id\": \"Root=1-6446255e-703101813ec2e395202ab494\",\n    \"content-length\": \"16\",\n    \"user-agent\": \"hackney/1.18.1\",\n    \"content-type\": \"application/json\"\n  },\n  \"json\": {\n    \"body\": \"test\"\n  },\n  \"url\": \"https://postman-echo.com/post\"\n}",
+   headers: [ ... ]
+ }}
+
 ```
 
 You can also easily pattern match on the `HTTPoison.Response` struct:
@@ -196,20 +197,23 @@ This will send only a single chunk at a time the receiver can call `HTTPoison.st
 HTTPoison allows you to send cookies:
 
 ```elixir
-iex> HTTPoison.get!("http://httparrot.herokuapp.com/cookies", %{}, hackney: [cookie: ["session=a933ec1dd923b874e691; logged_in=true"]])
-%HTTPoison.Response{body: "{\n  \"cookies\": {\n    \"session\": \"a933ec1dd923b874e691\",\n    \"logged_in\": \"true\"\n  }\n}",
- headers: [{"Connection", "keep-alive"}, ...],
- status_code: 200}
+iex> HTTPoison.get!("https://postman-echo.com/cookies", %{}, hackney: [cookie: ["session=a933ec1dd923b874e691; logged_in=true"]])
+%HTTPoison.Response{
+  status_code: 200,
+  body: "{\n  \"cookies\": {\n    \"session\": \"a933ec1dd923b874e691\",\n    \"logged_in\": \"true\"\n  }\n}",
+  headers: [ ... ]
+}
+
 ```
 
 You can also receive cookies from the server by reading the `"set-cookie"` headers in the response:
 
 ```elixir
-iex(1)> response = HTTPoison.get!("http://httparrot.herokuapp.com/cookies/set?foo=1")
+iex(1)> response = HTTPoison.get!("https://postman-echo.com/cookies/set?foo=1")
 iex(2)> cookies = Enum.filter(response.headers, fn
 ...(2)> {key, _} -> String.match?(key, ~r/\Aset-cookie\z/i)
 ...(2)> end)
-[{"Set-Cookie", "foo=1; Version=1; Path=/"}]
+[ {"set-cookie", "foo=1; Path=/"}, ...]
 ```
 
 You can see more usage examples in the test files (located in the
