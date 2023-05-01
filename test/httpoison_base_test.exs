@@ -35,6 +35,10 @@ defmodule HTTPoisonBaseTest do
       do: Keyword.merge(options, params: Map.merge(options[:params], %{key: "fizz"}))
   end
 
+  defmodule ExampleRequest do
+    use HTTPoison.Base
+  end
+
   setup do
     on_exit(fn ->
       System.delete_env("HTTP_PROXY")
@@ -125,7 +129,7 @@ defmodule HTTPoisonBaseTest do
              }
   end
 
-  test "request raises error tuple" do
+  test "get!/1 raises error tuple" do
     reason = {:closed, "Something happened"}
 
     expect(:hackney, :request, fn _, _, _, _, _ -> {:error, reason} end)
@@ -697,5 +701,36 @@ defmodule HTTPoisonBaseTest do
                   url: "http://localhost"
                 }
               }}
+  end
+
+  test "request body using request/1 example" do
+    expect(:hackney, :request, fn :get, "http://localhost", [], "", [] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    request = %HTTPoison.Request{url: "http://localhost"}
+    assert ExampleRequest.request!(request) ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost",
+               request: request,
+             }
+  end
+
+  test "request! raises error tuple" do
+    reason = {:closed, "Something happened"}
+
+    expect(:hackney, :request, fn _, _, _, _, _ -> {:error, reason} end)
+    expect(:hackney, :request, fn _, _, _, _, _ -> {:error, reason} end)
+
+    assert_raise HTTPoison.Error, "{:closed, \"Something happened\"}", fn ->
+      HTTPoison.request!(:get, "http://localhost")
+    end
+
+    assert HTTPoison.request(:get, "http://localhost") == {:error, %HTTPoison.Error{reason: reason}}
   end
 end
