@@ -711,13 +711,14 @@ defmodule HTTPoisonBaseTest do
     expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
 
     request = %HTTPoison.Request{url: "http://localhost"}
+
     assert ExampleRequest.request!(request) ==
              %HTTPoison.Response{
                status_code: 200,
                headers: "headers",
                body: "response",
                request_url: "http://localhost",
-               request: request,
+               request: request
              }
   end
 
@@ -731,6 +732,7 @@ defmodule HTTPoisonBaseTest do
       HTTPoison.request!(:get, "http://localhost")
     end
 
-    assert HTTPoison.request(:get, "http://localhost") == {:error, %HTTPoison.Error{reason: reason}}
+    assert HTTPoison.request(:get, "http://localhost") ==
+             {:error, %HTTPoison.Error{reason: reason}}
   end
 end
