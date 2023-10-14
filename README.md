@@ -344,8 +344,15 @@ For more complex queries regarding multipart response parsing, you should follow
 
 If you're running on top of hackney (which you probably are) there's a handy way to get detailed request logging:
 
+```elixir
+# Add :runtime_tools to :extra_applications in mix.exs
+def application do
+  [extra_applications: [:logger, :runtime_tools]]
+end
 ```
-:hackney_trace.enable(:max, :io)
+
+```
+iex(1)> :hackney_trace.enable(:max, :io)
 ```
 
 Just throw this in your code before your HTTPoison call and you'll get low-level log output.
