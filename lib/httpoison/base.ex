@@ -219,7 +219,7 @@ defmodule HTTPoison.Base do
   @type params :: Request.params()
 
   defmacro __using__(_) do
-    quote do
+    quote location: :keep do
       @behaviour HTTPoison.Base
 
       @type request :: HTTPoison.Base.request()
