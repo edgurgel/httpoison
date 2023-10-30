@@ -19,8 +19,10 @@ defmodule HTTPoisonTest do
       assert args["baz"] == "bong"
       assert args |> Map.keys() |> length == 2
 
-      assert Request.to_curl(response.request) ==
-               {:ok, "curl -X GET http://localhost:4002/get?baz=bong&foo=bar"}
+      assert {:ok, "curl -X GET http://localhost:4002/get?" <> query} =
+               Request.to_curl(response.request)
+
+      assert %{"baz" => "bong", "foo" => "bar"} == URI.decode_query(query)
     end)
   end
 
@@ -53,7 +55,7 @@ defmodule HTTPoisonTest do
   end
 
   test "post charlist body" do
-    assert_response(HTTPoison.post("localhost:4002/post", 'test'), fn response ->
+    assert_response(HTTPoison.post("localhost:4002/post", ~c"test"), fn response ->
       assert Request.to_curl(response.request) == {:ok, "curl -X POST http://localhost:4002/post"}
     end)
   end
@@ -233,7 +235,7 @@ defmodule HTTPoisonTest do
   end
 
   test "char list URL" do
-    assert_response(HTTPoison.head('localhost:4002/get'), fn response ->
+    assert_response(HTTPoison.head(~c"localhost:4002/get"), fn response ->
       assert Request.to_curl(response.request) ==
                {:ok, "curl -X HEAD http://localhost:4002/get"}
     end)

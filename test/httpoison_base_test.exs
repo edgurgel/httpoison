@@ -106,27 +106,32 @@ defmodule HTTPoisonBaseTest do
   end
 
   test "request body using params example" do
-    expect(:hackney, :request, fn :get, "http://localhost?foo=bar&key=fizz", [], "", [] ->
+    expected_query = %{"foo" => "bar", "key" => "fizz"}
+
+    expect(:hackney, :request, fn :get, "http://localhost?" <> query, [], "", [] ->
+      assert expected_query == URI.decode_query(query)
       {:ok, 200, "headers", :client}
     end)
 
     expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
 
-    assert ExampleParamsOptions.get!("localhost", [], params: %{foo: "bar"}) ==
-             %HTTPoison.Response{
-               status_code: 200,
-               headers: "headers",
-               body: "response",
-               request_url: "http://localhost?foo=bar&key=fizz",
-               request: %HTTPoison.Request{
-                 body: "",
-                 headers: [],
-                 method: :get,
-                 options: [params: %{foo: "bar", key: "fizz"}],
-                 params: %{foo: "bar", key: "fizz"},
-                 url: "http://localhost?foo=bar&key=fizz"
-               }
+    assert %HTTPoison.Response{
+             status_code: 200,
+             headers: "headers",
+             body: "response",
+             request_url: "http://localhost?" <> request_url_query,
+             request: %HTTPoison.Request{
+               body: "",
+               headers: [],
+               method: :get,
+               options: [params: %{foo: "bar", key: "fizz"}],
+               params: %{foo: "bar", key: "fizz"},
+               url: "http://localhost?" <> url_query
              }
+           } = ExampleParamsOptions.get!("localhost", [], params: %{foo: "bar"})
+
+    assert expected_query == URI.decode_query(request_url_query)
+    assert expected_query == URI.decode_query(url_query)
   end
 
   test "get!/1 raises error tuple" do
