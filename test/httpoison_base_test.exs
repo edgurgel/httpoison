@@ -142,6 +142,16 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.get("http://localhost") == {:error, %HTTPoison.Error{reason: reason}}
   end
 
+  test "stack trace preserved on error" do
+    expect(:hackney, :request, fn _, _, _, _, _ -> {:error, {:error, "whatevs"}} end)
+
+    HTTPoison.get!("http://localhost")
+  rescue
+    _e ->
+      [{HTTPoison, :request!, 5, file_line} | _] = __STACKTRACE__
+      assert {:ok, ~c"lib/httpoison/base.ex"} = Keyword.fetch(file_line, :file)
+  end
+
   test "passing connect_timeout option" do
     expect(:hackney, :request, fn
       :post, "http://localhost", [], "body", [connect_timeout: 12345] ->
@@ -221,7 +231,7 @@ defmodule HTTPoisonBaseTest do
       [
         socks5_pass: "secret",
         socks5_user: "user",
-        proxy: {:socks5, 'localhost', 1080}
+        proxy: {:socks5, ~c"localhost", 1080}
       ] ->
         {:ok, 200, "headers", :client}
     end)
@@ -232,7 +242,7 @@ defmodule HTTPoisonBaseTest do
              "localhost",
              "body",
              [],
-             proxy: {:socks5, 'localhost', 1080},
+             proxy: {:socks5, ~c"localhost", 1080},
              socks5_user: "user",
              socks5_pass: "secret"
            ) ==
@@ -246,7 +256,7 @@ defmodule HTTPoisonBaseTest do
                  headers: [],
                  method: :post,
                  options: [
-                   proxy: {:socks5, 'localhost', 1080},
+                   proxy: {:socks5, ~c"localhost", 1080},
                    socks5_user: "user",
                    socks5_pass: "secret"
                  ],
