@@ -427,7 +427,7 @@ defmodule HTTPoison.Base do
       response in case of a successful request, raising an exception in case the
       request fails.
       """
-      @spec request!(Request.t()) :: {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()}
+      @spec request!(Request.t()) :: Response.t() | AsyncResponse.t() | MaybeRedirect.t()
       def request!(%Request{} = request) do
         case request(request) do
           {:ok, response} -> response
