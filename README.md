@@ -303,7 +303,7 @@ HTTPoison.request(
   :post,
   "https://myurl.com",
   {:multipart,
-   [{"file", binary_file_content, {"form-data", [name: "file", filename: "a_file_name.txt"]}, []}]},
+   [{:file, binary_file_content, {"form-data", [name: "file", filename: "a_file_name.txt"]}, []}]},
   headers,
   options
 )
