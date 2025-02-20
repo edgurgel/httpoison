@@ -379,7 +379,7 @@ defmodule HTTPoisonTest do
     assert response.status_code == 200
     assert is_binary(response.body)
 
-    unless function == nil, do: function.(response)
+    if function != nil, do: function.(response)
   end
 
   defp get_header(headers, key) do
