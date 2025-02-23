@@ -283,6 +283,16 @@ defmodule HTTPoison.Base do
       @spec process_response_chunk(binary) :: any
       def process_response_chunk(chunk), do: chunk
 
+      defoverridable [
+        process_url: 1,
+        process_request_body: 1,
+        process_response_body: 1,
+        process_request_headers: 1,
+        process_response_chunk: 1,
+        process_headers: 1,
+        process_status_code: 1
+      ]
+
       @doc false
       @spec transformer(pid) :: :ok
       def transformer(target) do
@@ -641,7 +651,6 @@ defmodule HTTPoison.Base do
         end
       end
 
-      defoverridable Module.definitions_in(__MODULE__)
     end
   end
 
