@@ -932,6 +932,9 @@ defmodule HTTPoison.Base do
 
       {:error, reason} ->
         {:error, %Error{reason: reason}}
+
+      {:connect_error, {:error, reason}} ->
+        {:error, %Error{reason: reason}}
     end
   end
 
