@@ -26,7 +26,6 @@ defmodule HTTPoison.Mixfile do
         plt_add_deps: :transitive,
         flags: [
           :unmatched_returns,
-          :race_conditions,
           :underspecs
           # :overspecs,
           # :specdiffs
@@ -42,7 +41,7 @@ defmodule HTTPoison.Mixfile do
   defp deps do
     [
       {:hackney, "~> 1.21"},
-      {:mimic, "~> 0.1", only: :test},
+      {:mimic, "~> 1.0", only: :test},
       {:jason, "~> 1.2", only: :test},
       {:httparrot, "~> 1.2", only: :test},
       {:cowboy, "~> 2.8", only: :test, override: true},
