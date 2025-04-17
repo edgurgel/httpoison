@@ -12,8 +12,8 @@ jobs:
       - name: Install OTP and Elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: 25.1
-          elixir-version: 1.14.1
+          otp-version: 27.1
+          elixir-version: 1.18.3
 
       - name: Install dependencies
         run: mix deps.get
@@ -33,6 +33,8 @@ jobs:
         include:
           - otp: 25.1
             elixir: 1.14.1
+          - otp: 27.0
+            elixir: 1.18.3
             coverage: true
     env:
       MIX_ENV: test
