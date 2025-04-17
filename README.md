@@ -18,33 +18,13 @@ def deps do
 end
 ```
 
-and run `$ mix deps.get`. Add `:httpoison` to your applications list if your Elixir version is 1.3 or lower:
-
-```elixir
-def application do
-  [applications: [:httpoison]]
-end
-```
-
+and run `$ mix deps.get`.
 
 ## Upgrading to 2.x.x
 
-The main change that caused a major version is that `ssl` option now _merges_ with the default options where previously it would override the ssl options. The new option `ssl_override` was added to allow people to keep the previous behaviour but it's more explicit now. 
+The main change that caused a major version is that `ssl` option now _merges_ with the default options where previously it would override the ssl options. The new option `ssl_override` was added to allow people to keep the previous behaviour but it's more explicit now.
 
-```elixir
-defp default_ssl_options() do
-    [
-      {:versions, [:"tlsv1.2", :"tlsv1.3"]},
-      {:verify, :verify_peer},
-      {:cacertfile, :certifi.cacertfile()},
-      {:depth, 10},
-      {:customize_hostname_check,
-       [
-         match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
-       ]}
-    ]
-  end
-```
+The default SSL options can be found on [hackney's codebase](https://github.com/benoitc/hackney/blob/befe2df2080704824487c3c0201417d0ddb3c686/src/hackney_connection.erl#L115-L148) as we simply use `:hackney_connections.merge_ssl_opts/2`
 
 More context here: https://github.com/edgurgel/httpoison/pull/466
 
@@ -254,7 +234,7 @@ From the already linked [hackney's readme](https://github.com/benoitc/hackney#us
 
 #### Disabling pool
 
-If you don't want to use a pool for a single http request, you can do it by passing an option: 
+If you don't want to use a pool for a single http request, you can do it by passing an option:
 ```elixir
 HTTPoison.get("httpbin.org/get", [], hackney: [pool: false])
 ```
