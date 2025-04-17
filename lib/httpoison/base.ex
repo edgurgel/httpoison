@@ -72,6 +72,7 @@ defmodule HTTPoison.Base do
 
   """
 
+  require Record
   alias HTTPoison.Request
   alias HTTPoison.Response
   alias HTTPoison.AsyncResponse
@@ -739,16 +740,23 @@ defmodule HTTPoison.Base do
     end
   end
 
-  defp build_hackney_options(module, %Request{options: options}) do
+  Record.defrecordp(
+    :hackney_url_record,
+    Record.extract(:hackney_url, from_lib: "hackney/include/hackney_lib.hrl")
+  )
+
+  defp build_hackney_options(module, %Request{url: url, options: options}) do
     timeout = Keyword.get(options, :timeout)
     recv_timeout = Keyword.get(options, :recv_timeout)
     stream_to = Keyword.get(options, :stream_to)
     async = Keyword.get(options, :async)
 
     ssl =
-      if Keyword.get(options, :ssl) do
-        default_ssl_options()
-        |> Keyword.merge(Keyword.get(options, :ssl))
+      if ssl_opts = Keyword.get(options, :ssl) do
+        # Extract the host from the URL just like hackney does
+        host = hackney_url_record(:hackney_url.parse_url(url), :host)
+
+        :hackney_connection.merge_ssl_opts(host, ssl_opts)
       else
         Keyword.get(options, :ssl_override)
       end
@@ -816,19 +824,6 @@ defmodule HTTPoison.Base do
       if socks5_pass, do: [{:socks5_pass, socks5_pass} | hn_proxy_options], else: hn_proxy_options
 
     hn_proxy_options
-  end
-
-  defp default_ssl_options() do
-    [
-      {:versions, [:"tlsv1.2", :"tlsv1.3"]},
-      {:verify, :verify_peer},
-      {:cacertfile, :certifi.cacertfile()},
-      {:depth, 10},
-      {:customize_hostname_check,
-       [
-         match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
-       ]}
-    ]
   end
 
   defp check_no_proxy(nil, _) do
