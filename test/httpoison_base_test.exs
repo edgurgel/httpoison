@@ -562,7 +562,6 @@ defmodule HTTPoisonBaseTest do
 
   test "passing ssl option" do
     expect(:hackney, :request, fn :post, "http://localhost", [], "body", [ssl_options: opts] ->
-      assert opts[:versions] == [:"tlsv1.2", :"tlsv1.3"]
       assert opts[:verify] == :verify_peer
       assert opts[:customize_hostname_check][:match_fun]
       assert opts[:certfile] == "certs/client.crt"

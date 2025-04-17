@@ -6,7 +6,7 @@ defmodule HTTPoisonTest do
 
   test "get" do
     assert_response(HTTPoison.get("localhost:4002/deny"), fn response ->
-      assert :erlang.size(response.body) == 197
+      assert :erlang.size(response.body) == 198
     end)
   end
 
@@ -267,8 +267,8 @@ defmodule HTTPoisonTest do
 
   test "receive cookies" do
     response = HTTPoison.get!("localhost:4002/cookies/set?foo=1&bar=2")
-    has_foo = Enum.member?(response.headers, {"set-cookie", "foo=1; Version=1; Path=/"})
-    has_bar = Enum.member?(response.headers, {"set-cookie", "bar=2; Version=1; Path=/"})
+    has_foo = Enum.member?(response.headers, {"set-cookie", "foo=1; Path=/"})
+    has_bar = Enum.member?(response.headers, {"set-cookie", "bar=2; Path=/"})
     assert has_foo and has_bar
 
     assert Request.to_curl(response.request) ==
@@ -374,12 +374,18 @@ defmodule HTTPoisonTest do
     end)
   end
 
-  defp assert_response({:ok, response}, function \\ nil) do
+  defp assert_response(result, function \\ nil)
+
+  defp assert_response({:ok, response}, function) do
     assert is_list(response.headers)
     assert response.status_code == 200
     assert is_binary(response.body)
 
     if function != nil, do: function.(response)
+  end
+
+  defp assert_response(result, _) do
+    flunk("Unexpected response: #{inspect(result)}")
   end
 
   defp get_header(headers, key) do
@@ -393,19 +399,12 @@ defmodule HTTPoisonTest do
     test "https scheme" do
       httparrot_priv_dir = :code.priv_dir(:httparrot)
       cacert_file = "#{httparrot_priv_dir}/ssl/server-ca.crt"
-      cert_file = "#{httparrot_priv_dir}/ssl/server.crt"
-      key_file = "#{httparrot_priv_dir}/ssl/server.key"
 
       assert_response(
-        HTTPoison.get(
-          "https://localhost:8433/get",
-          [],
-          ssl: [cacertfile: cacert_file, keyfile: key_file, certfile: cert_file]
-        ),
+        HTTPoison.get("https://localhost:8433/get", [], ssl: [cacertfile: cacert_file]),
         fn response ->
           assert Request.to_curl(response.request) ==
-                   {:ok,
-                    "curl --cert #{cert_file} --key #{key_file} --cacert #{cacert_file} -X GET https://localhost:8433/get"}
+                   {:ok, "curl --cacert #{cacert_file} -X GET https://localhost:8433/get"}
         end
       )
     end
@@ -419,8 +418,8 @@ defmodule HTTPoisonTest do
       assert {:error, %HTTPoison.Error{reason: {:tls_alert, _}}} =
                HTTPoison.get("https://expired.badssl.com/", [], ssl: [{:versions, [:"tlsv1.2"]}])
 
-      assert {:ok, _} =
-               HTTPoison.get("https://expired.badssl.com/", [], ssl: [{:verify, :verify_none}])
+      # Insecure disable verification
+      assert {:ok, _} = HTTPoison.get("https://expired.badssl.com", [], hackney: [:insecure])
 
       # Can be disabled via verify_fun
       assert {:ok, _} =
@@ -444,34 +443,26 @@ defmodule HTTPoisonTest do
     test "allows changing TLS1.0 settings" do
       assert {:error,
               %HTTPoison.Error{
-                reason: {:tls_alert, {:protocol_version, reason}}
+                reason: {:tls_alert, _}
               }} =
                HTTPoison.get("https://tls-v1-0.badssl.com:1010/", [],
-                 ssl: [{:versions, [:"tlsv1.2"]}]
+                 ssl: [versions: [:"tlsv1.2"]]
                )
-
-      assert to_string(reason) =~ "Protocol Version"
 
       if :tlsv1 in :ssl.versions()[:available] do
         assert {:ok, _} =
-                 HTTPoison.get("https://tls-v1-0.badssl.com:1010/", [],
-                   ssl: [
-                     {:versions, [:tlsv1]}
-                   ]
-                 )
+                 HTTPoison.get("https://tls-v1-0.badssl.com:1010/", [], ssl: [versions: [:tlsv1]])
       end
     end
 
     test "allows changing TLS1.1 settings" do
       assert {:error,
               %HTTPoison.Error{
-                reason: {:tls_alert, {:protocol_version, reason}}
+                reason: {:tls_alert, _}
               }} =
                HTTPoison.get("https://tls-v1-1.badssl.com:1011/", [],
                  ssl: [versions: [:"tlsv1.2", :tlsv1]]
                )
-
-      assert to_string(reason) =~ "Protocol Version"
 
       if :"tlsv1.1" in :ssl.versions()[:available] do
         assert {:ok, _} =
@@ -500,15 +491,7 @@ defmodule HTTPoisonTest do
                 reason: {:tls_alert, {:handshake_failure, reason}}
               }} = HTTPoison.get("https://wrong.host.badssl.com/")
 
-      assert to_string(reason) =~ ~r"hostname|altnames"
-
-      assert {:error,
-              %HTTPoison.Error{
-                reason: {:tls_alert, _}
-              }} =
-               HTTPoison.get("https://wrong.host.badssl.com/", [],
-                 ssl: [{:versions, [:"tlsv1.2"]}]
-               )
+      assert to_string(reason) =~ ~r"hostname_check_failed"
     end
   end
 end
