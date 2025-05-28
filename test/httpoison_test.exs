@@ -200,7 +200,7 @@ defmodule HTTPoisonTest do
   end
 
   test "basic_auth hackney option" do
-    hackney = [basic_auth: {"user", "pass"}]
+    hackney = [basic_auth: {"user", "pass"}, insecure_basic_auth: true]
 
     assert_response(
       HTTPoison.get("http://localhost:4002/basic-auth/user/pass", [], hackney: hackney)
