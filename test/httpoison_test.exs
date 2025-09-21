@@ -409,6 +409,7 @@ defmodule HTTPoisonTest do
       )
     end
 
+    @tag :network
     test "expired certificate" do
       assert {:error, %HTTPoison.Error{reason: {:tls_alert, {:certificate_expired, reason}}}} =
                HTTPoison.get("https://expired.badssl.com/")
@@ -440,6 +441,7 @@ defmodule HTTPoisonTest do
                )
     end
 
+    @tag :network
     test "allows changing TLS1.0 settings" do
       assert {:error,
               %HTTPoison.Error{
@@ -455,6 +457,7 @@ defmodule HTTPoisonTest do
       end
     end
 
+    @tag :network
     test "allows changing TLS1.1 settings" do
       assert {:error,
               %HTTPoison.Error{
@@ -472,6 +475,7 @@ defmodule HTTPoisonTest do
       end
     end
 
+    @tag :network
     test "does support tls1.2" do
       if :"tlsv1.2" in :ssl.versions()[:supported] do
         assert {:ok, _} = HTTPoison.get("https://tls-v1-2.badssl.com:1012/", [])
@@ -485,6 +489,7 @@ defmodule HTTPoisonTest do
       end
     end
 
+    @tag :network
     test "invalid common name" do
       assert {:error,
               %HTTPoison.Error{
