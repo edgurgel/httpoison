@@ -708,6 +708,26 @@ defmodule HTTPoison.Base do
   end
 
   @doc false
+  defp validate_request_url(url) do
+    url = to_string(url)
+
+    %{scheme: scheme, host: host} = URI.parse(url)
+
+    cond do
+      is_nil(scheme) ->
+        raise HTTPoison.Error,
+          reason: "Invalid URL: #{url}. Missing scheme (e.g. http:// or https:// or http+unix://)."
+
+      is_nil(host) or host == "" ->
+        raise HTTPoison.Error,
+          reason: "Invalid URL: #{url}. Missing host (e.g. example.com)"
+
+      true ->
+        :ok
+    end
+  end
+
+  @doc false
   def default_process_request_url(url) do
     case url |> String.slice(0, 12) |> String.downcase() do
       "http://" <> _ -> url
@@ -877,6 +897,7 @@ defmodule HTTPoison.Base do
         process_response_body,
         process_response
       ) do
+    validate_request_url(request.url)
     hn_proxy_options = build_hackney_proxy_options(request)
     hn_options = hn_proxy_options ++ build_hackney_options(module, request)
 
