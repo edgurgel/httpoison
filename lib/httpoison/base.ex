@@ -311,10 +311,10 @@ defmodule HTTPoison.Base do
       the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or
       `307`.
 
-      If the method is set to `:post`, then the only `status_code` that get's automatically
+      If the method is set to `:post`, then the only `status_code` that gets automatically
       followed is `303`.
 
-      If any other method or `status_code` is returned, then this function returns a
+      If any other method or `status_code` is returned, then this function
       returns a `{:ok, %HTTPoison.MaybeRedirect{}}` containing the `redirect_url` for you to
       re-request with the method set to `:get`.
 
@@ -396,7 +396,7 @@ defmodule HTTPoison.Base do
       the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or
       `307`.
 
-      If the method is set to `:post`, then the only `status_code` that get's automatically
+      If the method is set to `:post`, then the only `status_code` that gets automatically
       followed is `303`.
 
       If any other method or `status_code` is returned, then this function returns a
