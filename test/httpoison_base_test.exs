@@ -749,4 +749,14 @@ defmodule HTTPoisonBaseTest do
     assert HTTPoison.request(:get, "http://localhost") ==
              {:error, %HTTPoison.Error{reason: reason}}
   end
+
+  test "validate_request_url/1 raises error for missing or empty host" do
+    invalid_urls = ["http://", "http:///path"]
+
+    for url <- invalid_urls do
+      assert_raise HTTPoison.Error, "\"Invalid URL: #{url} (missing host)\"", fn ->
+        HTTPoison.get!(url)
+      end
+    end
+  end
 end
