@@ -716,11 +716,11 @@ defmodule HTTPoison.Base do
     cond do
       is_nil(scheme) ->
         raise HTTPoison.Error,
-          reason: "Invalid URL: #{url}. Missing scheme (e.g. http:// or https:// or http+unix://)."
+          reason: "Invalid URL: #{url} (missing scheme e.g. http:// or https:// or http+unix://)"
 
       is_nil(host) or host == "" ->
         raise HTTPoison.Error,
-          reason: "Invalid URL: #{url}. Missing host (e.g. example.com)"
+          reason: "Invalid URL: #{url} (missing host)"
 
       true ->
         :ok
