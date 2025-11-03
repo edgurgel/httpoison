@@ -708,6 +708,24 @@ defmodule HTTPoison.Base do
   end
 
   @doc false
+  defp validate_request_url(url) do
+    url = to_string(url)
+
+    %{scheme: scheme, host: host} = URI.parse(url)
+
+    cond do
+      is_nil(scheme) ->
+        {:error, "Invalid URL: #{url} (missing scheme e.g. http:// or https:// or http+unix://)"}
+
+      is_nil(host) or host == "" ->
+        {:error, "Invalid URL: #{url} (missing host)"}
+
+      true ->
+        :ok
+    end
+  end
+
+  @doc false
   def default_process_request_url(url) do
     case url |> String.slice(0, 12) |> String.downcase() do
       "http://" <> _ -> url
@@ -877,27 +895,13 @@ defmodule HTTPoison.Base do
         process_response_body,
         process_response
       ) do
-    hn_proxy_options = build_hackney_proxy_options(request)
-    hn_options = hn_proxy_options ++ build_hackney_options(module, request)
+    case validate_request_url(request.url) do
+      :ok ->
+        hn_proxy_options = build_hackney_proxy_options(request)
+        hn_options = hn_proxy_options ++ build_hackney_options(module, request)
 
-    case do_request(request, hn_options) do
-      {:ok, status_code, headers} ->
-        response(
-          process_response_status_code,
-          process_response_headers,
-          process_response_body,
-          process_response,
-          status_code,
-          headers,
-          "",
-          request
-        )
-
-      {:ok, status_code, headers, client} ->
-        max_length = Keyword.get(request.options, :max_body_length, :infinity)
-
-        case :hackney.body(client, max_length) do
-          {:ok, body} ->
+        case do_request(request, hn_options) do
+          {:ok, status_code, headers} ->
             response(
               process_response_status_code,
               process_response_headers,
@@ -905,30 +909,50 @@ defmodule HTTPoison.Base do
               process_response,
               status_code,
               headers,
-              body,
+              "",
               request
             )
 
+          {:ok, status_code, headers, client} ->
+            max_length = Keyword.get(request.options, :max_body_length, :infinity)
+
+            case :hackney.body(client, max_length) do
+              {:ok, body} ->
+                response(
+                  process_response_status_code,
+                  process_response_headers,
+                  process_response_body,
+                  process_response,
+                  status_code,
+                  headers,
+                  body,
+                  request
+                )
+
+              {:error, reason} ->
+                {:error, %Error{reason: reason}}
+            end
+
+          {:ok, {:maybe_redirect, status_code, headers, _client}} ->
+            maybe_redirect(
+              process_response_status_code,
+              process_response_headers,
+              status_code,
+              headers,
+              request
+            )
+
+          {:ok, id} ->
+            {:ok, %HTTPoison.AsyncResponse{id: id}}
+
           {:error, reason} ->
+            {:error, %Error{reason: reason}}
+
+          {:connect_error, {:error, reason}} ->
             {:error, %Error{reason: reason}}
         end
 
-      {:ok, {:maybe_redirect, status_code, headers, _client}} ->
-        maybe_redirect(
-          process_response_status_code,
-          process_response_headers,
-          status_code,
-          headers,
-          request
-        )
-
-      {:ok, id} ->
-        {:ok, %HTTPoison.AsyncResponse{id: id}}
-
       {:error, reason} ->
-        {:error, %Error{reason: reason}}
-
-      {:connect_error, {:error, reason}} ->
         {:error, %Error{reason: reason}}
     end
   end
