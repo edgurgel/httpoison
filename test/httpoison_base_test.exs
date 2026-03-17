@@ -1,6 +1,6 @@
 defmodule HTTPoisonBaseTest do
   use ExUnit.Case, async: true
-  import Mimic
+  import Mimic, except: [expect: 3]
 
   setup :verify_on_exit!
 
@@ -51,6 +51,7 @@ defmodule HTTPoisonBaseTest do
     end)
 
     stub(:hackney)
+    stub(:hackney_conn)
     :ok
   end
 
@@ -532,6 +533,16 @@ defmodule HTTPoisonBaseTest do
     expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
   end
 
+  defp expect(:hackney, :body, fun) do
+    if function_exported?(:hackney, :body, 2) do
+      Mimic.expect(:hackney, :body, fun)
+    else
+      Mimic.expect(:hackney_conn, :body, fun)
+    end
+  end
+
+  defp expect(module, function, fun), do: Mimic.expect(module, function, fun)
+
   test "passing ssl override option" do
     expect(:hackney, :request, fn :post,
                                   "http://localhost",
@@ -562,9 +573,13 @@ defmodule HTTPoisonBaseTest do
 
   test "passing ssl option" do
     expect(:hackney, :request, fn :post, "http://localhost", [], "body", [ssl_options: opts] ->
-      assert opts[:verify] == :verify_peer
-      assert opts[:customize_hostname_check][:match_fun]
       assert opts[:certfile] == "certs/client.crt"
+
+      if function_exported?(:hackney_connection, :merge_ssl_opts, 2) do
+        assert opts[:verify] == :verify_peer
+        assert opts[:customize_hostname_check][:match_fun]
+      end
+
       {:ok, 200, "headers", :client}
     end)
 
@@ -669,6 +684,34 @@ defmodule HTTPoisonBaseTest do
              }
   end
 
+  test "passing location_trusted option" do
+    expect(:hackney, :request, fn :post,
+                                  "http://localhost",
+                                  [],
+                                  "body",
+                                  [location_trusted: true] ->
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert HTTPoison.post!("localhost", "body", [], location_trusted: true) ==
+             %HTTPoison.Response{
+               status_code: 200,
+               headers: "headers",
+               body: "response",
+               request_url: "http://localhost",
+               request: %HTTPoison.Request{
+                 body: "body",
+                 headers: [],
+                 method: :post,
+                 options: [location_trusted: true],
+                 params: %{},
+                 url: "http://localhost"
+               }
+             }
+  end
+
   test "passing max_body_length option" do
     expect(:hackney, :request, fn :get, "http://localhost", [], "", [] ->
       {:ok, 200, "headers", :client}
@@ -711,6 +754,52 @@ defmodule HTTPoisonBaseTest do
                   headers: [],
                   method: :get,
                   options: [max_body_length: 3],
+                  params: %{},
+                  url: "http://localhost"
+                }
+              }}
+  end
+
+  test "inline body response respects max_body_length" do
+    expect(:hackney, :request, fn :get, "http://localhost", [], "", [] ->
+      {:ok, 200, "headers", "response"}
+    end)
+
+    assert HTTPoison.get("localhost", [], max_body_length: 3) ==
+             {:ok,
+              %HTTPoison.Response{
+                status_code: 200,
+                headers: "headers",
+                body: "res",
+                request_url: "http://localhost",
+                request: %HTTPoison.Request{
+                  body: "",
+                  headers: [],
+                  method: :get,
+                  options: [max_body_length: 3],
+                  params: %{},
+                  url: "http://localhost"
+                }
+              }}
+  end
+
+  test "head-like response without payload keeps empty body" do
+    expect(:hackney, :request, fn :get, "http://localhost", [], "", [] ->
+      {:ok, 204, "headers"}
+    end)
+
+    assert HTTPoison.get("localhost") ==
+             {:ok,
+              %HTTPoison.Response{
+                status_code: 204,
+                headers: "headers",
+                body: "",
+                request_url: "http://localhost",
+                request: %HTTPoison.Request{
+                  body: "",
+                  headers: [],
+                  method: :get,
+                  options: [],
                   params: %{},
                   url: "http://localhost"
                 }

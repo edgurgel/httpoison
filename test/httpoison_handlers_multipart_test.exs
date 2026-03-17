@@ -18,6 +18,20 @@ defmodule HTTPoison.Handlers.MultipartTest do
            ]
   end
 
+  test "decodes multipart body with quoted boundary and lowercase header" do
+    response = %HTTPoison.Response{
+      body: @multipart_body,
+      headers: [{"content-type", "multipart/mixed; boundary=\"123\""}],
+      request_url: "http://localhost",
+      status_code: 200
+    }
+
+    assert HTTPoison.Handlers.Multipart.decode_body(response) == [
+             {[{"Content-Type", "application/json"}], "{\"1\": \"first\"}"},
+             {[{"Content-Type", "application/json"}], "{\"2\": \"second\"}"}
+           ]
+  end
+
   test "does not decode body if not multipart" do
     response = %HTTPoison.Response{
       body: @non_multipart_body,

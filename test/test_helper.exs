@@ -1,4 +1,5 @@
 Mimic.copy(:hackney)
+Mimic.copy(:hackney_conn)
 ExUnit.start()
 
 defmodule PathHelpers do

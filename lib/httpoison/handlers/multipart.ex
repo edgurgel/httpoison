@@ -46,19 +46,101 @@ defmodule HTTPoison.Handlers.Multipart do
   """
   def decode_body(%Response{body: body, headers: headers}) do
     try do
-      case :hackney_headers.parse("Content-Type", headers) do
-        {"multipart", _, [{"boundary", boundary} | _]} ->
+      case parse_multipart_boundary(headers) do
+        {:ok, boundary} ->
           case :hackney_multipart.decode_form(boundary, body) do
             {:ok, []} -> body
             {:ok, parsed} -> parsed
             {_, _} -> body
           end
 
-        _ ->
+        :error ->
           body
       end
     rescue
       _ in ErlangError -> body
     end
   end
+
+  defp parse_multipart_boundary(headers) when is_list(headers) do
+    with value when not is_nil(value) <- get_header_value(headers, "content-type"),
+         {:ok, boundary} <- parse_boundary(to_string(value)) do
+      {:ok, boundary}
+    else
+      _ -> :error
+    end
+  end
+
+  defp parse_multipart_boundary(_headers), do: :error
+
+  defp parse_boundary(content_type) do
+    binary_content_type = to_binary(content_type)
+
+    # Prefer hackney's parser when available, but keep a fallback for older/newer API drifts.
+    case parse_boundary_with_hackney(binary_content_type) do
+      {:ok, boundary} ->
+        {:ok, normalize_boundary(boundary)}
+
+      :error ->
+        parse_boundary_with_regex(content_type)
+    end
+  end
+
+  defp parse_boundary_with_hackney(content_type) do
+    if function_exported?(:hackney_headers, :parse_content_type, 1) do
+      case :hackney_headers.parse_content_type(content_type) do
+        {type, _subtype, params} when type in [<<"multipart">>, "multipart"] ->
+          case Enum.find_value(params, fn
+                 {<<"boundary">>, boundary} -> boundary
+                 _ -> nil
+               end) do
+            nil -> :error
+            boundary -> {:ok, boundary}
+          end
+
+        _ ->
+          :error
+      end
+    else
+      :error
+    end
+  end
+
+  defp parse_boundary_with_regex(content_type) do
+    case Regex.run(~r/boundary=(?:"([^\"]+)"|([^;,\s]+))/i, content_type, capture: :all_but_first) do
+      [value] when value != "" ->
+        {:ok, normalize_boundary(value)}
+
+      [quoted, unquoted] when quoted != "" and unquoted == "" ->
+        {:ok, normalize_boundary(quoted)}
+
+      [quoted, unquoted] when quoted == "" and unquoted != "" ->
+        {:ok, normalize_boundary(unquoted)}
+
+      _ ->
+        :error
+    end
+  end
+
+  defp normalize_boundary(boundary) do
+    boundary
+    |> to_string()
+    |> String.trim()
+    |> String.trim("\"")
+  end
+
+  defp get_header_value(headers, key) do
+    Enum.find_value(headers, fn
+      {header_key, value} ->
+        if String.downcase(to_string(header_key)) == key do
+          value
+        end
+
+      _ ->
+        nil
+    end)
+  end
+
+  defp to_binary(value) when is_binary(value), do: value
+  defp to_binary(value) when is_list(value), do: List.to_string(value)
 end

@@ -5,6 +5,26 @@ HTTP client for Elixir, based on
 [HTTPotion](https://github.com/myfreeweb/httpotion)
 ([documentation](https://hexdocs.pm/httpoison/)).
 
+## Fork Notice (What and Why)
+
+This fork upgrades `hackney` from `~> 1.21` to `~> 3.0.3` while keeping HTTPoison a drop-in replacement for existing projects.
+
+What changed:
+
+- Dependency upgrade to Hackney 3 (`~> 3.0.3`).
+- Compatibility adapters for response body reading, SSL option merging, async `:once`, multipart parsing, and streaming uploads.
+- Added regression tests to verify behavior parity for these compatibility paths.
+
+Why this exists:
+
+- Upstream Hackney 3 introduces API/runtime changes that break HTTPoison's previous assumptions.
+- This fork keeps HTTPoison's public API and observable behavior stable so older integrations can keep working with minimal or no application changes.
+
+Runtime target for this fork:
+
+- Verified working on a proprietary `elixir: 1.13.4-otp-25, erlang/otp: 25.3.2.21` docker image.
+- Regression suite used during migration: `MIX_ENV=test mix test --exclude network`.
+
 
 ## Installation
 
@@ -24,7 +44,7 @@ and run `$ mix deps.get`.
 
 The main change that caused a major version is that `ssl` option now _merges_ with the default options where previously it would override the ssl options. The new option `ssl_override` was added to allow people to keep the previous behaviour but it's more explicit now.
 
-The default SSL options can be found on [hackney's codebase](https://github.com/benoitc/hackney/blob/befe2df2080704824487c3c0201417d0ddb3c686/src/hackney_connection.erl#L115-L148) as we simply use `:hackney_connections.merge_ssl_opts/2`
+The default SSL options come from hackney and may vary by hackney version. HTTPoison merges `ssl` options with those defaults; use `ssl_override` to opt out of that merge.
 
 More context here: https://github.com/edgurgel/httpoison/pull/466
 
@@ -73,6 +93,8 @@ end
 ### Options
 
 There are a number of supported options(*not to be confused with the HTTP options method*), documented [here](https://hexdocs.pm/httpoison/HTTPoison.html#request/5), that can be added to your request. The example below shows the use of the `:ssl` and `:recv_timeout` options for a post request to an api that requires a bearer token. The `:ssl` option allows you to set options accepted by the [Erlang SSL module](https://erlang.org/doc/man/ssl.html), and `:recv_timeout` sets a timeout on receiving a response, the default is 5000ms.
+
+If you need legacy redirect credential forwarding behavior, you can pass `location_trusted: true` (maps to hackney's redirect trust option).
 
 ```elixir
 token = "some_token_from_another_request"

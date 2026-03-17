@@ -79,6 +79,9 @@ defmodule HTTPoison.Base do
   alias HTTPoison.MaybeRedirect
   alias HTTPoison.Error
 
+  @async_once_registry :httpoison_async_once_registry
+  @async_stream_next_timeout 5_000
+
   @callback delete(url) ::
               {:ok, Response.t() | AsyncResponse.t() | MaybeRedirect.t()} | {:error, Error.t()}
   @callback delete(url, headers) ::
@@ -286,7 +289,11 @@ defmodule HTTPoison.Base do
 
       @doc false
       @spec transformer(pid) :: :ok
-      def transformer(target) do
+      def transformer(target), do: transformer(target, nil)
+
+      @doc false
+      @spec transformer(pid, :once | nil) :: :ok
+      def transformer(target, async_mode) do
         # Track the target process so we can exit when it dies
         Process.monitor(target)
 
@@ -295,7 +302,8 @@ defmodule HTTPoison.Base do
           target,
           &process_response_status_code/1,
           &process_response_headers/1,
-          &process_response_chunk/1
+          &process_response_chunk/1,
+          async_mode
         )
       end
 
@@ -636,7 +644,7 @@ defmodule HTTPoison.Base do
       """
       @spec stream_next(AsyncResponse.t()) :: {:ok, AsyncResponse.t()} | {:error, Error.t()}
       def stream_next(resp = %AsyncResponse{id: id}) do
-        case :hackney.stream_next(id) do
+        case HTTPoison.Base.stream_next(id) do
           :ok -> {:ok, resp}
           err -> {:error, %Error{reason: "stream_next/1 failed", id: id}}
         end
@@ -647,62 +655,219 @@ defmodule HTTPoison.Base do
   end
 
   @doc false
+  def stream_next(id) do
+    case get_async_once_owner(id) do
+      nil ->
+        :hackney.stream_next(id)
+
+      transformer when is_pid(transformer) ->
+        if Process.alive?(transformer) do
+          ref = make_ref()
+          send(transformer, {:httpoison_stream_next, self(), ref, id})
+
+          receive do
+            {^ref, result} ->
+              result
+          after
+            @async_stream_next_timeout ->
+              # Stale registry entry fallback: preserve stream_next semantics instead of timing out.
+              maybe_unregister_async_once_stream(id)
+              :hackney.stream_next(id)
+          end
+        else
+          maybe_unregister_async_once_stream(id)
+          :hackney.stream_next(id)
+        end
+    end
+  end
+
+  @doc false
   def transformer(
         module,
         target,
         process_response_status_code,
         process_response_headers,
-        process_response_chunk
+        process_response_chunk,
+        async_mode
       ) do
+    transformer_loop(%{
+      module: module,
+      target: target,
+      process_response_status_code: process_response_status_code,
+      process_response_headers: process_response_headers,
+      process_response_chunk: process_response_chunk,
+      async_mode: async_mode,
+      once_credit: if(async_mode == :once, do: 1, else: 0),
+      once_queue: :queue.new(),
+      stream_id: nil
+    })
+  end
+
+  defp transformer_loop(state) do
+    target = state.target
+
     receive do
       {:hackney_response, id, {:status, code, _reason}} ->
-        send(target, %HTTPoison.AsyncStatus{id: id, code: process_response_status_code.(code)})
-
-        transformer(
-          module,
-          target,
-          process_response_status_code,
-          process_response_headers,
-          process_response_chunk
-        )
+        message = %HTTPoison.AsyncStatus{id: id, code: state.process_response_status_code.(code)}
+        handle_async_message(state, id, message, false)
 
       {:hackney_response, id, {:headers, headers}} ->
-        send(target, %HTTPoison.AsyncHeaders{id: id, headers: process_response_headers.(headers)})
+        message = %HTTPoison.AsyncHeaders{
+          id: id,
+          headers: state.process_response_headers.(headers)
+        }
 
-        transformer(
-          module,
-          target,
-          process_response_status_code,
-          process_response_headers,
-          process_response_chunk
-        )
+        handle_async_message(state, id, message, false)
 
       {:hackney_response, id, :done} ->
-        send(target, %HTTPoison.AsyncEnd{id: id})
+        message = %HTTPoison.AsyncEnd{id: id}
+        handle_async_message(state, id, message, true)
 
       {:hackney_response, id, {:error, reason}} ->
-        send(target, %Error{id: id, reason: reason})
+        message = %Error{id: id, reason: reason}
+        handle_async_message(state, id, message, true)
 
       {:hackney_response, id, {redirect, to, headers}} when redirect in [:redirect, :see_other] ->
-        send(target, %HTTPoison.AsyncRedirect{
+        message = %HTTPoison.AsyncRedirect{
           id: id,
           to: to,
-          headers: process_response_headers.(headers)
-        })
+          headers: state.process_response_headers.(headers)
+        }
+
+        handle_async_message(state, id, message, false)
 
       {:hackney_response, id, chunk} ->
-        send(target, %HTTPoison.AsyncChunk{id: id, chunk: process_response_chunk.(chunk)})
+        message = %HTTPoison.AsyncChunk{id: id, chunk: state.process_response_chunk.(chunk)}
+        handle_async_message(state, id, message, false)
 
-        transformer(
-          module,
-          target,
-          process_response_status_code,
-          process_response_headers,
-          process_response_chunk
-        )
+      {:httpoison_stream_next, from, ref, id} ->
+        {result, next_state, stop?} = handle_stream_next(state, id)
+        send(from, {ref, result})
+
+        if stop? do
+          :ok
+        else
+          transformer_loop(next_state)
+        end
 
       # Exit if the target process dies as this will be a zombie
       {:DOWN, _ref, :process, ^target, _reason} ->
+        maybe_unregister_async_once_stream(state.stream_id)
+        :ok
+    end
+  end
+
+  defp handle_async_message(state, id, message, terminal?) do
+    state = maybe_register_async_once_stream(state, id)
+
+    case state.async_mode do
+      :once ->
+        handle_async_once_message(state, id, message, terminal?)
+
+      _ ->
+        send(state.target, message)
+
+        if terminal? do
+          maybe_unregister_async_once_stream(id)
+          :ok
+        else
+          transformer_loop(state)
+        end
+    end
+  end
+
+  defp handle_async_once_message(state, id, message, terminal?) do
+    # Preserve HTTPoison's observable `async: :once` contract:
+    # exactly one async event is delivered per `stream_next/1` credit.
+    if state.once_credit > 0 and :queue.is_empty(state.once_queue) do
+      send(state.target, message)
+      next_state = %{state | once_credit: state.once_credit - 1}
+
+      if terminal? do
+        maybe_unregister_async_once_stream(id)
+        :ok
+      else
+        transformer_loop(next_state)
+      end
+    else
+      queue = :queue.in({id, message, terminal?}, state.once_queue)
+      transformer_loop(%{state | once_queue: queue})
+    end
+  end
+
+  defp handle_stream_next(%{async_mode: :once} = state, stream_next_id) do
+    case :queue.out(state.once_queue) do
+      {{:value, {id, message, terminal?}}, queue} ->
+        send(state.target, message)
+        next_state = %{state | once_queue: queue}
+
+        if terminal? do
+          maybe_unregister_async_once_stream(id)
+          {:ok, next_state, true}
+        else
+          {:ok, next_state, false}
+        end
+
+      {:empty, _queue} ->
+        result = :hackney.stream_next(stream_next_id)
+
+        next_state =
+          if result == :ok do
+            %{state | once_credit: state.once_credit + 1}
+          else
+            state
+          end
+
+        {result, next_state, false}
+    end
+  end
+
+  defp handle_stream_next(state, stream_next_id) do
+    {:hackney.stream_next(stream_next_id), state, false}
+  end
+
+  defp maybe_register_async_once_stream(%{async_mode: :once, stream_id: nil} = state, id) do
+    ensure_async_once_registry!()
+    :ets.insert(@async_once_registry, {id, self()})
+    %{state | stream_id: id}
+  end
+
+  defp maybe_register_async_once_stream(state, _id), do: state
+
+  defp maybe_unregister_async_once_stream(nil), do: :ok
+
+  defp maybe_unregister_async_once_stream(id) do
+    case :ets.whereis(@async_once_registry) do
+      :undefined -> :ok
+      _ -> :ets.delete(@async_once_registry, id)
+    end
+  end
+
+  defp get_async_once_owner(id) do
+    case :ets.whereis(@async_once_registry) do
+      :undefined ->
+        nil
+
+      _ ->
+        case :ets.lookup(@async_once_registry, id) do
+          [{^id, owner}] -> owner
+          [] -> nil
+        end
+    end
+  end
+
+  defp ensure_async_once_registry! do
+    case :ets.whereis(@async_once_registry) do
+      :undefined ->
+        # Best-effort creation. Multiple async streams may race on first use.
+        try do
+          :ets.new(@async_once_registry, [:named_table, :public, :set, read_concurrency: true])
+          :ok
+        catch
+          :error, :badarg -> :ok
+        end
+
+      _ ->
         :ok
     end
   end
@@ -774,13 +939,14 @@ defmodule HTTPoison.Base do
         # Extract the host from the URL just like hackney does
         host = hackney_url_record(:hackney_url.parse_url(url), :host)
 
-        :hackney_connection.merge_ssl_opts(host, ssl_opts)
+        merge_ssl_opts_compat(host, ssl_opts)
       else
         Keyword.get(options, :ssl_override)
       end
 
     follow_redirect = Keyword.get(options, :follow_redirect)
     max_redirect = Keyword.get(options, :max_redirect)
+    location_trusted = Keyword.get(options, :location_trusted)
 
     hn_options = Keyword.get(options, :hackney, [])
 
@@ -798,6 +964,13 @@ defmodule HTTPoison.Base do
       if max_redirect, do: [{:max_redirect, max_redirect} | hn_options], else: hn_options
 
     hn_options =
+      if is_boolean(location_trusted) do
+        [{:location_trusted, location_trusted} | hn_options]
+      else
+        hn_options
+      end
+
+    hn_options =
       if stream_to do
         async_option =
           case async do
@@ -805,12 +978,64 @@ defmodule HTTPoison.Base do
             :once -> {:async, :once}
           end
 
-        [async_option, {:stream_to, spawn_link(module, :transformer, [stream_to])} | hn_options]
+        [
+          async_option,
+          {:stream_to, spawn_link(module, :transformer, [stream_to, async])}
+          | hn_options
+        ]
       else
         hn_options
       end
 
     hn_options
+  end
+
+  defp merge_ssl_opts_compat(host, ssl_opts) do
+    if function_exported?(:hackney_connection, :merge_ssl_opts, 2) do
+      apply(:hackney_connection, :merge_ssl_opts, [host, ssl_opts])
+      |> normalize_ssl_ca_options()
+    else
+      # Hackney 3+ already merges SSL defaults internally.
+      normalize_ssl_ca_options(ssl_opts)
+    end
+  end
+
+  defp normalize_ssl_ca_options(ssl_opts) do
+    cacertfile = Keyword.get(ssl_opts, :cacertfile)
+    has_cacerts = Keyword.has_key?(ssl_opts, :cacerts)
+
+    cond do
+      is_nil(cacertfile) or has_cacerts ->
+        ssl_opts
+
+      true ->
+        # OTP 25 + Hackney 3 may require in-memory certs (`:cacerts`) while callers
+        # often still provide `:cacertfile`, so convert when possible.
+        case certs_from_pem_file(cacertfile) do
+          {:ok, certs} when certs != [] ->
+            ssl_opts
+            |> Keyword.delete(:cacertfile)
+            |> Keyword.put(:cacerts, certs)
+
+          _ ->
+            ssl_opts
+        end
+    end
+  end
+
+  defp certs_from_pem_file(path) do
+    with {:ok, pem} <- File.read(to_string(path)) do
+      certs =
+        pem
+        |> :public_key.pem_decode()
+        |> Enum.reduce([], fn
+          {:Certificate, der, _}, acc -> [der | acc]
+          _, acc -> acc
+        end)
+        |> Enum.reverse()
+
+      {:ok, certs}
+    end
   end
 
   defp build_hackney_proxy_options(%Request{options: options, url: request_url}) do
@@ -899,6 +1124,7 @@ defmodule HTTPoison.Base do
       :ok ->
         hn_proxy_options = build_hackney_proxy_options(request)
         hn_options = hn_proxy_options ++ build_hackney_options(module, request)
+        max_length = Keyword.get(request.options, :max_body_length, :infinity)
 
         case do_request(request, hn_options) do
           {:ok, status_code, headers} ->
@@ -913,10 +1139,8 @@ defmodule HTTPoison.Base do
               request
             )
 
-          {:ok, status_code, headers, client} ->
-            max_length = Keyword.get(request.options, :max_body_length, :infinity)
-
-            case :hackney.body(client, max_length) do
+          {:ok, status_code, headers, payload} ->
+            case normalize_response_body(payload, max_length) do
               {:ok, body} ->
                 response(
                   process_response_status_code,
@@ -957,12 +1181,50 @@ defmodule HTTPoison.Base do
     end
   end
 
+  defp normalize_response_body(payload, max_length) when is_binary(payload) do
+    # Hackney 3 may return the full body inline in the request tuple.
+    # Keep HTTPoison's `max_body_length` behavior consistent with client-body responses.
+    {:ok, clamp_body_length(payload, max_length)}
+  end
+
+  defp normalize_response_body(payload, max_length) do
+    read_response_body(payload, max_length)
+  end
+
+  defp read_response_body(client, max_length) do
+    cond do
+      function_exported?(:hackney, :body, 2) ->
+        apply(:hackney, :body, [client, max_length])
+
+      function_exported?(:hackney_conn, :body, 2) ->
+        :hackney_conn.body(client, max_length)
+
+      function_exported?(:hackney_conn, :body, 1) ->
+        case :hackney_conn.body(client) do
+          {:ok, body} -> {:ok, clamp_body_length(body, max_length)}
+          other -> other
+        end
+
+      true ->
+        {:error, :unsupported_response_body}
+    end
+  end
+
+  defp clamp_body_length(body, :infinity), do: body
+
+  defp clamp_body_length(body, max_length) when is_binary(body) and is_integer(max_length) do
+    binary_part(body, 0, min(byte_size(body), max_length))
+  end
+
+  defp clamp_body_length(body, _max_length), do: body
+
   defp do_request(%Request{body: {:stream, enumerable}} = request, hn_options) do
     with {:ok, ref} <-
            :hackney.request(request.method, request.url, request.headers, :stream, hn_options) do
       failures =
         Stream.transform(enumerable, :ok, fn
           _, :error -> {:halt, :error}
+          chunk, :ok when chunk in ["", <<>>] -> {[], :ok}
           bin, :ok -> {[], :hackney.send_body(ref, bin)}
           _, error -> {[error], :error}
         end)
@@ -970,7 +1232,10 @@ defmodule HTTPoison.Base do
 
       case failures do
         [] ->
-          :hackney.start_response(ref)
+          case :hackney.finish_send_body(ref) do
+            :ok -> :hackney.start_response(ref)
+            error -> error
+          end
 
         [failure] ->
           failure
@@ -979,7 +1244,26 @@ defmodule HTTPoison.Base do
   end
 
   defp do_request(request, hn_options) do
-    :hackney.request(request.method, request.url, request.headers, request.body, hn_options)
+    headers = maybe_add_default_content_type(request.method, request.headers, request.body)
+    :hackney.request(request.method, request.url, headers, request.body, hn_options)
+  end
+
+  defp maybe_add_default_content_type(method, headers, body)
+       when method in [:post, :put, :patch] and body in ["", <<>>] do
+    if has_header?(headers, "content-type") do
+      headers
+    else
+      [{"Content-Type", "application/octet-stream"} | headers]
+    end
+  end
+
+  defp maybe_add_default_content_type(_method, headers, _body), do: headers
+
+  defp has_header?(headers, header_name) do
+    Enum.any?(headers, fn
+      {name, _value} -> String.downcase(to_string(name)) == header_name
+      _ -> false
+    end)
   end
 
   defp response(
