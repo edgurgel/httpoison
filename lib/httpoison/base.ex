@@ -769,15 +769,7 @@ defmodule HTTPoison.Base do
     stream_to = Keyword.get(options, :stream_to)
     async = Keyword.get(options, :async)
 
-    ssl =
-      if ssl_opts = Keyword.get(options, :ssl) do
-        # Extract the host from the URL just like hackney does
-        host = hackney_url_record(:hackney_url.parse_url(url), :host)
-
-        :hackney_connection.merge_ssl_opts(host, ssl_opts)
-      else
-        Keyword.get(options, :ssl_override)
-      end
+    ssl = build_ssl_options(url, options)
 
     follow_redirect = Keyword.get(options, :follow_redirect)
     max_redirect = Keyword.get(options, :max_redirect)
@@ -811,6 +803,58 @@ defmodule HTTPoison.Base do
       end
 
     hn_options
+  end
+
+  defp build_ssl_options(url, options) do
+    cond do
+      Keyword.has_key?(options, :ssl) ->
+        # Extract the host from the URL just like hackney does.
+        host = hackney_url_record(:hackney_url.parse_url(url), :host)
+
+        ssl_opts =
+          options
+          |> Keyword.get(:ssl, [])
+          |> put_default_cacerts()
+
+        :hackney_connection.merge_ssl_opts(host, ssl_opts)
+
+      Keyword.has_key?(options, :ssl_override) ->
+        Keyword.get(options, :ssl_override)
+
+      hackney_insecure?(options) ->
+        nil
+
+      https_url?(url) ->
+        host = hackney_url_record(:hackney_url.parse_url(url), :host)
+        :hackney_connection.merge_ssl_opts(host, default_cacerts())
+
+      true ->
+        nil
+    end
+  end
+
+  defp put_default_cacerts(ssl_opts) do
+    case Keyword.has_key?(ssl_opts, :cacerts) or Keyword.has_key?(ssl_opts, :cacertfile) do
+      true -> ssl_opts
+      _ -> Keyword.merge(default_cacerts(), ssl_opts)
+    end
+  end
+
+  if Code.ensure_loaded?(:public_key) and function_exported?(:public_key, :cacerts_get, 0) do
+    defp default_cacerts do
+      [cacerts: :public_key.cacerts_get()]
+    end
+  else
+    defp default_cacerts(), do: []
+  end
+
+  defp https_url?(url) when is_binary(url), do: URI.parse(url).scheme == "https"
+  defp https_url?(_url), do: false
+
+  defp hackney_insecure?(options) do
+    hackney_options = Keyword.get(options, :hackney, [])
+
+    Keyword.get(hackney_options, :insecure, false) || :insecure in hackney_options
   end
 
   defp build_hackney_proxy_options(%Request{options: options, url: request_url}) do

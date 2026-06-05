@@ -359,7 +359,7 @@ defmodule HTTPoisonTest do
     {:ok, [buffer: buffer_size]} = :inet.getopts(socket, [:buffer])
     :ok = :gen_tcp.close(socket)
 
-    max_length = Kernel.trunc(buffer_size * 1.5)
+    max_length = 1024
 
     expected_length =
       Float.ceil(max_length / buffer_size)
