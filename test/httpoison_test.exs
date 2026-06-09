@@ -203,6 +203,20 @@ defmodule HTTPoisonTest do
     )
   end
 
+  test "non-followed redirect with a pool option returns the redirect response" do
+    {:ok, response} =
+      HTTPoison.get(
+        "http://localhost:4002/redirect-to?url=http%3A%2F%2Flocalhost:4002%2Fget",
+        [],
+        hackney: [pool: :default]
+      )
+
+    assert response.status_code in [301, 302, 303, 307, 308]
+    assert response.body == ""
+
+    assert Enum.any?(response.headers, fn {k, _v} -> String.downcase(k) == "location" end)
+  end
+
   test "basic_auth hackney option" do
     hackney = [basic_auth: {"user", "pass"}, insecure_basic_auth: true]
 

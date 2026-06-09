@@ -567,6 +567,37 @@ defmodule HTTPoisonBaseTest do
              }
   end
 
+  test "verify_none injects a permissive verify_fun" do
+    expect(:hackney, :request, fn :post, "http://localhost", [], "body", [ssl_options: opts] ->
+      assert opts[:verify] == :verify_none
+
+      # hackney 4.0 injects its own hostname-checking verify_fun even under
+      # verify_none, so assert the fun is actually permissive rather than merely present.
+      {verify_fun, state} = opts[:verify_fun]
+      assert {:valid, _} = verify_fun.(:cert, {:bad_cert, :cert_expired}, state)
+
+      {:ok, 200, "headers", "response"}
+    end)
+
+    assert {:ok, %HTTPoison.Response{status_code: 200}} =
+             HTTPoison.post("localhost", "body", [], ssl: [verify: :verify_none])
+  end
+
+  test "verify_none does not override a caller-supplied verify_fun" do
+    caller_fun = {fn _, _, state -> {:valid, state} end, :caller_state}
+
+    expect(:hackney, :request, fn :post, "http://localhost", [], "body", [ssl_options: opts] ->
+      assert opts[:verify] == :verify_none
+      assert opts[:verify_fun] == caller_fun
+      {:ok, 200, "headers", "response"}
+    end)
+
+    assert {:ok, %HTTPoison.Response{status_code: 200}} =
+             HTTPoison.post("localhost", "body", [],
+               ssl: [verify: :verify_none, verify_fun: caller_fun]
+             )
+  end
+
   test "passing follow_redirect option" do
     expect(:hackney, :request, fn :post,
                                   "http://localhost",
