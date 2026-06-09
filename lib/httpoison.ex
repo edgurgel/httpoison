@@ -32,8 +32,8 @@ defmodule HTTPoison.Request do
       are not specified.
     * `:ssl_override` - if `:ssl` is specified, this option is ignored, otherwise it can be used to
       completely override SSL settings.
-    * `:follow_redirect` - a boolean that causes redirects to be followed, can cause a request to return
-      a `MaybeRedirect` struct. See: HTTPoison.MaybeRedirect
+    * `:follow_redirect` - a boolean that causes redirects to be followed (resolved internally by
+      hackney as of 4.0). See: HTTPoison.MaybeRedirect
     * `:max_redirect` - an integer denoting the maximum number of redirects to follow. Default is 5
     * `:params` - an enumerable consisting of two-item tuples that will be appended to the url as query string parameters
     * `:max_body_length` - a non-negative integer denoting the max response body length. See :hackney.body/2
@@ -206,15 +206,13 @@ end
 
 defmodule HTTPoison.MaybeRedirect do
   @moduledoc """
-  If the option `:follow_redirect` is given to a request, HTTP redirects are automatically follow if
-  the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or `307`.
+  Deprecated as of the hackney 4.0 upgrade.
 
-  If the method is set to `:post`, then the only `status_code` that get's automatically
-  followed is `303`.
-
-  If any other method or `status_code` is returned, then this struct is returned in place of a
-  `HTTPoison.Response` or `HTTPoison.AsyncResponse`, containing the `redirect_url` to allow you
-  to optionally re-request with the method set to `:get`.
+  Earlier versions returned this struct in place of a `HTTPoison.Response` when
+  a redirect could not be followed automatically, so the caller could re-request
+  the `redirect_url` itself. As of hackney 4.0 redirects are resolved inside
+  hackney and the final response is returned, so this struct is no longer
+  produced. It is retained only for backward compatibility.
   """
 
   defstruct status_code: nil, request_url: nil, request: nil, redirect_url: nil, headers: []

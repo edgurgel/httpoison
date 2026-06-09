@@ -302,21 +302,20 @@ defmodule HTTPoison.Base do
       @doc ~S"""
       Issues an HTTP request using an `HTTPoison.Request` struct.
 
-      This function returns `{:ok, response}`, `{:ok, async_response}`, or `{:ok, maybe_redirect}`
+      This function returns `{:ok, response}` or `{:ok, async_response}`
       if the request is successful, `{:error, reason}` otherwise.
 
       ## Redirect handling
 
-      If the option `:follow_redirect` is given, HTTP redirects are automatically follow if
-      the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or
-      `307`.
+      If the option `:follow_redirect` is given, HTTP redirects are followed
+      internally by hackney when the method is `:get` or `:head` and the
+      response's `status_code` is `301`, `302` or `307`, and when the method is
+      `:post` and the `status_code` is `303`. Redirects are resolved up to
+      `:max_redirect` hops and the final response is returned.
 
-      If the method is set to `:post`, then the only `status_code` that gets automatically
-      followed is `303`.
-
-      If any other method or `status_code` is returned, then this function
-      returns a `{:ok, %HTTPoison.MaybeRedirect{}}` containing the `redirect_url` for you to
-      re-request with the method set to `:get`.
+      As of hackney 4.0 redirects are resolved inside hackney, so a
+      `HTTPoison.MaybeRedirect` is no longer returned. The struct is retained
+      only for backward compatibility.
 
       ## Examples
 
@@ -387,21 +386,20 @@ defmodule HTTPoison.Base do
 
       Options: see type `HTTPoison.Request`
 
-      This function returns `{:ok, response}`, `{:ok, async_response}`, or `{:ok, maybe_redirect}`
+      This function returns `{:ok, response}` or `{:ok, async_response}`
       if the request is successful, `{:error, reason}` otherwise.
 
       ## Redirect handling
 
-      If the option `:follow_redirect` is given, HTTP redirects are automatically follow if
-      the method is set to `:get` or `:head` and the response's `status_code` is `301`, `302` or
-      `307`.
+      If the option `:follow_redirect` is given, HTTP redirects are followed
+      internally by hackney when the method is `:get` or `:head` and the
+      response's `status_code` is `301`, `302` or `307`, and when the method is
+      `:post` and the `status_code` is `303`. Redirects are resolved up to
+      `:max_redirect` hops and the final response is returned.
 
-      If the method is set to `:post`, then the only `status_code` that gets automatically
-      followed is `303`.
-
-      If any other method or `status_code` is returned, then this function returns a
-      returns a `{:ok, %HTTPoison.MaybeRedirect{}}` containing the `redirect_url` for you to
-      re-request with the method set to `:get`.
+      As of hackney 4.0 redirects are resolved inside hackney, so a
+      `HTTPoison.MaybeRedirect` is no longer returned. The struct is retained
+      only for backward compatibility.
 
       ## Examples
 
@@ -774,7 +772,7 @@ defmodule HTTPoison.Base do
         # Extract the host from the URL just like hackney does
         host = hackney_url_record(:hackney_url.parse_url(url), :host)
 
-        :hackney_connection.merge_ssl_opts(host, ssl_opts)
+        :hackney_ssl.ssl_opts(host, [{:ssl_options, allow_insecure_verify(ssl_opts)}])
       else
         Keyword.get(options, :ssl_override)
       end
@@ -812,6 +810,22 @@ defmodule HTTPoison.Base do
 
     hn_options
   end
+
+  # hackney 4.0 always merges in its own `verify_fun` (ssl_verify_hostname), which
+  # OTP still invokes even when `verify: :verify_none` is set, so the bare
+  # `verify_none` idiom no longer disables certificate verification. When the caller
+  # asks for `verify_none` without supplying their own `verify_fun`, inject a
+  # permissive one so verification is actually skipped.
+  defp allow_insecure_verify(ssl_opts) when is_list(ssl_opts) do
+    if Keyword.get(ssl_opts, :verify) == :verify_none and
+         not Keyword.has_key?(ssl_opts, :verify_fun) do
+      Keyword.put(ssl_opts, :verify_fun, {fn _, _, state -> {:valid, state} end, nil})
+    else
+      ssl_opts
+    end
+  end
+
+  defp allow_insecure_verify(ssl_opts), do: ssl_opts
 
   defp build_hackney_proxy_options(%Request{options: options, url: request_url}) do
     proxy =
@@ -913,36 +927,21 @@ defmodule HTTPoison.Base do
               request
             )
 
-          {:ok, status_code, headers, client} ->
+          {:ok, status_code, headers, body} when is_binary(body) ->
             max_length = Keyword.get(request.options, :max_body_length, :infinity)
 
-            case :hackney.body(client, max_length) do
-              {:ok, body} ->
-                response(
-                  process_response_status_code,
-                  process_response_headers,
-                  process_response_body,
-                  process_response,
-                  status_code,
-                  headers,
-                  body,
-                  request
-                )
-
-              {:error, reason} ->
-                {:error, %Error{reason: reason}}
-            end
-
-          {:ok, {:maybe_redirect, status_code, headers, _client}} ->
-            maybe_redirect(
+            response(
               process_response_status_code,
               process_response_headers,
+              process_response_body,
+              process_response,
               status_code,
               headers,
+              truncate_body(body, max_length),
               request
             )
 
-          {:ok, id} ->
+          {:ok, id} when is_reference(id) or is_pid(id) ->
             {:ok, %HTTPoison.AsyncResponse{id: id}}
 
           {:error, reason} ->
@@ -963,14 +962,17 @@ defmodule HTTPoison.Base do
       failures =
         Stream.transform(enumerable, :ok, fn
           _, :error -> {:halt, :error}
-          bin, :ok -> {[], :hackney.send_body(ref, bin)}
+          bin, :ok -> {[], send_body_chunk(ref, bin)}
           _, error -> {[error], :error}
         end)
         |> Enum.into([])
 
       case failures do
         [] ->
-          :hackney.start_response(ref)
+          case :hackney.finish_send_body(ref) do
+            :ok -> ref |> :hackney.start_response() |> read_streamed_body()
+            error -> error
+          end
 
         [failure] ->
           failure
@@ -981,6 +983,35 @@ defmodule HTTPoison.Base do
   defp do_request(request, hn_options) do
     :hackney.request(request.method, request.url, request.headers, request.body, hn_options)
   end
+
+  defp read_streamed_body({:ok, status_code, headers, conn}) when is_pid(conn) do
+    case :hackney.body(conn) do
+      {:ok, body} -> {:ok, status_code, headers, body}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp read_streamed_body(other), do: other
+
+  # hackney 4.0 encodes an empty chunk as the chunked-transfer terminator
+  # (`0\r\n\r\n`), which prematurely ends the request body. Skip empty chunks so
+  # streaming enumerables that yield empty segments don't truncate the request.
+  defp send_body_chunk(ref, chunk) do
+    if empty_chunk?(chunk), do: :ok, else: :hackney.send_body(ref, chunk)
+  end
+
+  defp empty_chunk?(chunk) when is_binary(chunk), do: byte_size(chunk) == 0
+  defp empty_chunk?(chunk) when is_list(chunk), do: IO.iodata_length(chunk) == 0
+  defp empty_chunk?(_chunk), do: false
+
+  defp truncate_body(body, :infinity), do: body
+
+  defp truncate_body(body, max_length)
+       when is_integer(max_length) and max_length >= 0 and byte_size(body) > max_length do
+    :binary.part(body, 0, max_length)
+  end
+
+  defp truncate_body(body, _max_length), do: body
 
   defp response(
          process_response_status_code,
@@ -1001,32 +1032,6 @@ defmodule HTTPoison.Base do
        request_url: request.url
      }
      |> process_response.()}
-  end
-
-  defp maybe_redirect(
-         process_response_status_code,
-         process_response_headers,
-         status_code,
-         headers,
-         request
-       ) do
-    {:ok,
-     %MaybeRedirect{
-       status_code: process_response_status_code.(status_code),
-       headers: process_response_headers.(headers),
-       request: request,
-       request_url: request.url,
-       redirect_url: get_header(headers, "Location", nil)
-     }}
-  end
-
-  defp get_header(headers, key, default) do
-    key = String.downcase(key)
-
-    Enum.find_value(headers, default, fn
-      {k, v} -> if String.downcase(k) == key, do: v, else: nil
-      _ -> nil
-    end)
   end
 
   def maybe_process_form({:form, body}) do
