@@ -499,7 +499,7 @@ defmodule HTTPoisonTest do
     test "invalid common name" do
       assert {:error,
               %HTTPoison.Error{
-                reason: {:tls_alert, {:handshake_failure, reason}}
+                reason: {:tls_alert, {_alert, reason}}
               }} = HTTPoison.get("https://wrong.host.badssl.com/")
 
       assert to_string(reason) =~ ~r"hostname_check_failed"
