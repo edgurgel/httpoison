@@ -517,7 +517,19 @@ defmodule HTTPoisonBaseTest do
   end
 
   defp expect_hackney_post_with_proxy(url, proxy) do
-    expect_hackney_post(url, proxy: proxy)
+    if String.starts_with?(url, "https://") do
+      expect(:hackney, :request, fn :post, ^url, [], "body", options ->
+        assert options[:proxy] == proxy
+        assert options[:ssl_options][:verify] == :verify_peer
+        assert is_list(options[:ssl_options][:cacerts])
+
+        {:ok, 200, "headers", :client}
+      end)
+
+      expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+    else
+      expect_hackney_post(url, proxy: proxy)
+    end
   end
 
   defp expect_hackney_post_with_no_proxy(url) do
@@ -585,6 +597,36 @@ defmodule HTTPoisonBaseTest do
                  url: "http://localhost"
                }
              }
+  end
+
+  test "https requests use public key CA certs by default" do
+    expect(:hackney, :request, fn :get, "https://localhost", [], "", [ssl_options: opts] ->
+      assert opts[:verify] == :verify_peer
+      assert opts[:customize_hostname_check][:match_fun]
+      assert is_list(opts[:cacerts])
+      assert opts[:cacerts] == :public_key.cacerts_get()
+
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert %HTTPoison.Response{status_code: 200} = HTTPoison.get!("https://localhost")
+  end
+
+  test "explicit cacertfile is not replaced by public key CA certs" do
+    expect(:hackney, :request, fn :get, "https://localhost", [], "", [ssl_options: opts] ->
+      assert opts[:verify] == :verify_peer
+      refute Keyword.has_key?(opts, :cacerts)
+      assert opts[:cacertfile] == "certs/ca.crt"
+
+      {:ok, 200, "headers", :client}
+    end)
+
+    expect(:hackney, :body, fn _, _ -> {:ok, "response"} end)
+
+    assert %HTTPoison.Response{status_code: 200} =
+             HTTPoison.get!("https://localhost", [], ssl: [cacertfile: "certs/ca.crt"])
   end
 
   test "passing follow_redirect option" do
