@@ -20,6 +20,11 @@ end
 
 and run `$ mix deps.get`.
 
+### Requirements
+
+HTTPoison 3.x depends on hackney 4.0, which requires **Erlang/OTP 27 or later**
+(and therefore Elixir 1.17 or later). Older OTP releases are not supported.
+
 ## Upgrading to 2.x.x
 
 The main change that caused a major version is that `ssl` option now _merges_ with the default options where previously it would override the ssl options. The new option `ssl_override` was added to allow people to keep the previous behaviour but it's more explicit now.

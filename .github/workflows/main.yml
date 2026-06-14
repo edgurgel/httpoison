@@ -31,10 +31,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - otp: 25.1
-            elixir: 1.14.1
           - otp: 27.0
-            elixir: 1.18.3
+            elixir: 1.17.3
+          - otp: 28.0
+            elixir: 1.18.4
             coverage: true
     env:
       MIX_ENV: test

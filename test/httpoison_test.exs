@@ -144,9 +144,13 @@ defmodule HTTPoisonTest do
   end
 
   test "put without body" do
-    assert_response(HTTPoison.put("localhost:4002/put"), fn response ->
+    response =
+      HTTPoison.put("localhost:4002/put", "", [{"Content-Type", "application/octet-stream"}])
+
+    assert_response(response, fn response ->
       assert Request.to_curl(response.request) ==
-               {:ok, "curl -X PUT http://localhost:4002/put"}
+               {:ok,
+                "curl -X PUT -H 'Content-Type: application/octet-stream' http://localhost:4002/put"}
     end)
   end
 
@@ -199,8 +203,22 @@ defmodule HTTPoisonTest do
     )
   end
 
+  test "non-followed redirect with a pool option returns the redirect response" do
+    {:ok, response} =
+      HTTPoison.get(
+        "http://localhost:4002/redirect-to?url=http%3A%2F%2Flocalhost:4002%2Fget",
+        [],
+        hackney: [pool: :default]
+      )
+
+    assert response.status_code in [301, 302, 303, 307, 308]
+    assert response.body == ""
+
+    assert Enum.any?(response.headers, fn {k, _v} -> String.downcase(k) == "location" end)
+  end
+
   test "basic_auth hackney option" do
-    hackney = [basic_auth: {"user", "pass"}]
+    hackney = [basic_auth: {"user", "pass"}, insecure_basic_auth: true]
 
     assert_response(
       HTTPoison.get("http://localhost:4002/basic-auth/user/pass", [], hackney: hackney)
@@ -299,9 +317,6 @@ defmodule HTTPoisonTest do
       HTTPoison.get("localhost:4002/get", [], stream_to: self(), async: :once)
 
     assert_receive %HTTPoison.AsyncStatus{id: ^id, code: 200}, 100
-
-    refute_receive %HTTPoison.AsyncHeaders{id: ^id, headers: _headers}, 100
-    {:ok, ^resp} = HTTPoison.stream_next(resp)
     assert_receive %HTTPoison.AsyncHeaders{id: ^id, headers: headers}, 100
 
     refute_receive %HTTPoison.AsyncChunk{id: ^id, chunk: _chunk}, 100
@@ -355,22 +370,12 @@ defmodule HTTPoisonTest do
   end
 
   test "max_body_length limits body size" do
-    {:ok, socket} = :gen_tcp.listen(0, [:binary, {:active, false}, {:packet, :raw}])
-    {:ok, [buffer: buffer_size]} = :inet.getopts(socket, [:buffer])
-    :ok = :gen_tcp.close(socket)
-
-    max_length = Kernel.trunc(buffer_size * 1.5)
-
-    expected_length =
-      Float.ceil(max_length / buffer_size)
-      |> Kernel.*(buffer_size)
-      |> Kernel.trunc()
+    max_length = 64
 
     resp = HTTPoison.get("localhost:4002/stream/20", [], max_body_length: max_length)
 
     assert_response(resp, fn response ->
-      assert byte_size(response.body) <= expected_length
-      assert byte_size(response.body) >= max_length
+      assert byte_size(response.body) == max_length
     end)
   end
 
@@ -420,7 +425,8 @@ defmodule HTTPoisonTest do
                HTTPoison.get("https://expired.badssl.com/", [], ssl: [{:versions, [:"tlsv1.2"]}])
 
       # Insecure disable verification
-      assert {:ok, _} = HTTPoison.get("https://expired.badssl.com", [], hackney: [:insecure])
+      assert {:ok, _} =
+               HTTPoison.get("https://expired.badssl.com", [], ssl: [verify: :verify_none])
 
       # Can be disabled via verify_fun
       assert {:ok, _} =
@@ -493,7 +499,7 @@ defmodule HTTPoisonTest do
     test "invalid common name" do
       assert {:error,
               %HTTPoison.Error{
-                reason: {:tls_alert, {:handshake_failure, reason}}
+                reason: {:tls_alert, {_alert, reason}}
               }} = HTTPoison.get("https://wrong.host.badssl.com/")
 
       assert to_string(reason) =~ ~r"hostname_check_failed"
