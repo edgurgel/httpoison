@@ -184,32 +184,32 @@ end
 
 defmodule HTTPoison.AsyncResponse do
   defstruct id: nil
-  @type t :: %__MODULE__{id: reference}
+  @type t :: %__MODULE__{id: pid}
 end
 
 defmodule HTTPoison.AsyncStatus do
   defstruct id: nil, code: nil
-  @type t :: %__MODULE__{id: reference, code: integer}
+  @type t :: %__MODULE__{id: pid, code: integer}
 end
 
 defmodule HTTPoison.AsyncHeaders do
   defstruct id: nil, headers: []
-  @type t :: %__MODULE__{id: reference, headers: list}
+  @type t :: %__MODULE__{id: pid, headers: list}
 end
 
 defmodule HTTPoison.AsyncChunk do
   defstruct id: nil, chunk: nil
-  @type t :: %__MODULE__{id: reference, chunk: binary}
+  @type t :: %__MODULE__{id: pid, chunk: binary}
 end
 
 defmodule HTTPoison.AsyncRedirect do
   defstruct id: nil, to: nil, headers: []
-  @type t :: %__MODULE__{id: reference, to: String.t(), headers: list}
+  @type t :: %__MODULE__{id: pid, to: String.t(), headers: list}
 end
 
 defmodule HTTPoison.AsyncEnd do
   defstruct id: nil
-  @type t :: %__MODULE__{id: reference}
+  @type t :: %__MODULE__{id: pid}
 end
 
 defmodule HTTPoison.MaybeRedirect do
@@ -236,7 +236,7 @@ end
 
 defmodule HTTPoison.Error do
   defexception reason: nil, id: nil
-  @type t :: %__MODULE__{id: reference | nil, reason: any}
+  @type t :: %__MODULE__{id: pid | nil, reason: any}
 
   def message(%__MODULE__{reason: reason, id: nil}), do: inspect(reason)
   def message(%__MODULE__{reason: reason, id: id}), do: "[Reference: #{id}] - #{inspect(reason)}"
