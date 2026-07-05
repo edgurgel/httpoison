@@ -636,7 +636,6 @@ defmodule HTTPoison.Base do
       def stream_next(resp = %AsyncResponse{id: id}) do
         case :hackney.stream_next(id) do
           :ok -> {:ok, resp}
-          err -> {:error, %Error{reason: "stream_next/1 failed", id: id}}
         end
       end
 
@@ -941,7 +940,7 @@ defmodule HTTPoison.Base do
               request
             )
 
-          {:ok, id} when is_reference(id) or is_pid(id) ->
+          {:ok, id} when is_pid(id) ->
             {:ok, %HTTPoison.AsyncResponse{id: id}}
 
           {:error, reason} ->
