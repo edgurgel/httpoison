@@ -2,6 +2,9 @@
 
 Check https://github.com/edgurgel/httpoison/releases
 
+# 3.0.1 (2026-11-13)
+* Fix Dialyzer warnings: the `id` in `HTTPoison.AsyncResponse`, the other `Async*` structs and `HTTPoison.Error` is now typed as `pid` (what hackney 4 returns) instead of `reference`
+
 # 3.0.0 (2026-06-14)
 * Upgrade to hackney 4.0, which fixes several CVEs (atom-table exhaustion via URL schemes, HTTP header injection, WebSocket buffer limits and more)
 * Response bodies now come straight from hackney; `max_body_length` is trimmed on our side
