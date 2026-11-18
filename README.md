@@ -227,7 +227,7 @@ HTTPoison.get("httpbin.org/get", [], hackney: [pool: :second_pool])
 
 #### Explicit pool creation
 
-If you want to use different configuration options you can create a pool manually [when your app starts](https://elixir-lang.org/getting-started/mix-otp/supervisor-and-application.html#the-application-callback) with `:hackney_pool.start_pool/2`.
+If you want to use different configuration options you can create a pool manually [when your app starts](https://elixir.hexdocs.pm/supervisor-and-application.html#the-application-callback) with `:hackney_pool.start_pool/2`.
 
 ```elixir
 :ok = :hackney_pool.start_pool(:first_pool, [timeout: 15000, max_connections: 100])
@@ -323,7 +323,7 @@ iex(2)> HTTPoison.Handlers.Multipart.decode_body(response)
 ]
 ```
 
-For more complex queries regarding multipart response parsing, you should follow the [hackney docs for the `hackney_multipart` API](https://github.com/benoitc/hackney/blob/master/doc/hackney_multipart.md).
+For more complex queries regarding multipart response parsing, you should follow the [hackney docs for the `hackney_multipart` API](https://hackney.hexdocs.pm/hackney_multipart.html).
 
 ### Logging
 
