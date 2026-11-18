@@ -29,11 +29,12 @@ defmodule HTTPoison.Request do
     * `:socks5_user`- socks5 username
     * `:socks5_pass`- socks5 password
     * `:ssl` - SSL options supported by the `ssl` erlang module. SSL defaults will be used where options
-      are not specified. Note: under hackney 4.0 the bare `verify: :verify_none` idiom no longer disables
-      certificate verification on its own, because hackney injects its own hostname-checking `verify_fun`
-      that OTP still invokes. HTTPoison detects `verify: :verify_none` given without a custom `:verify_fun`
-      and injects a permissive one so verification is actually skipped. Supply your own `:verify_fun` for
-      finer-grained control.
+      are not specified. When available, trusted CA certificates default to the OS trust store loaded by
+      `:public_key.cacerts_get/0`. Note: under hackney 4.0 the bare `verify: :verify_none` idiom no longer
+      disables certificate verification on its own, because hackney injects its own hostname-checking
+      `verify_fun` that OTP still invokes. HTTPoison detects `verify: :verify_none` given without a custom
+      `:verify_fun` and injects a permissive one so verification is actually skipped. Supply your own
+      `:verify_fun` for finer-grained control.
     * `:ssl_override` - if `:ssl` is specified, this option is ignored, otherwise it can be used to
       completely override SSL settings.
     * `:follow_redirect` - a boolean that causes redirects to be followed (resolved internally by
